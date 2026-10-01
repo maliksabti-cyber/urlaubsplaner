@@ -73,6 +73,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .chip{--c:#888;display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:26px;padding:0 8px;border-radius:6px;background:var(--c);color:#fff;font:700 15px/1 var(--f-display);letter-spacing:.04em;text-transform:uppercase}
 .chip.free{background:var(--free-bg);color:var(--free-ink);border:1px solid var(--free-bd)}
 .chip.dark{color:#16222B}
+.chip.deep{box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
 
 /* Heute */
 .today{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
@@ -131,6 +132,13 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .gnum{width:28px;height:28px;flex:none;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-weight:800;font-size:14px}
 .gstep.done .gnum{background:var(--ok)}
 .gstep .btn{flex:none;padding:7px 10px;font-size:13px}
+.gstep{flex-wrap:wrap}.gstep .grow{flex:1 1 60%}
+.gstep .ck{width:34px;height:34px;font-size:15px}
+.goalgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.goalbtn{display:grid;gap:2px;justify-items:start;text-align:left;border:1px solid var(--rule);background:var(--paper);border-radius:12px;padding:10px}
+.goalbtn .gi{font-size:22px;line-height:1}
+.goalbtn b{font-size:14px;line-height:1.2}
+.goalbtn small{color:var(--soft);font-size:12px;line-height:1.25}
 #help{font-weight:800;font-size:18px}
 .news{border-color:var(--accent)}
 .newsrow{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--rule);background:none;padding:10px 0}
@@ -453,12 +461,12 @@ function defaults(){
   const t=TODAY();
   return { v:1, example:true, land:"NW", holFree:false, showFerien:true, vacPerYear:30, carry:{},
     types:[
-      {id:"F",name:"Frühschicht",short:"F",color:"#E0A100",start:"06:00",end:"14:00",pause:30,kind:"work"},
+      {id:"F",name:"Tagschicht",short:"T",color:"#1C6DD0",start:"06:00",end:"14:00",pause:30,kind:"work"},
       {id:"S",name:"Spätschicht",short:"S",color:"#E8590C",start:"14:00",end:"22:00",pause:30,kind:"work"},
-      {id:"N",name:"Nachtschicht",short:"N",color:"#4A3FB5",start:"22:00",end:"06:00",pause:30,kind:"work"},
+      {id:"N",name:"Nachtschicht",short:"N",color:"#111111",start:"22:00",end:"06:00",pause:30,kind:"work"},
       {id:"U",name:"Urlaub",short:"U",color:"#2E8B57",start:"",end:"",pause:0,kind:"vac"},
       {id:"K",name:"Krank",short:"K",color:"#C2185B",start:"",end:"",pause:0,kind:"sick"},
-      {id:"X",name:"Frei",short:"X",color:"#6B7A85",start:"",end:"",pause:0,kind:"free"}],
+      {id:"X",name:"Frei",short:"F",color:"#6B7A85",start:"",end:"",pause:0,kind:"free"}],
     rots:[{id:"r1",name:"Wechselschicht 2-2-2 / 4 frei",start:addD(mondayOnOrBefore(t),-360),pattern:["F","F","S","S","N","N",null,null,null,null]}],
     ov:{}, notes:{}, vacs:[], tpls:[] };
 }
@@ -467,12 +475,15 @@ S=null;
 
 const typeOf=id=>S.types.find(t=>t.id===id)||null;
 function isDark(hex){ const h=hex.replace("#",""); const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16); return (r*299+g*587+b*114)/1000>165; }
-function chip(t,extra){ const c=el("span","chip"+(extra?" "+extra:"")); if(!t||t.kind==="free"){ c.classList.add("free"); c.textContent=t?t.short:"–"; if(t) c.title=t.name; return c; } c.style.setProperty("--c",t.color); if(isDark(t.color)) c.classList.add("dark"); c.textContent=t.short; c.title=t.name; return c; }
+function isDeep(hex){ const h=String(hex||"").replace("#",""); if(h.length!==6) return false; const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16); return (r*299+g*587+b*114)/1000<40; }
+function chip(t,extra){ const c=el("span","chip"+(extra?" "+extra:"")); if(!t||t.kind==="free"){ c.classList.add("free"); c.textContent=t?t.short:((S.types.find(x=>x.kind==="free")||{}).short||"–"); if(t) c.title=t.name; return c; } c.style.setProperty("--c",t.color); if(isDark(t.color)) c.classList.add("dark"); if(isDeep(t.color)) c.classList.add("deep"); c.textContent=t.short; c.title=t.name; return c; }
 function rotAt(s){ let best=null; for(const r of S.rots){ const f=r.from||r.start; if(f<=s && (!r.end || s<=r.end) && r.pattern.length && (!best || f>(best.from||best.start))) best=r; } return best; }
 function baseShift(s){ const r=rotAt(s); if(!r) return null; const n=r.pattern.length, i=((diffD(r.start,s)%n)+n)%n; const id=r.pattern[i]; const t=id?typeOf(id):null;
   if(t && t.kind==="work" && S.holFree && holName(s)) return null;
   if(t && t.kind==="work" && S.weekendFree){ const w=parse(s).getDay(); if(w===0||w===6) return null; } return t; }
-function cleanTypes(){ const fx=S.types.find(t=>t.id==="X"&&t.name==="Frei (getauscht)"); if(fx) fx.name="Frei";
+function cleanTypes(){ if(!S.tagMig){ S.tagMig=1; const f=S.types.find(t=>t.id==="F"&&/^Frühschicht$/i.test(t.name)); if(f){ f.name="Tagschicht"; if(f.short==="F") f.short="T"; if(/^#E0A100$/i.test(f.color)) f.color="#1C6DD0"; }
+    const n=S.types.find(t=>t.id==="N"&&/^#4A3FB5$/i.test(t.color)); if(n) n.color="#111111"; const x=S.types.find(t=>t.kind==="free"&&t.short==="X"); if(x) x.short="F"; }
+  const fx=S.types.find(t=>t.id==="X"&&t.name==="Frei (getauscht)"); if(fx) fx.name="Frei";
   const T=S.types.find(t=>t.id==="T"&&t.name==="Tagschicht"); if(T){ const used=(S.rots||[]).some(r=>r.pattern.includes("T"))||Object.values(S.ov).includes("T")||(S.tpls||[]).some(x=>x.weeks.flat().includes("T")); if(!used){ S.types=S.types.filter(t=>t!==T); } } }
 /* Schichtart löschen – mit Nachfrage */
 function deleteType(t,after){
@@ -535,18 +546,18 @@ function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("d
 
 /* ---------- Heute ---------- */
 function renderHeute(){
-  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box); const gOn=guideCard(box); if(!gOn) newsCard(box);
+  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box); const gOn=lotseCard(box); if(!gOn) newsCard(box);
   if(!gOn && backupDue() && dlNs){ const b=el("div","banner"); const t=el("span","grow"); t.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(t,go); box.append(b); }
   const t=TODAY(), sh=shiftOf(t), hn=holName(t);
   const c=el("div","card today");
-  const big=el("div","big"); if(sh){ big.style.background=sh.color; if(isDark(sh.color)) big.classList.add("dark"); big.textContent=sh.short; } else { big.classList.add("free"); big.textContent="–"; } if(dayKind(t)==="v"&&(!sh||sh.kind!=="vac")){ big.classList.remove("free"); big.style.background=vacColor(); big.style.color="#fff"; big.style.border="0"; } else if(dayKind(t)==="f"){ big.style.background=""; big.classList.add("free"); }
+  const big=el("div","big"); if(sh){ big.style.background=sh.color; if(isDark(sh.color)) big.classList.add("dark"); big.textContent=sh.short; } else { big.classList.add("free"); big.textContent=(S.types.find(x=>x.kind==="free")||{}).short||"–"; } if(dayKind(t)==="v"&&(!sh||sh.kind!=="vac")){ big.classList.remove("free"); big.style.background=vacColor(); big.style.color="#fff"; big.style.border="0"; } else if(dayKind(t)==="f"){ big.style.background=""; big.classList.add("free"); }
   const info=el("div"); info.append(el("div","muted",fmt(t)+(hn?" · "+hn:"")), el("div","t1",sh?sh.name:"Frei"));
   if(sh && sh.kind==="work" && sh.start) info.append(el("div","mono muted",sh.start+" – "+sh.end+" · "+hStr(minutes(sh))));
   const nt=S.notes[t]; if(nt) info.append(el("div",null,"📝 "+nt));
   c.append(big,info); c.onclick=()=>openDay(t); c.style.cursor="pointer"; box.append(c);
   // Woche
   const wk=el("div","card"); wk.append(el("h3",null,"Nächste 7 Tage")); const w=el("div","week");
-  for(let i=0;i<7;i++){ const s=addD(t,i), x=shiftOf(s), b=el("button"); b.type="button"; if(i===0) b.classList.add("now"); markDay(b,s); b.append(el("span",null,DOW[parse(s).getDay()]+" "+parse(s).getDate()), x?chip(x):el("span","chip blank")); b.onclick=()=>openDay(s); w.append(b); }
+  for(let i=0;i<7;i++){ const s=addD(t,i), x=shiftOf(s), b=el("button"); b.type="button"; if(i===0) b.classList.add("now"); markDay(b,s); b.append(el("span",null,DOW[parse(s).getDay()]+" "+parse(s).getDate()), chip(x)); b.onclick=()=>openDay(s); w.append(b); }
   wk.append(w); box.append(wk);
   const qa=el("div","quick"); [["✎","Schichten eintragen",()=>{ show("kal"); setSel(true); }],["↻","Mein Rhythmus",()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }],["☀","Urlaub eintragen",()=>openVac()],["⇪","Plan teilen",()=>openShare()]].forEach(([i,t,fn])=>{ const b=el("button","qbtn"); b.type="button"; b.append(el("span","qi",i),el("span",null,t)); b.onclick=fn; qa.append(b); }); box.insertBefore(qa,wk);
   // Nächste freie Tage & nächster Urlaub
@@ -607,7 +618,7 @@ function dayKind(s){ const x=shiftOf(s); if(x&&x.kind==="vac") return "v"; if(!x
 const vacColor=()=>(vacType()||{color:"#2E8B57"}).color;
 function markDay(c,s){ c.classList.remove("vday","fday"); const k=dayKind(s); if(k==="v"){ c.classList.add("vday"); c.style.setProperty("--vbg",vacColor()); } else if(k==="f") c.classList.add("fday"); }
 function fillCell(c,s){ markDay(c,s); c.innerHTML=""; const d=parse(s), x=shiftOf(s), hn=holName(s);
-  c.append(el("span","dn",String(d.getDate()))); c.append(x?chip(x):el("span","chip blank")); if(x && x.kind==="work" && x.start) c.append(el("span","tm",x.start)); else if(hn) c.append(el("span","hn",hn));
+  c.append(el("span","dn",String(d.getDate()))); c.append(chip(x)); if(x && x.kind==="work" && x.start) c.append(el("span","tm",x.start)); else if(hn) c.append(el("span","hn",hn));
   if(Object.prototype.hasOwnProperty.call(S.ov,s) && (S.rots||[]).length) c.append(el("i","ovr")); if(S.notes[s]) c.append(el("i","nt")); const fr=ferien(s); if(fr){ c.append(el("i","fer")); c.title=fr[2]; } if(bothFree(s)) c.append(el("i","both","♥"));
   c.setAttribute("aria-label",fmt(s)+": "+(x?x.name:"frei")+(hn?", "+hn:"")); }
 let brush=null; const undoStack=[];
@@ -760,9 +771,9 @@ function renderStat(){
 const PRESETS=[
   ["2-2-2 + 4 frei",["F","F","S","S","N","N",null,null,null,null]],
   ["3-3-3 + 3 frei",["F","F","F","S","S","S","N","N","N",null,null,null]],
-  ["Früh/Spät wöchentlich (Mo–Fr)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],
-  ["Früh/Spät/Nacht wöchentlich",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],
-  ["Mo–Fr Frühschicht",["F","F","F","F","F",null,null]],
+  ["Tag/Spät wöchentlich (Mo–Fr)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],
+  ["Tag/Spät/Nacht wöchentlich",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],
+  ["Mo–Fr Tagschicht",["F","F","F","F","F",null,null]],
   ["4 Tage an, 4 frei",["F","F","F","F",null,null,null,null]]];
 let editRot=null;
 function renderSet(){
@@ -799,7 +810,7 @@ function renderSet(){
   const lc=el("div","card sec"); lc.append(el("h2",null,"Lohn & Arbeitszeit"), el("p","hint",payCfg().rate>0||+S.soll>0?("Stundenlohn "+(payCfg().rate?eur(payCfg().rate):"–")+" · Soll "+(+S.soll?String(S.soll).replace(".",",")+" h/Woche":"–")):"Für Verdienst, Zuschläge und Überstunden in der Statistik."));
   const lb=el("button","btn","Lohn & Zuschläge einstellen"); lb.type="button"; lb.onclick=()=>openPaySettings(); lc.append(lb); box.append(lc);
   // Daten
-  const dc=el("div","card sec"); dc.append(el("h2",null,"Sichern & Übertragen"));
+  const dc=el("div","card sec"); dc.id="data"; dc.tabIndex=-1; dc.append(el("h2",null,"Sichern & Übertragen"));
   dc.append(el("p","hint",CFG.localMode?"Deine Daten liegen nur auf diesem Handy. Teile hier ab und zu eine Sicherung, damit nichts verloren geht, und spiel sie bei Bedarf wieder ein.":"Deine Daten werden automatisch in deinem Konto gesichert. Zusätzlich kannst du hier eine Sicherung teilen oder einspielen."));
   const ta=el("textarea"); ta.id="backup"; ta.placeholder="Hier eine Sicherung einfügen …"; ta.setAttribute("aria-label","Sicherung");
   const r=el("div","row"); const cp=el("button","btn","Sicherung als Text kopieren"), im=el("button","btn","Sicherung einspielen"), ics=el("button","btn","Kalender-Datei (.ics) kopieren"); cp.type=im.type=ics.type="button";
@@ -964,7 +975,7 @@ function openTpl(t){
       const x=el("button","wx","✕"); x.type="button"; x.setAttribute("aria-label",(wi+1)+". Woche entfernen"); x.disabled=d.weeks.length<2; x.onclick=()=>{ d.weeks.splice(wi,1); draw(); }; g.append(x); });
     p.append(g, el("div","hint",tplStats(d.weeks)));
     const r=el("div","row"); const aw=el("button","btn","+ Woche"); aw.type="button"; aw.disabled=d.weeks.length>=12; aw.onclick=()=>{ d.weeks.push([null,null,null,null,null,null,null]); draw(); };
-    const fw=el("button","btn ghost","Mo–Fr füllen"); fw.type="button"; fw.onclick=()=>{ const w=d.weeks[d.weeks.length-1]; for(let i=0;i<5;i++) w[i]=br; draw(); }; r.append(aw,fw); p.append(r, el("p","hint","Wechselt dein Plan wöchentlich (z. B. eine Woche Früh, eine Woche Spät)? Dann mit „+ Woche“ weitere Wochen anlegen."));
+    const fw=el("button","btn ghost","Mo–Fr füllen"); fw.type="button"; fw.onclick=()=>{ const w=d.weeks[d.weeks.length-1]; for(let i=0;i<5;i++) w[i]=br; draw(); }; r.append(aw,fw); p.append(r, el("p","hint","Wechselt dein Plan wöchentlich (z. B. eine Woche Tagschicht, eine Woche Spätschicht)? Dann mit „+ Woche“ weitere Wochen anlegen."));
     // Uhrzeiten
     const dt=el("details"); dt.append(el("summary",null,"Uhrzeiten der Schichten ändern")); p.append(dt);
     const tl=el("div","tlist"); S.types.filter(x=>x.kind==="work").forEach(x=>{ const it=el("div","trow"); const a=el("input"), b=el("input"); a.type=b.type="time"; a.value=x.start||""; b.value=x.end||""; a.setAttribute("aria-label",x.name+" Beginn"); b.setAttribute("aria-label",x.name+" Ende");
@@ -1139,51 +1150,92 @@ function planImport(code){ let d=null; try{ d=JSON.parse(b64d(code)); }catch(e){
   const P=planClean(d); if(!P){ toast("Der Link ist leider beschädigt."); return; }
   ask("Plan von "+P.name+" hinzufügen?","Dann siehst du im Schichtplan, wann ihr beide frei habt (♥).",[{label:"Ja, hinzufügen",pri:true,fn:()=>{ const L=partners(); const i=L.findIndex(x=>tKey(x.name)===tKey(P.name)); if(i>=0) L[i]=P; else L.push(P); save(); render(); toast("Plan von "+P.name+" hinzugefügt"); }},{label:"Nein",fn:()=>{}}]); }
 /* Fertige Rhythmus-Vorlagen */
-const RHYTHM_PRESETS=[["2-2-2 + 4 frei","Konti-Schicht, 10 Tage",["F","F","S","S","N","N",null,null,null,null]],["3-3-3 + 3 frei","12-Tage-Rhythmus",["F","F","F","S","S","S","N","N","N",null,null,null]],["4 Tage an, 4 frei","8-Tage-Rhythmus",["F","F","F","F",null,null,null,null]],["Früh/Spät im Wochenwechsel","eine Woche früh, eine Woche spät",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],["Früh/Spät/Nacht wöchentlich","3-Wochen-Wechsel",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],["Mo–Fr Frühschicht","Wochenende frei",["F","F","F","F","F",null,null]]];
+const RHYTHM_PRESETS=[["2-2-2 + 4 frei","Konti-Schicht, 10 Tage",["F","F","S","S","N","N",null,null,null,null]],["3-3-3 + 3 frei","12-Tage-Rhythmus",["F","F","F","S","S","S","N","N","N",null,null,null]],["4 Tage an, 4 frei","8-Tage-Rhythmus",["F","F","F","F",null,null,null,null]],["Tag/Spät im Wochenwechsel","eine Woche Tag-, eine Woche Spätschicht",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],["Tag/Spät/Nacht wöchentlich","3-Wochen-Wechsel",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],["Mo–Fr Tagschicht","Wochenende frei",["F","F","F","F","F",null,null]]];
 /* ===================== Schritt für Schritt ===================== */
 function gFlag(k){ return !!(S.guide&&S.guide[k]); }
 function gSet(k){ if(!S.guide) S.guide={}; if(S.guide[k]) return; S.guide[k]=true; histMute=true; save(); histMute=false; }
 function planYear(){ const y=new Date().getFullYear(); return new Date().getMonth()>=9 ? y+1 : y; }
-const GUIDE=[
-  {k:"plan",t:"Schichtplan eintragen",w:"Alles andere baut darauf auf: Urlaubstage, Stunden und Verdienst werden aus deinem Plan berechnet.",b:"Rhythmus eintragen",
-   done:()=>(S.rots||[]).length>0 || Object.keys(S.ov).filter(k=>k>=addD(TODAY(),-31)).length>=5,
-   go:()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }},
-  {k:"times",t:"Uhrzeiten prüfen",w:"Stimmen Beginn, Ende und Pause deiner Schichten? Davon hängen Stunden, Zuschläge und Erinnerungen ab.",b:"Uhrzeiten ansehen",
-   done:()=>gFlag("times"), go:()=>{ gSet("times"); goSettings("types"); }},
-  {k:"vac",t:"Urlaubstage prüfen",w:"Wie viele Tage hast du pro Jahr, und wie viele sind vom letzten Jahr übrig?",b:"Urlaubstage prüfen",
-   done:()=>gFlag("vac"), go:()=>{ gSet("vac"); openVacSettings(new Date().getFullYear()); }},
-  {k:"fixed",t:"Feste Termine eintragen",w:"Hast du schon Urlaub, der feststeht (gebucht, Hochzeit, Kita-Schließzeit)? Den zuerst eintragen – dann plant die App drumherum.",b:"Urlaub eintragen",opt:true,
-   done:()=>vacList().some(v=>v.e>=TODAY()), go:()=>openVac()},
-  {k:"calc",get t(){ return "Urlaub "+planYear()+" clever planen"; },w:"Die App sucht Tage, mit denen du aus wenig Urlaub möglichst viel frei bekommst – passend zu deinem Rhythmus.",b:"Urlaub berechnen",
-   done:()=>{ const y=planYear(); return gFlag("calc") || (vacTotal(y)>0 && vacTotal(y)-vacUsed(y)<=0); }, go:()=>{ gSet("calc"); agState.year=planYear(); openAgent(); }},
-  {k:"team",t:"Mit dem Team abstimmen",w:"Sieh, wer wann Urlaub hat, damit nicht zu viele gleichzeitig fehlen.",b:"Zum Team",opt:true,
-   done:()=>!!ts, go:()=>{ closeSheet(); show("team"); }},
-  {k:"remind",t:"Erinnerung einrichten",w:"Dein Handy-Kalender erinnert dich vor jeder Schicht.",b:"Erinnerung einrichten",opt:true,
-   done:()=>+S.remind>0 && gFlag("calx"), go:()=>goSettings("remind")},
-  {k:"pay",t:"Lohn eintragen",w:"Sieh, was du mit Zuschlägen ungefähr verdienst und ob du Überstunden hast.",b:"Lohn eintragen",opt:true,
-   done:()=>payCfg().rate>0, go:()=>openPaySettings()},
-  {k:"backup",t:"Sichern",w:"Deine Daten liegen nur auf diesem Handy. Schick dir die Sicherung z. B. per WhatsApp selbst.",b:"Jetzt sichern",
-   done:()=>!!S.lastBackup && diffD(S.lastBackup,TODAY())<14, go:()=>jsonSave()}];
-const gDone=g=>g.done()||gFlag("skip_"+g.k);
-function guideList(onlyOpen){ const box=el("div","glist"); GUIDE.forEach((g,i)=>{ const d=gDone(g); if(onlyOpen&&d) return; const r=el("div","gstep"+(d?" done":""));
-  r.append(el("span","gnum",d?"✓":String(i+1))); const tx=el("div","grow"); tx.append(el("b",null,g.t+(g.opt?" (optional)":"")),el("small",null,g.w)); r.append(tx);
-  if(!d){ const go=el("button","btn",g.b); go.type="button"; go.onclick=g.go; r.append(go); } box.append(r); }); return box; }
-function guideCard(box){ const open=GUIDE.filter(g=>!gDone(g)); if(!open.length || gFlag("hide")) return false;
-  const n=GUIDE.length-open.length, nx=open[0], i=GUIDE.indexOf(nx); const c=el("div","card sec guide");
-  const h=el("div","row"); h.append(el("h2","grow","Deine nächsten Schritte"), el("span","muted num",n+" von "+GUIDE.length)); c.append(h);
-  const m=el("div","meter"), bar=el("i"); bar.style.width=(n/GUIDE.length*100)+"%"; m.append(bar); c.append(m);
-  const st=el("div","gnext"); st.append(el("span","gnum",String(i+1))); const tx=el("div","grow"); tx.append(el("b",null,nx.t),el("small",null,nx.w)); st.append(tx); c.append(st);
-  const row=el("div","row"); const go=el("button","btn pri grow",nx.b); go.type="button"; go.onclick=nx.go; row.append(go);
-  if(nx.opt){ const sk=el("button","btn ghost","Überspringen"); sk.type="button"; sk.onclick=()=>{ gSet("skip_"+nx.k); renderHeute(); }; row.append(sk); } c.append(row);
-  const all=el("details"); all.append(el("summary",null,"Alle Schritte anzeigen"), guideList()); const hide=el("button","linkbtn","Diese Hilfe ausblenden (unter ? wieder zu finden)"); hide.type="button"; hide.onclick=()=>{ gSet("hide"); renderHeute(); }; all.append(hide); c.append(all);
+/* ===================== Lotse: Ziel wählen → Schritte abarbeiten ===================== */
+const futVac=()=>vacList().some(v=>v.e>=TODAY());
+const S_={ /* wiederverwendbare Schritte */
+  rhythm:{t:"Schichtplan eintragen",w:"Trag deinen Rhythmus ein (z. B. Vorlage 2-2-2) – dann füllt die App den Kalender automatisch.",b:"Rhythmus eintragen",done:()=>(S.rots||[]).length>0||Object.keys(S.ov).filter(k=>k>=addD(TODAY(),-31)).length>=5,go:()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }},
+  times:{t:"Uhrzeiten & Pausen prüfen",w:"Stimmen Beginn, Ende und Pause deiner Schichten? Bei der Schicht auf „Ändern“ tippen.",b:"Uhrzeiten ansehen",go:()=>goSettings("types")},
+  vacdays:{t:"Urlaubstage prüfen",w:"Stimmt dein Anspruch und der Resturlaub vom letzten Jahr?",b:"Urlaubstage prüfen",go:()=>openVacSettings(planYear())},
+  land:{t:"Bundesland prüfen",w:"Damit Feiertage (und in NRW die Schulferien) stimmen.",b:"Bundesland ansehen",go:()=>goSettings("land")},
+  fixed:{t:"Feste Termine eintragen",w:"Urlaub, der schon feststeht (gebucht, Hochzeit, Kita zu) – zuerst eintragen, dann wird drumherum geplant.",b:"Urlaub eintragen",opt:true,done:futVac,go:()=>openVac()},
+  calc:{get t(){ return "Urlaub "+planYear()+" berechnen"; },w:"Tippe an, was dir wichtig ist (z. B. Sommerferien + Brückentage). Die App zeigt, wie du mit wenig Urlaubstagen am meisten frei hast.",b:"Urlaub berechnen",go:()=>{ agState.year=planYear(); openAgent(); }},
+  enter:{t:"Vorschlag eintragen",w:"Im Urlaubsrechner unten auf „Eintragen“ tippen – oder Urlaub selbst eintragen.",b:"Urlaubsrechner öffnen",done:()=>{ const y=planYear(); return vacList().some(v=>v.a.slice(0,4)===String(y)||v.e.slice(0,4)===String(y)); },go:()=>{ agState.year=planYear(); openAgent(); }},
+  teamlogin:{t:"Im Team anmelden",w:"Mit deinem Konto vom Team-Urlaubsplaner – oder neues Konto erstellen.",b:"Zum Team",done:()=>!!ts,go:()=>{ closeSheet(); show("team"); }},
+  approved:{t:"Freigabe abwarten",w:"Dein Chef gibt dich frei. Danach siehst du den Urlaub der Kollegen. Ab und zu auf „Aktualisieren“ tippen.",b:"Team ansehen",done:()=>teamOn(),go:()=>{ closeSheet(); show("team"); if(ts) teamLoad(); }},
+  teamlook:{t:"Wer ist wann weg?",w:"Schau unter „Demnächst im Urlaub“ und „Überschneidungen“, wann im Team schon viele fehlen.",b:"Team ansehen",go:()=>{ closeSheet(); show("team"); }},
+  myvac:{t:"Deinen Urlaub eintragen",w:"Von–Bis wählen. Die App warnt, wenn dann zu viele gleichzeitig fehlen.",b:"Urlaub eintragen",done:futVac,go:()=>openVac()},
+  push:{t:"Ans Team senden",w:"Damit dein Urlaub auch im Team (und im Team-Urlaubsplaner) erscheint.",b:"Zum Team",done:()=>teamOn()&&futVac()&&!teamDiff().missing.length,go:()=>{ closeSheet(); show("team"); }},
+  request:{t:"Beim Chef beantragen",w:"Falls nötig: Urlaubsliste als PDF erstellen und per Mail oder WhatsApp schicken.",b:"Urlaubsliste teilen",opt:true,go:()=>openShare()},
+  paint:{t:"Einzelne Tage ändern",w:"Schicht getauscht oder Dienst geändert? Schicht wählen und auf den Tag tippen. Zum Löschen dieselbe Schicht nochmal antippen.",b:"Schichten eintragen",go:()=>{ closeSheet(); show("kal"); setSel(true); }},
+  sick:{t:"Krank oder Sondertag eintragen",w:"Im Kalender auf den Tag tippen und „Krank“ (oder eine andere Schicht) wählen.",b:"Zum Kalender",opt:true,go:()=>{ closeSheet(); show("kal"); }},
+  rhythmchk:{t:"Rhythmus prüfen",w:"Hat sich dein Rhythmus geändert? Dann ab dem Datum neu eintragen – der alte gilt bis dahin.",b:"Mein Rhythmus",opt:true,go:()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }},
+  cal:{t:"Handy-Kalender aktualisieren",w:"Kalender-Datei neu holen, damit die Termine im Handy stimmen. Erinnerung vorher einstellen.",b:"Zum Kalender-Export",opt:true,go:()=>goSettings("remind")},
+  partnerlink:{t:"Plan neu an Partner schicken",w:"Damit „Gemeinsam frei“ beim anderen wieder stimmt.",b:"Plan schicken",opt:true,go:()=>openPartners()},
+  pay:{t:"Lohn & Zuschläge eintragen",w:"Stundenlohn und Zuschläge (Nacht, Sonntag, Feiertag) aus deinem Tarifvertrag.",b:"Lohn eintragen",done:()=>payCfg().rate>0,go:()=>openPaySettings()},
+  soll:{t:"Soll-Stunden eintragen",w:"Deine Wochenstunden laut Vertrag (z. B. 37,5) – für die Überstunden.",b:"Soll-Stunden eintragen",done:()=>+S.soll>0,go:()=>openPaySettings()},
+  stat:{t:"Statistik ansehen",w:"Verdienst, Zuschläge und Über-/Minusstunden pro Monat.",b:"Statistik öffnen",go:()=>{ closeSheet(); statY=new Date().getFullYear(); statM=new Date().getMonth(); show("stat"); }},
+  sendplan:{t:"Deinen Plan schicken",w:"Link per WhatsApp an Partner, Familie oder Freunde schicken.",b:"Plan schicken",go:()=>openPartners()},
+  getplan:{t:"Plan der anderen öffnen",w:"Die anderen schicken dir ihren Link – einfach antippen und „hinzufügen“.",b:"Gemeinsam frei öffnen",done:()=>partners().length>0,go:()=>openPartners()},
+  both:{t:"Gemeinsame freie Tage ansehen",w:"Im Schichtplan sind sie mit ♥ markiert, auf „Heute“ steht der nächste.",b:"Zum Schichtplan",go:()=>{ closeSheet(); show("kal"); }},
+  bothvac:{t:"Gemeinsamen Urlaub planen",w:"Im Urlaubsrechner Zeiten wählen, in denen ihr beide frei habt oder Urlaub nehmt.",b:"Urlaub berechnen",opt:true,go:()=>{ agState.year=planYear(); openAgent(); }},
+  limit:{t:"Grenze festlegen",w:"Unter „Verwalten“: Wie viele dürfen höchstens gleichzeitig im Urlaub sein?",b:"Zum Team",go:()=>{ closeSheet(); show("team"); }},
+  invite:{t:"Kollegen einladen",w:"Einladungslink per WhatsApp oder Mail verschicken.",b:"Kollegen einladen",go:()=>{ if(teamOn()) openInvite(); else { closeSheet(); show("team"); } }},
+  approve:{t:"Anfragen freigeben",w:"Neue Kollegen erscheinen unter „Wartet auf Freigabe“.",b:"Zum Team",done:()=>teamOn()&&team.members.filter(a=>a.approved).length>1&&!team.members.some(a=>!a.approved&&a.uid),go:()=>{ closeSheet(); show("team"); if(ts) teamLoad(); }},
+  clash:{t:"Überschneidungen prüfen",w:"Wo sind mehr Leute weg als erlaubt? Mit den Kollegen klären.",b:"Zum Team",go:()=>{ closeSheet(); show("team"); }},
+  backup:{t:"Sicherung erstellen",w:"Erstellt eine Datei mit all deinen Daten.",b:"Jetzt sichern",done:()=>!!S.lastBackup&&diffD(S.lastBackup,TODAY())<14,go:()=>jsonSave()},
+  sendself:{t:"Datei an dich selbst schicken",w:"Im Teilen-Menü z. B. WhatsApp → an dich selbst oder per Mail.",b:"Nochmal teilen",go:()=>jsonSave()},
+  newphone:{t:"Auf dem neuen Handy einspielen",w:"Dort die App öffnen → Zahnrad → „Sicherung einspielen“ → Datei wählen.",b:"Zum Einspielen",go:()=>goSettings("data")}};
+S_.teamopt={...S_.teamlogin,t:"Mit dem Team verbinden",opt:true}; S_.payopt={...S_.pay,opt:true};
+const GOALS=[
+  {id:"start",i:"🚀",t:"App einrichten",s:"Erste Schritte in der richtigen Reihenfolge",steps:["rhythm","times","vacdays","fixed","calc","teamopt","cal","payopt","backup"]},
+  {id:"plan",i:"☀️",t:"Urlaub fürs Jahr planen",s:"Möglichst viel frei mit wenig Urlaubstagen",steps:["vacdays","land","fixed","teamlook","calc","enter","push","request"]},
+  {id:"team",i:"👥",t:"Urlaub mit dem Team abstimmen",s:"Für Mitarbeiter",steps:["teamlogin","approved","teamlook","myvac","push","request"]},
+  {id:"shift",i:"📅",t:"Schichtplan ändern",s:"Tausch, Dienständerung, krank",steps:["paint","sick","rhythmchk","cal","partnerlink"]},
+  {id:"money",i:"💶",t:"Verdienst & Überstunden",s:"Was verdiene ich, wie viele Überstunden?",steps:["times","pay","soll","stat"]},
+  {id:"partner",i:"♥",t:"Frei mit Partner/Familie",s:"Sehen, wann ihr beide frei habt",steps:["sendplan","getplan","both","bothvac"]},
+  {id:"admin",i:"🧑‍💼",t:"Team leiten",s:"Für den Chef / Admin",steps:["teamlogin","limit","invite","approve","clash"]},
+  {id:"backup",i:"💾",t:"Daten sichern / Handy wechseln",s:"Nichts verlieren",steps:["backup","sendself","newphone"]}];
+const goalById=id=>GOALS.find(g=>g.id===id);
+function gMan(gid){ if(!S.gman) S.gman={}; if(!S.gman[gid]) S.gman[gid]=[]; return S.gman[gid]; }
+function stepDone(gid,k){ const st=S_[k]; return (st.done?st.done():false) || gMan(gid).includes(k); }
+function markStep(gid,k,on){ const m=gMan(gid); const i=m.indexOf(k); if(on&&i<0) m.push(k); if(!on&&i>=0) m.splice(i,1); histMute=true; save(); histMute=false; }
+function setGoal(id){ S.goal=id; histMute=true; save(); histMute=false; closeSheet(); show("heute"); window.scrollTo(0,0); }
+function activeGoal(){ if(S.goal && goalById(S.goal)) return S.goal; if(!gFlag("hide") && !gFlag("startdone") && goalById("start").steps.some(k=>!stepDone("start",k))) return "start"; return null; }
+function stepRow(gid,k,i,big){ const st=S_[k], d=stepDone(gid,k), r=el("div",(big?"gnext":"gstep")+(d?" done":""));
+  r.append(el("span","gnum",d?"✓":String(i+1))); const tx=el("div","grow"); tx.append(el("b",null,st.t+(st.opt?" (optional)":"")), el("small",null,st.w)); r.append(tx);
+  if(!big){ const go=el("button","btn",d?"Öffnen":st.b); go.type="button"; go.onclick=st.go; r.append(go); if(!st.done){ const ck=el("button","icon-btn ck",d?"↺":"✓"); ck.type="button"; ck.title=d?"Wieder offen":"Erledigt"; ck.setAttribute("aria-label",(d?"Wieder offen: ":"Erledigt: ")+st.t); ck.onclick=()=>{ markStep(gid,k,!d); renderHeute(); if(!$("#sheet").hidden) openGuide(gid); }; r.append(ck); } }
+  return r; }
+function goalCard(box,gid){ const g=goalById(gid), open=g.steps.filter(k=>!stepDone(gid,k)), n=g.steps.length-open.length; const c=el("div","card sec guide");
+  const h=el("div","row"); h.append(el("h2","grow",g.i+" "+g.t), el("span","muted num",n+" von "+g.steps.length)); c.append(h);
+  const m=el("div","meter"), bar=el("i"); bar.style.width=(n/g.steps.length*100)+"%"; m.append(bar); c.append(m);
+  if(open.length){ const k=open[0], st=S_[k]; c.append(stepRow(gid,k,g.steps.indexOf(k),true));
+    const row=el("div","row"); const go=el("button","btn pri grow",st.b+" →"); go.type="button"; go.onclick=st.go; row.append(go);
+    if(!st.done){ const ok=el("button","btn","✓ Erledigt"); ok.type="button"; ok.onclick=()=>{ markStep(gid,k,true); renderHeute(); }; row.append(ok); }
+    else if(st.opt){ const sk=el("button","btn ghost","Überspringen"); sk.type="button"; sk.onclick=()=>{ markStep(gid,k,true); renderHeute(); }; row.append(sk); }
+    c.append(row); }
+  else { c.append(el("p",null,"Geschafft! Alle Schritte erledigt. 🎉")); const fin=el("button","btn pri","Ziel abschließen"); fin.type="button"; fin.onclick=()=>{ if(gid==="start") gSet("startdone"); S.goal=null; S.gman[gid]=[]; histMute=true; save(); histMute=false; renderHeute(); }; c.append(fin); }
+  const all=el("details"); all.append(el("summary",null,"Alle Schritte anzeigen")); const gl=el("div","glist"); g.steps.forEach((k,i)=>gl.append(stepRow(gid,k,i,false))); all.append(gl); c.append(all);
+  const ch=el("button","linkbtn","Anderes Ziel wählen"); ch.type="button"; ch.onclick=()=>{ if(gid==="start") gSet("hide"); S.goal=null; histMute=true; save(); histMute=false; openGoals(); }; c.append(ch);
   box.append(c); return true; }
-function openGuide(){ openSheet(p=>{ sheetTop(p,"Schritt für Schritt"); p.append(el("p","hint","In dieser Reihenfolge holst du am meisten aus Schicht und Urlaub heraus. Erledigte Schritte werden automatisch abgehakt."), guideList());
-  if(gFlag("hide")){ const sh=el("button","btn","Auf der Startseite wieder anzeigen"); sh.type="button"; sh.onclick=()=>{ S.guide.hide=false; save(); closeSheet(); show("heute"); }; p.append(sh); } }); }
+function goalPicker(box,compact){ const c=el("div","card sec guide"); c.append(el("h2",null,"Was möchtest du machen?"), el("p","hint","Wähle ein Ziel – die App führt dich Schritt für Schritt hin."));
+  const g=el("div","goalgrid"); GOALS.forEach(x=>{ if(x.id==="start" && gFlag("startdone") && compact) return; const b=el("button","goalbtn"); b.type="button"; b.append(el("span","gi",x.i), el("b",null,x.t), el("small",null,x.s)); b.onclick=()=>setGoal(x.id); g.append(b); }); c.append(g); box.append(c); return true; }
+function lotseCard(box){ const gid=activeGoal(); if(gid) return goalCard(box,gid); if(gFlag("pickhide")) return false; goalPicker(box,true);
+  const hd=el("button","linkbtn","Ausblenden (unter ? wieder zu finden)"); hd.type="button"; hd.onclick=()=>{ gSet("pickhide"); renderHeute(); }; box.lastChild.append(hd); return true; }
+function openGoals(){ openSheet(p=>{ sheetTop(p,"Was möchtest du machen?"); p.append(el("p","hint","Wähle ein Ziel – die App führt dich Schritt für Schritt hin. Jeder Schritt hat einen Knopf, der dich direkt dorthin bringt."));
+  const g=el("div","goalgrid"); GOALS.forEach(x=>{ const b=el("button","goalbtn"); b.type="button"; b.append(el("span","gi",x.i), el("b",null,x.t), el("small",null,x.s)); b.onclick=()=>{ if(gFlag("pickhide")) S.guide.pickhide=false; setGoal(x.id); }; g.append(b); }); p.append(g); }); }
+function openGuide(gid){ gid=gid||activeGoal()||"start"; const g=goalById(gid); openSheet(p=>{ sheetTop(p,g.i+" "+g.t); p.append(el("p","hint","Erledigte Schritte werden abgehakt – automatisch oder mit ✓."));
+  const gl=el("div","glist"); g.steps.forEach((k,i)=>gl.append(stepRow(gid,k,i,false))); p.append(gl);
+  const ch=el("button","btn","Anderes Ziel wählen"); ch.type="button"; ch.onclick=openGoals; p.append(ch); }); }
 /* ===================== Hilfe & Neuigkeiten ===================== */
 function goKal(){ closeSheet(); show("kal"); }
 function goSettings(id){ closeSheet(); show("set"); if(id) setTimeout(()=>{ const e=$("#"+id); if(e){ e.scrollIntoView({block:"center"}); e.focus(); } },150); }
 const HELP=[
-  ["📅","Schichten eintragen","Schichtplan → „Schichten eintragen“. Rechts eine Schicht antippen (z. B. F), dann im Kalender auf die Tage tippen oder mit dem Finger darüberwischen. Fertig mit „Fertig“.",()=>{ closeSheet(); show("kal"); setSel(true); }],
+  ["📅","Schichten eintragen","Schichtplan → „Schichten eintragen“. Rechts eine Schicht antippen (z. B. T), dann im Kalender auf die Tage tippen oder mit dem Finger darüberwischen. Fertig mit „Fertig“.",()=>{ closeSheet(); show("kal"); setSel(true); }],
   ["↻","Mein Rhythmus","Wiederholt sich dein Plan? Unter „Mein Rhythmus“ einmal eintragen – z. B. eine fertige Vorlage wie 2-2-2 wählen – dann füllt die App den Kalender automatisch.",()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }],
   ["☀","Urlaub eintragen","Urlaub-Tab → „+ Urlaub eintragen“, Von und Bis wählen. Gezählt werden nur Tage, an denen du laut Plan arbeiten würdest.",()=>openVac()],
   ["✦","Urlaub berechnen","Urlaub-Tab → „Urlaub berechnen“. Tippe an, was dir wichtig ist (z. B. Weihnachten + Brückentage). Die App zeigt dir sofort, wie du mit wenig Urlaubstagen am meisten frei hast.",()=>openAgent()],
@@ -1193,7 +1245,7 @@ const HELP=[
   ["♥","Gemeinsam frei","Schichtplan → „Gemeinsam frei“ → „Meinen Plan als Link schicken“, z. B. per WhatsApp an Partner oder Freunde. Wer den Link öffnet, sieht ♥ an den Tagen, an denen ihr beide frei habt.",()=>openPartners()],
   ["👥","Team","Team-Tab: mit deinem Konto vom Team-Urlaubsplaner anmelden. Dort siehst du, wer wann Urlaub hat und ob zu viele gleichzeitig fehlen.",()=>{ closeSheet(); show("team"); }],
   ["💾","Sichern","Deine Daten liegen nur auf diesem Handy. Ab und zu auf „Jetzt sichern“ tippen und die Datei z. B. per WhatsApp an dich selbst schicken.",()=>jsonSave()]];
-function openHelp(){ openSheet(p=>{ sheetTop(p,"So geht's"); const gs=el("button","btn pri","Schritt für Schritt: Was mache ich zuerst?"); gs.type="button"; gs.onclick=openGuide; p.append(gs, el("p","hint","Oder tippe ein Thema an. Mit „Ausprobieren“ springst du direkt hin."));
+function openHelp(){ openSheet(p=>{ sheetTop(p,"So geht's"); const gs=el("button","btn pri","Was möchtest du machen? – Schritt für Schritt"); gs.type="button"; gs.onclick=openGoals; p.append(gs, el("p","hint","Oder tippe ein Thema an. Mit „Ausprobieren“ springst du direkt hin."));
   HELP.forEach(([i,t,txt,fn])=>{ const d=el("details"); const sm=el("summary",null,i+"  "+t); d.append(sm, el("p",null,txt)); const b=el("button","btn","Ausprobieren"); b.type="button"; b.onclick=fn; d.append(b); p.append(d); }); }); }
 const NEWS_V=1;
 function newsCard(box){ if((+S.newsSeen||0)>=NEWS_V) return; const c=el("div","card sec news"); c.append(el("h2",null,"Neu in der App"));
@@ -1810,9 +1862,9 @@ function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").
 /* ---------- Einrichtung (3 Schritte) ---------- */
 const ONB_MODELS=[
   ["Selbst eintragen – ohne festen Rhythmus",[],"Du malst deinen Plan im Kalender selbst, Tag für Tag"],
-  ["Mo–Fr, Wochenende frei",["F","F","F","F","F",null,null],"Frühschicht, feste Arbeitstage"],
-  ["Früh/Spät im Wechsel (wöchentlich)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null],"eine Woche früh, eine Woche spät"],
-  ["Früh/Spät/Nacht (wöchentlich)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null],"3-Wochen-Wechsel"],
+  ["Mo–Fr, Wochenende frei",["F","F","F","F","F",null,null],"Tagschicht, feste Arbeitstage"],
+  ["Tag/Spät im Wechsel (wöchentlich)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null],"eine Woche Tag-, eine Woche Spätschicht"],
+  ["Tag/Spät/Nacht (wöchentlich)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null],"3-Wochen-Wechsel"],
   ["2-2-2 + 4 frei",["F","F","S","S","N","N",null,null,null,null],"Konti-Schicht, 10 Tage"],
   ["3-3-3 + 3 frei",["F","F","F","S","S","S","N","N","N",null,null,null],"12-Tage-Rhythmus"],
   ["4 Tage an, 4 frei",["F","F","F","F",null,null,null,null],"8-Tage-Rhythmus"]];
