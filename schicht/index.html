@@ -122,6 +122,11 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .legend span{display:inline-flex;gap:6px;align-items:center}
 .legend .chip{height:20px;min-width:26px;font-size:13px}
 .hint{font-size:13px;color:var(--soft)}
+#help{font-weight:800;font-size:18px}
+.news{border-color:var(--accent)}
+.newsrow{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--rule);background:none;padding:10px 0}
+.newsrow small{display:block;color:var(--soft)}
+.newsi{width:36px;height:36px;flex:none;border-radius:9px;background:var(--tint);display:grid;place-items:center;font-size:18px}
 details{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--card)}
 details>summary{cursor:pointer;font-weight:600;color:var(--ink)}
 details[open]{display:grid;gap:10px}
@@ -347,6 +352,7 @@ input[type=email],input[type=password]{border:1px solid var(--rule);background:v
   <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M7 13h4v4H7z"/></svg></span>
   <div class="grow"><h1>Schicht &amp; Urlaub</h1><small id="who"></small></div>
   <button class="icon-btn hb" type="button" id="hundo" aria-label="Rückgängig" title="Rückgängig" disabled>↶</button>
+  <button class="icon-btn" type="button" id="help" aria-label="Hilfe" title="So geht's">?</button>
   <button class="icon-btn" type="button" id="gear" aria-label="Einstellungen"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
 </div></header>
 
@@ -520,7 +526,7 @@ function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("d
 
 /* ---------- Heute ---------- */
 function renderHeute(){
-  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box);
+  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box); newsCard(box);
   if(backupDue() && dlNs){ const b=el("div","banner"); const t=el("span","grow"); t.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(t,go); box.append(b); }
   const t=TODAY(), sh=shiftOf(t), hn=holName(t);
   const c=el("div","card today");
@@ -1125,6 +1131,30 @@ function planImport(code){ let d=null; try{ d=JSON.parse(b64d(code)); }catch(e){
   ask("Plan von "+P.name+" hinzufügen?","Dann siehst du im Schichtplan, wann ihr beide frei habt (♥).",[{label:"Ja, hinzufügen",pri:true,fn:()=>{ const L=partners(); const i=L.findIndex(x=>tKey(x.name)===tKey(P.name)); if(i>=0) L[i]=P; else L.push(P); save(); render(); toast("Plan von "+P.name+" hinzugefügt"); }},{label:"Nein",fn:()=>{}}]); }
 /* Fertige Rhythmus-Vorlagen */
 const RHYTHM_PRESETS=[["2-2-2 + 4 frei","Konti-Schicht, 10 Tage",["F","F","S","S","N","N",null,null,null,null]],["3-3-3 + 3 frei","12-Tage-Rhythmus",["F","F","F","S","S","S","N","N","N",null,null,null]],["4 Tage an, 4 frei","8-Tage-Rhythmus",["F","F","F","F",null,null,null,null]],["Früh/Spät im Wochenwechsel","eine Woche früh, eine Woche spät",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],["Früh/Spät/Nacht wöchentlich","3-Wochen-Wechsel",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],["Mo–Fr Frühschicht","Wochenende frei",["F","F","F","F","F",null,null]]];
+/* ===================== Hilfe & Neuigkeiten ===================== */
+function goKal(){ closeSheet(); show("kal"); }
+function goSettings(id){ closeSheet(); show("set"); if(id) setTimeout(()=>{ const e=$("#"+id); if(e){ e.scrollIntoView({block:"center"}); e.focus(); } },150); }
+const HELP=[
+  ["📅","Schichten eintragen","Schichtplan → „Schichten eintragen“. Rechts eine Schicht antippen (z. B. F), dann im Kalender auf die Tage tippen oder mit dem Finger darüberwischen. Fertig mit „Fertig“.",()=>{ closeSheet(); show("kal"); setSel(true); }],
+  ["↻","Mein Rhythmus","Wiederholt sich dein Plan? Unter „Mein Rhythmus“ einmal eintragen – z. B. eine fertige Vorlage wie 2-2-2 wählen – dann füllt die App den Kalender automatisch.",()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }],
+  ["☀","Urlaub eintragen","Urlaub-Tab → „+ Urlaub eintragen“, Von und Bis wählen. Gezählt werden nur Tage, an denen du laut Plan arbeiten würdest.",()=>openVac()],
+  ["✦","Urlaub berechnen","Urlaub-Tab → „Urlaub berechnen“. Tippe an, was dir wichtig ist (z. B. Weihnachten + Brückentage). Die App zeigt dir sofort, wie du mit wenig Urlaubstagen am meisten frei hast.",()=>openAgent()],
+  ["💶","Verdienst & Zuschläge","Zahnrad → „Lohn & Arbeitszeit“: Stundenlohn eintragen. Danach siehst du unter Schichtplan → „Statistik ansehen“, was du im Monat ungefähr verdienst – mit Nacht-, Sonntags- und Feiertagszuschlag.",()=>openPaySettings()],
+  ["⏱","Überstunden","Im selben Fenster deine Soll-Stunden pro Woche eintragen (z. B. 37,5). Die Statistik zeigt dann Über- oder Minusstunden.",()=>openPaySettings()],
+  ["🔔","Erinnerung vor der Schicht","Zahnrad → „Sichern & Übertragen“: bei „Erinnerung“ z. B. „1 Stunde vorher“ wählen, dann „In den Handy-Kalender“ tippen und die Datei mit deinem Kalender öffnen. Der Kalender erinnert dich dann vor jeder Schicht.",()=>goSettings("remind")],
+  ["♥","Gemeinsam frei","Schichtplan → „Gemeinsam frei“ → „Meinen Plan als Link schicken“, z. B. per WhatsApp an Partner oder Freunde. Wer den Link öffnet, sieht ♥ an den Tagen, an denen ihr beide frei habt.",()=>openPartners()],
+  ["👥","Team","Team-Tab: mit deinem Konto vom Team-Urlaubsplaner anmelden. Dort siehst du, wer wann Urlaub hat und ob zu viele gleichzeitig fehlen.",()=>{ closeSheet(); show("team"); }],
+  ["💾","Sichern","Deine Daten liegen nur auf diesem Handy. Ab und zu auf „Jetzt sichern“ tippen und die Datei z. B. per WhatsApp an dich selbst schicken.",()=>jsonSave()]];
+function openHelp(){ openSheet(p=>{ sheetTop(p,"So geht's"); p.append(el("p","hint","Tippe ein Thema an. Mit „Ausprobieren“ springst du direkt hin."));
+  HELP.forEach(([i,t,txt,fn])=>{ const d=el("details"); const sm=el("summary",null,i+"  "+t); d.append(sm, el("p",null,txt)); const b=el("button","btn","Ausprobieren"); b.type="button"; b.onclick=fn; d.append(b); p.append(d); }); }); }
+const NEWS_V=1;
+function newsCard(box){ if((+S.newsSeen||0)>=NEWS_V) return; const c=el("div","card sec news"); c.append(el("h2",null,"Neu in der App"));
+  [["💶","Verdienst ausrechnen","Stundenlohn eintragen – die App rechnet Zuschläge für Nacht, Sonntag und Feiertag aus.",()=>openPaySettings()],
+   ["⏱","Überstunden im Blick","Soll-Stunden eintragen und sehen, wie viel du mehr oder weniger gearbeitet hast.",()=>openPaySettings()],
+   ["🔔","Erinnerung vor der Schicht","Dein Handy-Kalender erinnert dich vor jeder Schicht.",()=>goSettings("remind")],
+   ["♥","Gemeinsam frei","Plan per WhatsApp teilen und sehen, wann ihr beide frei habt.",()=>openPartners()]].forEach(([i,t,s,fn])=>{
+    const r=el("button","newsrow"); r.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t),el("small",null,s)); r.append(el("span","newsi",i),tx,el("span","muted","›")); r.onclick=fn; c.append(r); });
+  const ok=el("button","btn ghost","Verstanden"); ok.type="button"; ok.onclick=()=>{ S.newsSeen=NEWS_V; histMute=true; save(); histMute=false; renderHeute(); }; c.append(ok); box.append(c); }
 /* ===================== Urlaubsrechner ===================== */
 const MONAT_IDX={januar:0,jan:0,februar:1,feb:1,"märz":2,maerz:2,april:3,apr:3,mai:4,juni:5,jun:5,juli:6,jul:6,august:7,aug:7,september:8,sep:8,oktober:9,okt:9,november:10,nov:10,dezember:11,dez:11};
 const ZAHL={ein:1,eine:1,einen:1,zwei:2,drei:3,vier:4,"fünf":5,fuenf:5,sechs:6,sieben:7,acht:8,neun:9,zehn:10};
@@ -1719,6 +1749,7 @@ async function boot(){
   enterApp(); pull();
 }
 $("#aretry").onclick=()=>boot();
+$("#help").onclick=()=>openHelp();
 /* Link angetippt, während die App schon offen ist */
 window.addEventListener("hashchange",()=>{ if(!S || !S.onboarded || $("#appui").hidden) return; const h=location.hash;
   if(h.startsWith("#plan=")){ try{ history.replaceState(null,"",location.pathname); }catch(e){} planImport(h.slice(6)); }
