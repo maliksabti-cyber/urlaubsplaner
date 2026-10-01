@@ -8,5 +8,7 @@ window.APP_CONFIG = {
   localMode: true,
   // Gleiches Firebase-Projekt wie der Team-Urlaubsplaner (siehe ../config.js)
   apiKey: "AIzaSyCbn7aw2BBkkL0kD9keFjeCvlBflVaKzPc",
-  projectId: "urlaubsplanung-team-zfp"
+  projectId: "urlaubsplanung-team-zfp",
+  // Admin des Teams (gibt Kollegen frei, legt fest, wie viele gleichzeitig Urlaub haben dürfen)
+  adminEmail: "malik.sabti@googlemail.com"
 };
