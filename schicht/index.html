@@ -123,6 +123,19 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .legend span{display:inline-flex;gap:6px;align-items:center}
 .legend .chip{height:20px;min-width:26px;font-size:13px}
 .hint{font-size:13px;color:var(--soft)}
+#pan[data-sheet="ag"] h3{font:700 18px/1.25 var(--f-body);color:var(--ink);text-transform:none;letter-spacing:0;margin:10px 0 0}
+#pan[data-sheet="ag"] .hint{font-size:15px;color:var(--ink)}
+#pan[data-sheet="ag"] .presets{gap:8px}
+#pan[data-sheet="ag"] .presets .btn{font-size:16px;padding:11px 14px;min-height:46px}
+#pan[data-sheet="ag"] .presets .btn.pri{box-shadow:0 0 0 2px var(--accent)}
+#pan[data-sheet="ag"] .sw{font-size:16px;font-weight:600;padding:10px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--tint)}
+#pan[data-sheet="ag"] .agplan{font-size:22px;font-family:var(--f-display);text-transform:uppercase;margin-top:6px}
+#pan[data-sheet="ag"] .agitem{padding:12px 14px}
+#pan[data-sheet="ag"] .agitem .muted{font-size:14px}
+.aglab{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--soft)}
+.agdate{display:block;font-size:18px;line-height:1.25}
+#pan[data-sheet="ag"] .gain b{font-size:20px}
+#pan[data-sheet="ag"] .gain small{font-size:13px}
 .guide{border-color:var(--accent)}
 .glist{display:grid;gap:4px}
 .gstep,.gnext{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--rule)}
@@ -679,7 +692,7 @@ function renderYear(box){
 }
 
 /* ---------- Tag bearbeiten ---------- */
-function openSheet(build){ const p=$("#pan"); p.innerHTML=""; build(p); $("#sheet").hidden=false; }
+function openSheet(build){ const p=$("#pan"); p.innerHTML=""; p.removeAttribute("data-sheet"); build(p); $("#sheet").hidden=false; }
 function closeSheet(){ $("#sheet").hidden=true; render(); }
 $("#sheetbg").onclick=closeSheet;
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !$("#sheet").hidden) closeSheet(); });
@@ -1400,7 +1413,7 @@ const AG_OPTS=[
 function openAgent(){
   if(agState.year==null){ const y=new Date().getFullYear(); agState.year = vacTotal(y)-vacUsed(y)>0 && new Date().getMonth()<10 ? y : y+1; }
   openSheet(p=>{
-    sheetTop(p,"Urlaubsrechner");
+    sheetTop(p,"Urlaubsrechner"); p.dataset.sheet="ag";
     p.append(el("p","hint","Berechnet Urlaubsvorschläge passend zu deinem Schichtrhythmus: Gezählt werden nur Arbeitstage, freie Tage und Feiertage werden mitgenutzt."));
     const r=el("div","two"); const ly=el("label","f","Jahr"), sy=el("select"); sy.id="agyear"; const y0=new Date().getFullYear(); for(let y=y0;y<=y0+2;y++){ const o=el("option",null,String(y)); o.value=y; sy.append(o); } sy.value=agState.year; sy.onchange=()=>{ agState.year=+sy.value; info(); }; ly.append(sy);
     const bi=el("div","stat"); bi.id="agbudget"; r.append(ly,bi); p.append(r);
@@ -1411,9 +1424,9 @@ function openAgent(){
     p.append(el("p","hint","Tippe an, was dir wichtig ist – auch mehreres. Der Plan erscheint sofort darunter."));
     if(hasFer){ const kl=el("label","sw"), kc=el("input"); kc.type="checkbox"; kc.id="agkids"; kc.checked=!!agState.kids; kc.onchange=()=>{ agState.kids=kc.checked; if(agState.sel.length) runCombo(); }; kl.append(kc, el("span",null,"Schulferien bevorzugen (Kinder)")); p.append(kl); }
     AG_OPTS.forEach(([g,h,single,list])=>{ if(g==="fer" && !hasFer) return; p.append(el("h3",null,h)); const qk=el("div","presets");
-      list.forEach(([id,l])=>{ const b=el("button","btn",l); b.type="button"; b.dataset.opt=id; b.setAttribute("aria-pressed",String(agState.sel.includes(id))); if(agState.sel.includes(id)) b.classList.add("pri");
+      list.forEach(([id,l])=>{ const b=el("button","btn",(agState.sel.includes(id)?"✓ ":"")+l); b.type="button"; b.dataset.opt=id; b.dataset.lab=l; b.setAttribute("aria-pressed",String(agState.sel.includes(id))); if(agState.sel.includes(id)) b.classList.add("pri");
         b.onclick=()=>{ let sel=agState.sel.filter(x=>x!==id); if(!agState.sel.includes(id)){ if(single) sel=sel.filter(x=>!list.some(o=>o[0]===x)); sel.push(id); } agState.sel=sel;
-          p.querySelectorAll("[data-opt]").forEach(x=>{ const on=sel.includes(x.dataset.opt); x.classList.toggle("pri",on); x.setAttribute("aria-pressed",String(on)); }); runCombo(); };
+          p.querySelectorAll("[data-opt]").forEach(x=>{ const on=sel.includes(x.dataset.opt); x.classList.toggle("pri",on); x.setAttribute("aria-pressed",String(on)); x.textContent=(on?"✓ ":"")+x.dataset.lab; }); runCombo(); };
         qk.append(b); }); p.append(qk); });
     const lt=el("label","f","Oder als Text beschreiben"); const ta=el("input"); ta.type="text"; ta.id="agtext"; ta.placeholder="z. B. 2 Wochen im Juni, 3x im Jahr, Sommer und Weihnachten …"; ta.value=agState.text; lt.append(ta);
     const go=el("button","btn pri","Vorschlag berechnen"); go.type="button"; go.onclick=run; ta.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); run(); } };
@@ -1436,7 +1449,7 @@ function openAgent(){
     sy.addEventListener("change",()=>{ if(agState.sel.length) runCombo(); });
     function run(){
       const text=ta.value.trim(); if(!text){ ta.focus(); return; } agState.text=text; const q=agParse(text); const kids=!!agState.kids && S.land==="NW";
-      agState.sel=[]; p.querySelectorAll("[data-opt]").forEach(x=>{ x.classList.remove("pri"); x.setAttribute("aria-pressed","false"); });
+      agState.sel=[]; p.querySelectorAll("[data-opt]").forEach(x=>{ x.classList.remove("pri"); x.setAttribute("aria-pressed","false"); x.textContent=x.dataset.lab; });
       if(q.year && q.year>=y0 && q.year<=y0+2){ agState.year=q.year; sy.value=q.year; info(); }
       else if(!q.year && agState.year===y0 && q.mode==="combo-xs" && TODAY()>y0+"-08-31"){ agState.year=y0+1; sy.value=y0+1; info(); }
       else if(!q.year && agState.year===y0 && q.fest && festRange(y0,q.fest)[1]<=TODAY()){ agState.year=y0+1; sy.value=y0+1; info(); }
@@ -1479,13 +1492,13 @@ function openAgent(){
       agState.plan=plan; agState.meta={year:y,title,rest:real,note}; draw(); }
     function draw(){
       out.innerHTML=""; const {year,title,rest}=agState.meta, on=agState.plan.filter(x=>x.on), cost=on.reduce((n,x)=>n+x.cost,0), free=agUnion(on);
-      const sum=el("div","card agsum"); sum.append(el("b","agbig num",cost+" Urlaubstage → "+free+" Tage frei"), el("div","muted",title+" · "+year+" · danach übrig: "+(rest-cost)));
+      out.append(el("h3","agplan","Dein Plan")); const sum=el("div","card agsum"); sum.append(el("b","agbig num",cost+" Urlaubstage → "+free+" Tage frei"), el("div","muted",title+" · "+year+" · danach übrig: "+(rest-cost)));
       if(dlNs){ const pb=el("button","btn","PDF speichern"); pb.type="button"; pb.onclick=()=>pdfPlan(agState); sum.append(pb); }
       out.append(sum); if(agState.meta.note) out.append(el("div","banner",agState.meta.note)); if(agState.plan.some(x=>x.alt)) out.append(el("p","hint","Mehrere Möglichkeiten: Hak an, was dir am besten passt."));
       const dsx=s=>{ const d=parse(s); return DOW[d.getDay()]+" "+pad(d.getDate())+"."+pad(d.getMonth()+1)+"."; };
       agState.plan.forEach(x=>{ const it=el("label","agitem"+(x.on?"":" off")); const cb=el("input"); cb.type="checkbox"; cb.checked=x.on; cb.onchange=()=>{ x.on=cb.checked; draw(); };
-        const c=el("div","grow"); c.append(el("b",null,dsx(x.start)+" – "+dsx(x.end)), el("div","muted","frei am Stück: "+dsx(x.freeFrom)+" – "+dsx(x.freeTo))); if(x.fe.length) c.append(el("div","fe",x.fe.join(", "))); if(x.alt) c.append(el("div","muted","Alternative"));
-        const g=el("div","gain"); g.append(el("b","num",x.free+" frei"), el("small",null,x.cost+" Urlaubst.")); it.append(cb,c,g); out.append(it); });
+        const c=el("div","grow"); c.append(el("small","aglab","Urlaub nehmen"), el("b","agdate",x.start===x.end?dsx(x.start):dsx(x.start)+" – "+dsx(x.end)), el("div","muted","Frei am Stück: "+dsx(x.freeFrom)+" – "+dsx(x.freeTo))); if(x.fe.length) c.append(el("div","fe",x.fe.join(", "))); if(x.alt) c.append(el("div","muted","Alternative"));
+        const g=el("div","gain"); g.append(el("b","num",x.free+" Tage frei"), el("small",null,"für "+x.cost+(x.cost===1?" Urlaubstag":" Urlaubstage"))); it.append(cb,c,g); out.append(it); });
       const row=el("div","row"); const sv=el("button","btn pri grow",on.length?(on.length===1?"Vorschlag eintragen":"Alle "+on.length+" eintragen"):"Nichts ausgewählt"); sv.type="button"; sv.disabled=!on.length;
       sv.onclick=()=>{ const vt=vacType(); if(!vt){ toast("Keine Schichtart vom Typ Urlaub vorhanden."); return; } const before={}; let n=0;
         const old=JSON.parse(JSON.stringify(vacList())); on.forEach(x=>{ n+=x.cost; if(x.as){ vacList().push({id:uid(),a:x.start,e:x.end,fixed:x.work.slice()}); normVacs(); } else addVac(x.start,x.end); });
