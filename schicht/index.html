@@ -1064,6 +1064,13 @@ function agParse(text){
   if(/langes? wochenende|lange wochenenden|verlängerte|verlaengerte/.test(t)){ q.mode="weekends"; }
   const fest=/oster/.test(t)&&!/ferien/.test(t)?"ostern":/pfingst/.test(t)&&!/ferien/.test(t)?"pfingsten":null;
   if(fest){ q.fest=fest; q.months=null; if(!num){ num=1; unit="woche"; } }
+  const spm=t.match(/\b(\d|zwei|drei|vier|fünf|fuenf|sechs)\s*(?:x|×|mal)\s*(?:im|pro|übers|uebers|ueber das|über das)?\s*jahr/);
+  if(/jeden monat|jeder monat|monatlich/.test(t) && !/wochenende/.test(t)){ q.mode="spread"; q.parts=12; return q; }
+  if(/quartal/.test(t)){ q.mode="spread"; q.parts=4; return q; }
+  if(spm){ q.mode="spread"; q.parts=/^\d$/.test(spm[1])?+spm[1]:ZAHL[spm[1]]; return q; }
+  if(/verteilt|gleichmäßig|gleichmaessig|übers jahr|uebers jahr|aufs jahr/.test(t)){ q.mode="spread"; q.parts=4; return q; }
+  if(/sommer\w*\s*(und|\+|&)\s*weihnacht|weihnacht\w*\s*(und|\+|&)\s*sommer/.test(t)){ q.mode="combo-xs"; q.months=null; q.ferien=null; q.xmas=false; return q; }
+  if(/gro(ß|ss)e[nr]? urlaub/.test(t)){ q.mode="combo-big"; return q; }
   if(/(zweimal|zwei mal|2\s*x|2\s*×|2 mal)/.test(t) && num!=null && q.mode!=="random"){ q.mode="split"; q.cal=/woche/.test(unit||"")?num*7:null; q.wd=/woche/.test(unit||"")?null:num; return q; }
   if(num!=null && q.mode!=="random"){
     const wd=/woche/.test(unit)?num*7:num; // Wochen = Kalenderwochen, gezählt werden Schichttage
@@ -1118,6 +1125,16 @@ function planWeekends(M,budget,monthOk){ const out=[], per=Math.max(1,Math.min(1
       const sp=agSpan(M,i,i,new Set()); if(sp.len<3) continue; const sc=sp.len; if(!best||sc>best.sc) best={i,sc}; }
     if(best) out.push(agItem(M,best.i,best.i,new Set())); }
   return out; }
+function markOwn(M,x){ for(let s=x.start;s<=x.end;s=addD(s,1)){ const i=M.idx[s]; if(i!=null) M.days[i].own=true; } }
+/* Urlaub gleichmäßig aufs (restliche) Jahr verteilen: n Abschnitte, je ein Block */
+function planSpread(M,budget,n,monthOk){ const y=M.days[0].s.slice(0,4), t=TODAY(); let m0=0; if(t.slice(0,4)===y) m0=+t.slice(5,7)-1+(+t.slice(8,10)>20?1:0);
+  const months=[]; for(let m=m0;m<12;m++) months.push(m); if(!months.length) return [];
+  n=Math.max(1,Math.min(n,months.length,budget)); const per=Math.floor(budget/n), extra=budget-per*n, out=[];
+  for(let k=0;k<n;k++){ const ms=months.slice(Math.floor(k*months.length/n),Math.floor((k+1)*months.length/n)), wd=per+(k<extra?1:0); if(!wd||!ms.length) continue;
+    const ok=s=>ms.includes(+s.slice(5,7)-1)&&monthOk(s); let p=[]; for(let w=wd;w>=1&&!p.length;w--) p=planBlock(M,w,ok,null,null,1);
+    if(p.length){ Object.assign(p[0],{on:true,alt:false}); out.push(p[0]); markOwn(M,p[0]); } }
+  return out; }
+const SUMMER=s=>[5,6,7].includes(+s.slice(5,7)-1);
 function festRange(y,f){ const E=iso(easter(y)); return f==="ostern"?[addD(E,-12),addD(E,10)]:[addD(E,40),addD(E,60)]; }
 function planXmas(M,budget){ const y=M.days[0].s.slice(0,4), i0=M.idx[y+"-12-21"], i1=M.idx[y+"-12-31"]; if(i0==null) return [];
   let a=i0,b=i1; while(a<=b&&(M.days[a].off||M.days[a].past||M.days[a].own)) a++; while(b>=a&&(M.days[b].off||M.days[b].own)) b--; if(a>b||agCost(M,a,b)>budget) return []; return [agItem(M,a,b,new Set())]; }
@@ -1132,7 +1149,12 @@ function planRandom(M,budget,monthOk){
 function agUnion(list){ const set=new Set(); list.forEach(p=>{ for(let s=p.freeFrom;s<=p.freeTo;s=addD(s,1)) set.add(s); }); return set.size; }
 
 let agState={year:null,text:"",plan:[],meta:null};
-const AG_QUICK=[["Maximal frei","so viel frei wie möglich"],["Lange Urlaube","so viel frei wie möglich am Stück"],["Brückentage","Brückentage nutzen"],["Lange Wochenenden","lange Wochenenden"],["Weihnachten frei","Weihnachten frei"],["Ostern","1 Woche um Ostern"],["Pfingsten","1 Woche um Pfingsten"],["3 Wochen Sommer","3 Wochen im Sommer"],["2× 2 Wochen","2x 2 Wochen"],["Sommerferien","2 Wochen in den Sommerferien"],["Herbstferien","1 Woche in den Herbstferien"],["Zufallsurlaub","Zufallsurlaub"]];
+const AG_GROUPS=[
+  ["Am meisten frei",[["Maximal frei","so viel frei wie möglich"],["Lange Urlaube","so viel frei wie möglich am Stück"],["Brückentage","Brückentage nutzen"],["Großer Urlaub + Brückentage","ein großer Urlaub und Brückentage"]]],
+  ["Aufs Jahr verteilt",[["2× im Jahr","2x im Jahr verteilt"],["3× im Jahr","3x im Jahr verteilt"],["Jedes Quartal","jedes Quartal"],["Jeden Monat etwas","jeden Monat"],["Lange Wochenenden","lange Wochenenden"]]],
+  ["Feste Zeiten",[["Sommer + Weihnachten","Sommer und Weihnachten"],["3 Wochen Sommer","3 Wochen im Sommer"],["2× 2 Wochen","2x 2 Wochen"],["Weihnachten frei","Weihnachten frei"],["Ostern","1 Woche um Ostern"],["Pfingsten","1 Woche um Pfingsten"]]],
+  ["Schulferien",[["Sommerferien","2 Wochen in den Sommerferien"],["Osterferien","1 Woche in den Osterferien"],["Herbstferien","1 Woche in den Herbstferien"]]],
+  ["Überraschung",[["Zufallsurlaub","Zufallsurlaub"]]]];
 function openAgent(){
   if(agState.year==null){ const y=new Date().getFullYear(); agState.year = vacTotal(y)-vacUsed(y)>0 && new Date().getMonth()<10 ? y : y+1; }
   openSheet(p=>{
@@ -1142,22 +1164,33 @@ function openAgent(){
     const bi=el("div","stat"); bi.id="agbudget"; r.append(ly,bi); p.append(r);
     function info(){ const y=agState.year, rest=vacTotal(y)-vacUsed(y); bi.innerHTML=""; bi.append(el("b","num",String(rest)), el("span",null,"Urlaubstage übrig "+y)); }
     info();
-    p.append(el("h3",null,"Schnell wählen")); const qk=el("div","presets"); AG_QUICK.forEach(([l,t])=>{ if(/ferien/i.test(t) && !(S.land==="NW"&&S.showFerien!==false)) return; const b=el("button","btn",l); b.type="button"; b.onclick=()=>{ ta.value=t; run(); }; qk.append(b); }); p.append(qk);
-    const lt=el("label","f","Oder eigener Wunsch"); const ta=el("input"); ta.type="text"; ta.id="agtext"; ta.placeholder="z. B. 2 Wochen im Juni, 5 Tage im Herbst, lange Wochenenden …"; ta.value=agState.text; lt.append(ta);
+    const lu=el("label","f","Urlaubstage verwenden"), ui=el("input"); ui.type="number"; ui.id="aguse"; ui.min="1"; ui.max="99"; ui.inputMode="numeric"; ui.placeholder="alle"; ui.value=agState.use||""; lu.append(ui); p.append(lu);
+    AG_GROUPS.forEach(([h,list])=>{ if(h==="Schulferien" && !(S.land==="NW"&&S.showFerien!==false)) return; p.append(el("h3",null,h)); const qk=el("div","presets");
+      list.forEach(([l,t])=>{ const b=el("button","btn",l); b.type="button"; b.onclick=()=>{ ta.value=t; p.querySelectorAll(".presets button").forEach(x=>x.classList.remove("pri")); b.classList.add("pri"); run(); }; qk.append(b); }); p.append(qk); });
+    const lt=el("label","f","Oder eigener Wunsch"); const ta=el("input"); ta.type="text"; ta.id="agtext"; ta.placeholder="z. B. 2 Wochen im Juni, 3x im Jahr, Sommer und Weihnachten …"; ta.value=agState.text; lt.append(ta);
     const go=el("button","btn pri","Vorschlag berechnen"); go.type="button"; go.onclick=run; ta.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); run(); } };
     p.append(lt,go); const out=el("div","sec"); out.id="agout"; p.append(out);
     function say(t){ out.innerHTML=""; out.append(el("div","card",t)); }
     function run(){
       const text=ta.value.trim(); if(!text){ ta.focus(); return; } agState.text=text; const q=agParse(text);
       if(q.year && q.year>=y0 && q.year<=y0+2){ agState.year=q.year; sy.value=q.year; info(); }
+      else if(!q.year && agState.year===y0 && q.mode==="combo-xs" && TODAY()>y0+"-08-31"){ agState.year=y0+1; sy.value=y0+1; info(); }
       else if(!q.year && agState.year===y0 && q.fest && festRange(y0,q.fest)[1]<=TODAY()){ agState.year=y0+1; sy.value=y0+1; info(); }
       else if(!q.year && agState.year===y0 && ((q.months && q.months.every(m=>m<new Date().getMonth())) || (q.ferien && q.ferien!=="any" && !FERIEN.some(f=>f[2]===q.ferien && f[0].startsWith(String(y0)) && f[0]>TODAY())))){ agState.year=y0+1; sy.value=y0+1; info(); }
-      let y=agState.year, rest=vacTotal(y)-vacUsed(y); let monthOk=q.months&&q.months.length?(s=>q.months.includes(+s.slice(5,7)-1)):(()=>true);
+      const use=+ui.value||0, cap=r=>use>0?Math.min(r,use):r; agState.use=ui.value;
+      let y=agState.year, real=vacTotal(y)-vacUsed(y), rest=cap(real); let monthOk=q.months&&q.months.length?(s=>q.months.includes(+s.slice(5,7)-1)):(()=>true);
       if(q.fest){ const [a,b]=festRange(y,q.fest); monthOk=s=>s>=a&&s<=b; }
       if(!rest && !q.budget){ say("Für "+y+" sind keine Urlaubstage mehr übrig. Trag deinen Anspruch unter Einstellungen ein oder wähle ein anderes Jahr."); return; }
       let M=agModel(y), plan=[], title="", note="";
       const calc=()=>{ plan=[]; title="";
-      if(q.mode==="weekends"){ plan=planWeekends(M,Math.min(q.budget||12,rest),monthOk); title="Lange Wochenenden"; }
+      if(q.mode==="spread"){ const W=agModel(y); plan=planSpread(W,rest,q.parts,monthOk); title=q.parts===12?"Jeden Monat etwas frei":q.parts===4?"Jedes Quartal Urlaub":"Aufs Jahr verteilt ("+q.parts+"×)"; }
+      else if(q.mode==="combo-xs"){ const W=agModel(y), xs=planXmas(W,rest); xs.forEach(x=>markOwn(W,x)); const left=rest-xs.reduce((n,x)=>n+x.cost,0);
+        let sm=[]; for(let w=Math.min(15,left);w>=5&&!sm.length;w--) sm=planBlock(W,w,s=>SUMMER(s)&&monthOk(s),S.land==="NW"&&S.showFerien!==false?"Sommerferien":null,null,1);
+        plan=[...sm,...xs].map(x=>Object.assign(x,{on:true,alt:false})); title="Sommer + Weihnachten"; }
+      else if(q.mode==="combo-big"){ const W=agModel(y); let big=[]; for(let w=Math.min(15,rest);w>=5&&!big.length;w--){ big=planBlock(W,w,s=>SUMMER(s)&&monthOk(s),null,null,1); if(!big.length) big=planBlock(W,w,monthOk,null,null,1); }
+        big.forEach(x=>markOwn(W,x)); const left=rest-big.reduce((n,x)=>n+x.cost,0); const br=left>0?planMax(W,left,monthOk,1):[];
+        plan=[...big,...br].map(x=>Object.assign(x,{on:true,alt:false})); title="Großer Urlaub + Brückentage"; }
+      else if(q.mode==="weekends"){ plan=planWeekends(M,Math.min(q.budget||12,rest),monthOk); title="Lange Wochenenden"; }
       else if(q.mode==="split"){ const half=k=>s=>monthOk(s)&&(k?+s.slice(5,7)>=7:+s.slice(5,7)<=6); const wd=q.wd?Math.min(q.wd,Math.floor(rest/2)):null;
         plan=[...planBlock(M,wd,half(0),q.ferien,q.cal,1),...planBlock(M,wd,half(1),q.ferien,q.cal,1)].map(x=>Object.assign(x,{on:true,alt:false})); if(plan.reduce((n,x)=>n+x.cost,0)>rest) plan=plan.slice(0,1);
         title="Zweimal "+(q.cal?(q.cal/7)+" Wochen":wd+" Urlaubstage"); }
@@ -1167,17 +1200,19 @@ function openAgent(){
           plan=planBlock(M,wd,monthOk,q.ferien,q.cal,3); title=(q.cal?(q.cal/7)+" Woche"+(q.cal>7?"n":""):wd+" Urlaubstage")+" am Stück"+(q.fest?(q.fest==="ostern"?" um Ostern":" um Pfingsten"):q.months?" ("+q.months.map(m=>MON[m]).join(", ")+")":"");
           plan=plan.filter(x=>x.cost<=rest); if(plan.length && !plan[0].on) plan[0].on=true; } }
       else { plan=planMax(M,Math.min(q.budget||rest,rest),monthOk,q.minCost); title=q.minCost>=8?"Lange Urlaube am Stück":q.minCost>1?"Maximal frei – Urlaub am Stück":"Maximal frei mit einzelnen Brückentagen"; }
+      if(!plan.some(x=>x.alt)) plan.sort((a,b)=>a.start<b.start?-1:1);
       };
       calc();
       /* Nichts gefunden: selbst nach einer Lösung suchen */
       if(!plan.length && (q.months||q.fest)){ const keep=monthOk; monthOk=()=>true; calc(); if(plan.length) note="Im gewünschten Zeitraum passt es nicht. Das ist der beste Vorschlag im restlichen Jahr."; else monthOk=keep; }
       if(!plan.length && q.cal && q.cal>7){ const c0=q.cal; q.cal=7; calc(); if(plan.length) note="Für "+(c0/7)+" Wochen am Stück ist kein Platz mehr. Hier eine Woche."; }
-      if(q.mode==="split" && plan.length<2 && y===y0 && !q.year){ const keepP=plan, keepM=M; y=y0+1; rest=vacTotal(y)-vacUsed(y); M=agModel(y); calc(); if(plan.length>=2){ agState.year=y; sy.value=y; info(); note="In "+y0+" passt nur noch ein Block. Hier der Vorschlag für "+y+"."; } else { y=y0; rest=vacTotal(y)-vacUsed(y); M=keepM; plan=keepP; } }
-      if(!plan.length && y===y0){ const y1=y0+1; const r1=vacTotal(y1)-vacUsed(y1); if(r1>0){ y=y1; rest=r1; agState.year=y1; sy.value=y1; info(); M=agModel(y); calc(); if(plan.length) note="In "+y0+" passt nichts mehr. Hier der Vorschlag für "+y1+"."; } }
+      if(q.mode==="split" && plan.length<2 && y===y0 && !q.year){ const keepP=plan, keepM=M; y=y0+1; real=vacTotal(y)-vacUsed(y); rest=cap(real); M=agModel(y); calc(); if(plan.length>=2){ agState.year=y; sy.value=y; info(); note="In "+y0+" passt nur noch ein Block. Hier der Vorschlag für "+y+"."; } else { y=y0; real=vacTotal(y)-vacUsed(y); rest=cap(real); M=keepM; plan=keepP; } }
+      if(!plan.length && y===y0){ const y1=y0+1; const r1=vacTotal(y1)-vacUsed(y1); if(r1>0){ y=y1; real=r1; rest=cap(r1); agState.year=y1; sy.value=y1; info(); M=agModel(y); calc(); if(plan.length) note="In "+y0+" passt nichts mehr. Hier der Vorschlag für "+y1+"."; } }
       if(!plan.length){ say(rest?"Dafür gibt es keinen passenden Zeitraum. Probier „Maximal frei“ oder einen anderen Monat.":"Für "+y+" sind keine Urlaubstage übrig."); return; }
       if(teamOn() && M.days.some(d=>d.full)) note=(note?note+" ":"")+"Ausgelassen sind Tage, an denen schon "+team.limit+" aus dem Team im Urlaub sind.";
       if(M.assumed>30) note=(note?note+" ":"")+"Für "+y+" ist noch kein Schichtplan eingetragen. Gerechnet wird dort mit Montag bis Freitag. Trag unter „Rotation“ deinen Rhythmus ein, dann wird es genauer.";
-      agState.plan=plan; agState.meta={year:y,title,rest,note}; draw(); }
+      if(use>0 && use<real) note=(note?note+" ":"")+"Verplant werden höchstens "+use+" von "+real+" Urlaubstagen.";
+      agState.plan=plan; agState.meta={year:y,title,rest:real,note}; draw(); }
     function draw(){
       out.innerHTML=""; const {year,title,rest}=agState.meta, on=agState.plan.filter(x=>x.on), cost=on.reduce((n,x)=>n+x.cost,0), free=agUnion(on);
       const sum=el("div","card agsum"); sum.append(el("b","agbig num",cost+" Urlaubstage → "+free+" Tage frei"), el("div","muted",title+" · "+year+" · danach übrig: "+(rest-cost)));
