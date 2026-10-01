@@ -543,7 +543,7 @@ function renderHeute(){
   const s3=el("div","stats3");
   [[tot,"Anspruch"],[used,"verplant"],[tot-used,"übrig"]].forEach(([n,l])=>{ const d=el("div","stat"); d.append(el("b","num",String(n)),el("span",null,l)); s3.append(d); });
   const m=el("div","meter"), i=el("i"); i.style.width=Math.min(100,tot?used/tot*100:0)+"%"; if(used>tot) i.style.background="var(--bad)"; m.append(i);
-  const ab=el("div","row"); ab.style.marginTop="12px"; const a1=el("button","btn ai grow","✦ Urlaub planen lassen"); a1.type="button"; a1.onclick=openAgent; ab.append(a1);
+  const ab=el("div","row"); ab.style.marginTop="12px"; const a1=el("button","btn ai grow","✦ Urlaub planen lassen"); a1.type="button"; a1.style.flexBasis="100%"; a1.onclick=openAgent; ab.append(a1);
   if(dlNs){ const a2=el("button","btn","PDF "+y); a2.type="button"; a2.onclick=()=>pdfYear(y); ab.append(a2); }
   const es=el("button","btn ghost","✎ Urlaub einstellen"); es.type="button"; es.onclick=()=>openVacSettings(y); ab.append(es); vk.append(s3,m,ab); box.append(vk);
 }
