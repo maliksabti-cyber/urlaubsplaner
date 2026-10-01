@@ -517,6 +517,7 @@ function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("d
 /* ---------- Heute ---------- */
 function renderHeute(){
   const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box);
+  if(backupDue() && dlNs){ const b=el("div","banner"); const t=el("span","grow"); t.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(t,go); box.append(b); }
   const t=TODAY(), sh=shiftOf(t), hn=holName(t);
   const c=el("div","card today");
   const big=el("div","big"); if(sh){ big.style.background=sh.color; if(isDark(sh.color)) big.classList.add("dark"); big.textContent=sh.short; } else { big.classList.add("free"); big.textContent="–"; } if(dayKind(t)==="v"&&(!sh||sh.kind!=="vac")){ big.classList.remove("free"); big.style.background=vacColor(); big.style.color="#fff"; big.style.border="0"; } else if(dayKind(t)==="f"){ big.style.background=""; big.classList.add("free"); }
@@ -772,10 +773,10 @@ function renderSet(){
   dc.append(el("p","hint",CFG.localMode?"Deine Daten liegen nur auf diesem Handy. Teile hier ab und zu eine Sicherung, damit nichts verloren geht, und spiel sie bei Bedarf wieder ein.":"Deine Daten werden automatisch in deinem Konto gesichert. Zusätzlich kannst du hier eine Sicherung teilen oder einspielen."));
   const ta=el("textarea"); ta.id="backup"; ta.placeholder="Hier eine Sicherung einfügen …"; ta.setAttribute("aria-label","Sicherung");
   const r=el("div","row"); const cp=el("button","btn","Sicherung als Text kopieren"), im=el("button","btn","Sicherung einspielen"), ics=el("button","btn","Kalender-Datei (.ics) kopieren"); cp.type=im.type=ics.type="button";
-  cp.onclick=async()=>{ const txt=JSON.stringify(S); ta.value=txt; try{ await navigator.clipboard.writeText(txt); toast("Sicherung kopiert"); }catch(e){ ta.focus(); ta.select(); toast("Text ist markiert – jetzt kopieren"); } };
+  cp.onclick=async()=>{ const txt=JSON.stringify(S); ta.value=txt; try{ await navigator.clipboard.writeText(txt); markBackup(); toast("Sicherung kopiert"); }catch(e){ ta.focus(); ta.select(); toast("Text ist markiert – jetzt kopieren"); } };
   im.onclick=()=>{ try{ const d=JSON.parse(ta.value); if(!d || d.v!==1 || !Array.isArray(d.types) || !Array.isArray(d.rots)) throw 0; const old=S; S=d; save(); toast("Sicherung eingespielt","Rückgängig",()=>{ S=old; save(); render(); }); render(); }catch(e){ toast("Das ist keine gültige Sicherung."); } };
   ics.onclick=async()=>{ const txt=makeICS(); ta.value=txt; try{ await navigator.clipboard.writeText(txt); toast("Kalender-Daten kopiert"); }catch(e){ ta.focus(); ta.select(); toast("Text ist markiert – jetzt kopieren"); } };
-  r.append(cp,im,ics); if(dlNs){ const js=el("button","btn","Sicherung teilen"); js.type="button"; js.onclick=jsonSave; r.prepend(js); }
+  r.append(cp,im,ics); if(dlNs){ const js=el("button","btn pri","Sicherung teilen"); js.type="button"; js.onclick=jsonSave; const cl=el("button","btn","In den Handy-Kalender"); cl.type="button"; cl.onclick=calSave; r.prepend(js,cl); }
   const fi=el("input"); fi.type="file"; fi.accept=".json,application/json"; fi.id="bfile"; fi.hidden=true; fi.onchange=async()=>{ const f=fi.files[0]; if(!f) return; ta.value=await f.text(); im.click(); fi.value=""; };
   const fb=el("button","btn","Datei öffnen"); fb.type="button"; fb.onclick=()=>fi.click(); r.append(fb,fi); dc.append(r,ta);
   const rs=el("button","btn bad","Alles zurücksetzen"); rs.type="button"; rs.onclick=()=>{ if(rs.dataset.sure){ const nm=S.name; S=defaults(); S.name=nm; save(); openOnboarding(); } else { rs.dataset.sure="1"; rs.textContent="Wirklich alles löschen? Nochmal tippen"; setTimeout(()=>{ delete rs.dataset.sure; rs.textContent="Alles zurücksetzen"; },4000); } };
@@ -1021,11 +1022,11 @@ function openType(t){
 }
 function makeICS(){
   const out=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Schicht und Urlaub//DE","CALSCALE:GREGORIAN"]; const t=TODAY(); const st=new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
-  for(let i=0;i<90;i++){ const s=addD(t,i), x=shiftOf(s); if(!x) continue; const ds=s.replace(/-/g,"");
+  for(let i=0;i<365;i++){ const s=addD(t,i), x=shiftOf(s); if(!x || x.kind==="free") continue; const ds=s.replace(/-/g,"");
     out.push("BEGIN:VEVENT","UID:"+ds+"-"+x.id+"@schicht-urlaub","DTSTAMP:"+st);
     if(x.kind==="work" && x.start){ const e=x.end<=x.start?addD(s,1):s; out.push("DTSTART:"+ds+"T"+x.start.replace(":","")+"00","DTEND:"+e.replace(/-/g,"")+"T"+x.end.replace(":","")+"00"); }
     else out.push("DTSTART;VALUE=DATE:"+ds,"DTEND;VALUE=DATE:"+addD(s,1).replace(/-/g,""));
-    out.push("SUMMARY:"+x.name,"END:VEVENT"); }
+    out.push("SUMMARY:"+String(x.name).replace(/[\\;,]/g,m=>"\\"+m).replace(/\n/g,"\\n"),"END:VEVENT"); }
   out.push("END:VCALENDAR"); return out.join("\r\n");
 }
 
@@ -1232,11 +1233,15 @@ async function pdfPlan(st){
   on.forEach(x=>{ y+=22; P.text(M,y,fmtS(x.start)+x.start.slice(0,4)+" – "+fmtS(x.end)+x.end.slice(0,4),10,true,INK); P.text(M+250,y,fmtS(x.freeFrom)+" – "+fmtS(x.freeTo)+" ("+x.free+" Tage)",10,false,INK); P.text(P.W-M,y,x.cost+" Urlaubst.",10,false,INK,"right"); if(x.fe.length){ y+=12; P.text(M,y,x.fe.join(", "),8,false,[0.54,0.31,0.77]); } y+=6; P.line(M,y,P.W-M,y,RULE); });
   P.text(M,P.H-24,"Schicht & Urlaub · Gezählt werden nur Tage, an denen laut Schichtrhythmus gearbeitet wird.",7.5,false,GREY);
   await pdfSave(P.build(),"Urlaubsvorschlag_"+year+".pdf"); }
-async function jsonSave(){ await shareFile(new TextEncoder().encode(JSON.stringify(S)),"Schicht-und-Urlaub_Sicherung_"+TODAY()+".json","application/json","Sicherung Schicht & Urlaub"); }
+async function jsonSave(){ await shareFile(new TextEncoder().encode(JSON.stringify(S)),"Schicht-und-Urlaub_Sicherung_"+TODAY()+".json","application/json","Sicherung Schicht & Urlaub"); markBackup(); }
+function markBackup(){ S.lastBackup=TODAY(); histMute=true; save(); histMute=false; if(view==="heute") renderHeute(); }
+/* Erinnerung: nur wenn die Daten allein auf dem Gerät liegen */
+function backupDue(){ if(!CFG.localMode || !S.onboarded) return false; return !S.lastBackup || diffD(S.lastBackup,TODAY())>=14; }
+async function calSave(){ const txt=makeICS(); if(!/BEGIN:VEVENT/.test(txt)){ toast("Im nächsten Jahr sind noch keine Schichten eingetragen."); return; } await shareFile(new TextEncoder().encode(txt),"Schichtplan.ics","text/calendar","Schichtplan"); }
 
 /* ===================== Rückgängig / Wiederholen (für alles) ===================== */
 let undoS=[], redoS=[], lastSnap=null, lastT=0, histMute=false;
-const snapOf=()=>JSON.stringify(S,(k,v)=>k==="updated"?undefined:v);
+const snapOf=()=>JSON.stringify(S,(k,v)=>k==="updated"||k==="lastBackup"?undefined:v);
 function histRecord(){ if(!S||histMute) return; const cur=snapOf(); if(lastSnap==null){ lastSnap=cur; return; } if(cur===lastSnap) return;
   const now=Date.now(); if(now-lastT>700 || !undoS.length){ undoS.push(lastSnap); if(undoS.length>40) undoS.shift(); } lastSnap=cur; lastT=now; redoS=[]; updHist(); }
 const _save0=save; save=function(){ histRecord(); _save0(); };
