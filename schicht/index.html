@@ -123,6 +123,8 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .legend span{display:inline-flex;gap:6px;align-items:center}
 .legend .chip{height:20px;min-width:26px;font-size:13px}
 .hint{font-size:13px;color:var(--soft)}
+.vlist{display:grid;gap:0;margin-top:14px}.vlist h3{margin:0 0 4px}
+.vlist .vrow b{display:block}.vlist .vrow .num{font-weight:700;white-space:nowrap}
 /* Kopfzeile mit Zurück-Pfeil bleibt über offenen Fenstern bedienbar */
 header.bar{z-index:25}
 .sheet .pan{max-height:calc(100% - 72px - env(safe-area-inset-top,0px))}
@@ -459,14 +461,20 @@ function uid(){ return Math.random().toString(36).slice(2,9); }
 /* Feiertage (alle Bundesländer) */
 function easter(y){ const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1; return new Date(y,mo-1,da); }
 const holCache={};
+/* Feiertage, die nur in Teilen eines Bundeslands gelten – zum Ein-/Ausschalten */
+const LOCAL_HOL={BY:[["BY_MH","Mariä Himmelfahrt (15.8.)","in Gemeinden mit überwiegend katholischer Bevölkerung",true],["BY_AUG","Augsburger Friedensfest (8.8.)","nur im Stadtgebiet Augsburg",false]],
+  SN:[["SN_FL","Fronleichnam","in einigen sorbisch geprägten Gemeinden",false]], TH:[["TH_FL","Fronleichnam","in einigen Gemeinden im Eichsfeld",false]]};
+const localOn=(k,def)=>S.localHol&&S.localHol[k]!=null?!!S.localHol[k]:def;
 function holidays(y){
-  const land=S.land, key=y+land; if(holCache[key]) return holCache[key];
+  const land=S.land, key=y+land+JSON.stringify(S.localHol||{}); if(holCache[key]) return holCache[key];
   const E=iso(easter(y)), H={};
   const add=(s,n,st)=>{ if(!st || st.includes(land)) H[s]=n; };
   add(y+"-01-01","Neujahr"); add(y+"-01-06","Hl. Drei Könige",["BW","BY","ST"]); add(y+"-03-08","Frauentag",["BE","MV"]);
   add(addD(E,-2),"Karfreitag"); add(E,"Ostersonntag",["BB"]); add(addD(E,1),"Ostermontag"); add(y+"-05-01","Tag der Arbeit");
   add(addD(E,39),"Himmelfahrt"); add(addD(E,49),"Pfingstsonntag",["BB"]); add(addD(E,50),"Pfingstmontag");
-  add(addD(E,60),"Fronleichnam",["BW","BY","HE","NW","RP","SL"]); add(y+"-08-15","Mariä Himmelfahrt",["SL"]); add(y+"-09-20","Weltkindertag",["TH"]);
+  add(addD(E,60),"Fronleichnam",["BW","BY","HE","NW","RP","SL"]); add(y+"-08-15","Mariä Himmelfahrt",["SL"]);
+  if(land==="BY"&&localOn("BY_MH",true)) H[y+"-08-15"]="Mariä Himmelfahrt"; if(land==="BY"&&localOn("BY_AUG",false)) H[y+"-08-08"]="Augsburger Friedensfest";
+  if((land==="SN"||land==="TH")&&localOn(land+"_FL",false)) H[addD(E,60)]="Fronleichnam"; add(y+"-09-20","Weltkindertag",["TH"]);
   add(y+"-10-03","Tag der Dt. Einheit"); add(y+"-10-31","Reformationstag",["BB","MV","SN","ST","TH","HB","HH","NI","SH"]);
   add(y+"-11-01","Allerheiligen",["BW","BY","NW","RP","SL"]);
   let bb=y+"-11-22"; while(parse(bb).getDay()!==3) bb=addD(bb,-1); add(bb,"Buß- und Bettag",["SN"]);
@@ -600,8 +608,13 @@ function renderHeute(){
   const s3=el("div","stats3");
   [[tot,"Anspruch"],[used,"verplant"],[tot-used,"übrig"]].forEach(([n,l])=>{ const d=el("div","stat"); d.append(el("b","num",String(n)),el("span",null,l)); s3.append(d); });
   const m=el("div","meter"), i=el("i"); i.style.width=Math.min(100,tot?used/tot*100:0)+"%"; if(used>tot) i.style.background="var(--bad)"; m.append(i);
-  const ab=el("div","row"); ab.style.marginTop="12px"; const a1=el("button","btn ai grow","Urlaub berechnen"); a1.type="button"; a1.style.flexBasis="100%"; a1.onclick=openAgent; ab.append(a1);
-  vk.append(s3,m,ab); box.append(vk);
+  const ab=el("div","row"); ab.style.marginTop="12px";
+  if(tot-used>0){ const rp=el("button","btn pri grow","Restliche "+(tot-used)+(tot-used===1?" Tag":" Tage")+" verplanen"); rp.type="button"; rp.style.flexBasis="100%"; rp.onclick=()=>{ agState.year=y; agState.sel=["max"]; agState.plan=[]; agState.meta=null; agState.use=""; openAgent(); }; ab.append(rp); }
+  const a1=el("button","btn ai grow","Urlaub berechnen"); a1.type="button"; a1.style.flexBasis="100%"; a1.onclick=openAgent; ab.append(a1);
+  const vl=el("div","vlist"); vl.append(el("h3",null,"Deine Urlaube "+y)); const bl=vacBlocks(y);
+  if(!bl.length) vl.append(el("p","muted","Noch kein Urlaub eingetragen."));
+  bl.forEach(b=>{ const r=el("button","vrow"); r.type="button"; const t=el("div","grow"); t.append(el("b",null,b.a===b.e?fmt(b.a):dShort(b.a)+" – "+dShort(b.e)), el("small",null,(diffD(b.a,b.e)+1)+(b.a===b.e?" Kalendertag":" Kalendertage"))); r.append(chip(vacType()), t, el("span","num",b.n+(b.n===1?" Urlaubstag":" Urlaubstage"))); r.onclick=()=>show("urlaub"); vl.append(r); });
+  vk.append(s3,m,ab,vl); box.append(vk);
 }
 
 /* ---------- Kalender ---------- */
@@ -779,6 +792,7 @@ function renderStat(){
   // Arbeitszeitkonto
   if(+S.soll>0){ const ac=el("div","card stats3"); const so=monthSoll(statY,statM), is=monthIst(statY,statM); let acc=0; const cy=new Date().getFullYear(), cm=new Date().getMonth();
     for(let m=0;m<12;m++){ if(statY>cy || (statY===cy && m>cm)) break; acc+=monthIst(statY,m)-monthSoll(statY,m); }
+    const hw=monthWork(statY,statM).hol; if(hw && +S.holCredit>0) box.append(el("p","hint","Feiertagsarbeit "+hStr(hw)+" · Gutschrift +"+S.holCredit+" % = +"+hStr(Math.round(hw*S.holCredit/100))+" aufs Konto."));
     [[hStr(so),"Soll im Monat"],[hSigned(is-so),is>=so?"Überstunden":"Minusstunden"],[hSigned(acc),"Konto "+statY+" bis jetzt"]].forEach(([a,b])=>{ const d=el("div","stat"); d.append(el("b","num",a),el("span",null,b)); ac.append(d); }); box.append(ac); }
   // Jahresübersicht Stunden
   const yc=el("div","card"); yc.append(el("h3",null,"Arbeitszeit "+statY+" pro Monat"));
@@ -826,9 +840,14 @@ function renderSet(){
   const l1=el("label","f","Urlaubstage pro Jahr"), i1=el("input"); i1.type="number"; i1.id="vacy"; i1.min=0; i1.max=99; i1.value=S.vacPerYear; i1.oninput=()=>{ S.vacPerYear=Math.max(0,Math.min(99,+i1.value||0)); save(); }; l1.append(i1);
   const l2=el("label","f","Resturlaub aus "+(y-1)+" (für "+y+")"), i2=el("input"); i2.type="number"; i2.id="carry"; i2.min=0; i2.max=99; i2.value=S.carry[y]||0; i2.oninput=()=>{ S.carry[y]=Math.max(0,Math.min(99,+i2.value||0)); save(); }; l2.append(i2);
   g.append(l1,l2); uc.append(g); { const vs=el("button","btn","Resturlaub "+y+" einstellen (z. B. „noch 13 Tage“)"); vs.type="button"; vs.onclick=()=>openVacSettings(y); uc.append(vs); }
-  const l3=el("label","f","Bundesland (für Feiertage)"), se=el("select"); se.id="land"; LAENDER.forEach(([k,n])=>{ const o=el("option",null,n); o.value=k; se.append(o); }); se.value=S.land; se.onchange=()=>{ S.land=se.value; save(); }; l3.append(se); uc.append(l3);
+  const l3=el("label","f","Bundesland (für Feiertage)"), se=el("select"); se.id="land"; LAENDER.forEach(([k,n])=>{ const o=el("option",null,n); o.value=k; se.append(o); }); se.value=S.land; se.onchange=()=>{ S.land=se.value; save(); renderSet(); }; l3.append(se); uc.append(l3);
+  (LOCAL_HOL[S.land]||[]).forEach(([k,n,sub,def])=>{ const lb=el("label","sw"); const c=el("input"); c.type="checkbox"; c.id="lh_"+k; c.checked=localOn(k,def); c.onchange=()=>{ if(!S.localHol) S.localHol={}; S.localHol[k]=c.checked; save(); renderSet(); }; const t=el("span"); t.append(document.createTextNode(n+" ist bei mir Feiertag"), el("small","muted"," – "+sub)); lb.append(c,t); uc.append(lb); });
+  { const fy=new Date().getFullYear(), hl=holidays(fy), dt=el("details"); dt.append(el("summary",null,"Gesetzliche Feiertage "+fy+" in "+((LAENDER.find(x=>x[0]===S.land)||[])[1]||S.land)+" ("+Object.keys(hl).length+")"));
+    Object.keys(hl).sort().forEach(d=>{ const r=el("div","trow"); r.append(el("span","grow",hl[d]), el("span","num muted",fmt(d))); dt.append(r); }); uc.append(dt); }
   { const sw2=el("label","sw"); const c3=el("input"); c3.type="checkbox"; c3.id="wefree"; c3.checked=!!S.weekendFree; c3.onchange=()=>{ const vb=vacSnap(), vo=JSON.parse(JSON.stringify(vacList())); S.weekendFree=c3.checked; save(); vacCheck(vb,vo); }; sw2.append(c3, el("span",null,"Wochenende immer frei (Sa/So keine Schicht)")); uc.append(sw2); }
-  const sw=el("label","sw"); const cb=el("input"); cb.type="checkbox"; cb.id="holfree"; cb.checked=!!S.holFree; cb.onchange=()=>{ const vb=vacSnap(), vo=JSON.parse(JSON.stringify(vacList())); S.holFree=cb.checked; save(); vacCheck(vb,vo); }; sw.append(cb, el("span",null,"An Feiertagen habe ich frei (Schichten entfallen)")); uc.append(sw);
+  const sw=el("label","sw"); const cb=el("input"); cb.type="checkbox"; cb.id="holfree"; cb.checked=!!S.holFree; cb.onchange=()=>{ const vb=vacSnap(), vo=JSON.parse(JSON.stringify(vacList())); S.holFree=cb.checked; save(); renderSet(); vacCheck(vb,vo); }; sw.append(cb, el("span",null,"An Feiertagen habe ich frei (Schichten entfallen)")); uc.append(sw);
+  if(!S.holFree){ const hc=el("label","f","Zeitgutschrift, wenn du an einem Feiertag arbeitest (%)"), hi=el("input"); hi.type="number"; hi.id="holcredit"; hi.min="0"; hi.max="300"; hi.step="5"; hi.inputMode="numeric"; hi.placeholder="z. B. 100"; hi.value=S.holCredit||""; hi.oninput=()=>{ S.holCredit=Math.max(0,Math.min(300,+hi.value||0)); save(); }; hc.append(hi); uc.append(hc, el("p","hint","Beispiel 100 %: 8 Stunden Arbeit am Feiertag werden mit 16 Stunden aufs Arbeitszeitkonto geschrieben. Für Geld-Zuschläge siehe „Lohn & Arbeitszeit“.")); }
+  else uc.append(el("p","hint","Musst du an Feiertagen arbeiten? Dann den Haken oben entfernen – danach kannst du eintragen, wie viel Zeit du dafür gutgeschrieben bekommst."));
   if(S.land==="NW"){ const sf=el("label","sw"); const c2=el("input"); c2.type="checkbox"; c2.id="showfer"; c2.checked=S.showFerien!==false; c2.onchange=()=>{ S.showFerien=c2.checked; save(); }; sf.append(c2, el("span",null,"Schulferien NRW im Kalender anzeigen")); uc.append(sf); }
   box.append(uc);
   // Lohn & Arbeitszeit
@@ -1122,13 +1141,14 @@ function monthPay(y,m){ const c=payCfg(), o=monthWork(y,m), cr=creditMin(o), h=v
   const base=h(o.min)*c.rate, absent=h((o.vac+o.sick)*cr)*c.rate, night=h(o.night)*c.rate*c.night/100, hol=h(o.hol)*c.rate*c.hol/100, sun=h(o.sun)*c.rate*c.sun/100;
   return {o,base,absent,night,sun,hol,sum:base+absent+night+sun+hol}; }
 function monthSoll(y,m){ const days=new Date(y,m+1,0).getDate(); return Math.round((+S.soll||0)*60/7*days); }
-function monthIst(y,m){ const o=monthWork(y,m); return o.min+(o.vac+o.sick)*creditMin(o); }
+function monthIst(y,m){ const o=monthWork(y,m); return o.min+(o.vac+o.sick)*creditMin(o)+Math.round(o.hol*(+S.holCredit||0)/100); }
 const eur=v=>v.toLocaleString("de-DE",{style:"currency",currency:"EUR"});
 const hSigned=m=>(m<0?"− ":"+ ")+hStr(Math.abs(m));
 
 function openPaySettings(){ openSheet(p=>{ sheetTop(p,"Lohn & Zuschläge"); const c=payCfg(); if(!S.pay) S.pay={};
     const num=(lab,id,val,step,set)=>{ const l=el("label","f",lab), i=el("input"); i.type="number"; i.id=id; i.inputMode="decimal"; i.step=step; i.min="0"; i.value=val||""; i.oninput=()=>{ set(i.value===""?null:Math.max(0,+String(i.value).replace(",",".")||0)); save(); }; l.append(i); return l; };
     const g=el("div","two"); g.append(num("Stundenlohn (€)","prate",c.rate||"","0.01",v=>S.pay.rate=v), num("Soll-Stunden pro Woche","psoll",S.soll||"","0.5",v=>S.soll=v)); p.append(g);
+    p.append(num("Zeitgutschrift bei Arbeit an Feiertagen (%)","pholcredit",S.holCredit||"","5",v=>S.holCredit=v||0), el("p","hint","Wie viele Stunden du zusätzlich aufgeschrieben bekommst – z. B. 100 % = doppelte Zeit aufs Arbeitszeitkonto."));
     p.append(el("h3",null,"Zuschläge in %"));
     const g2=el("div","three"); g2.append(num("Nacht (20–6 Uhr)","pnight",c.night,"1",v=>S.pay.night=v), num("Sonntag","psun",c.sun,"1",v=>S.pay.sun=v), num("Feiertag","phol",c.hol,"1",v=>S.pay.hol=v)); p.append(g2);
     p.append(el("p","hint","Üblich sind z. B. 25 % Nacht, 50 % Sonntag, 125 % Feiertag – schau in deinen Tarifvertrag. Urlaub und Krankheit werden mit "+(+S.soll>0?"Soll-Stunden ÷ 5":"dem Durchschnitt deiner Schichten")+" pro Tag gerechnet. Alles ist eine Schätzung ohne Steuern."));
