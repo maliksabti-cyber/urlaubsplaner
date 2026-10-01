@@ -627,7 +627,7 @@ function monthSummary(){ const first=curY+"-"+pad(curM+1)+"-01";
   const fm=[...new Set(FERIEN.filter(f=>S.land==="NW"&&S.showFerien!==false&&f[0]<=first.slice(0,7)+"-31"&&f[1]>=first).map(f=>f[2]+" "+fmtS(f[0])+"–"+fmtS(f[1])))];
   if(fm.length){ const sp=el("span"); sp.append(el("i","lfer"),document.createTextNode("Schulferien NRW: "+fm.join(", "))); lg.append(sp); }
   const sum=el("div","card"); sum.id="ksum"; const sb=el("button","btn ghost","Statistik ansehen ›"); sb.type="button"; sb.onclick=()=>{ statY=curY; statM=curM; show("stat"); }; const pb=el("button","btn ghost","♥ Gemeinsam frei"+(partners().length?" ("+partners().map(x=>x.name).join(", ")+")":"")); pb.type="button"; pb.onclick=openPartners; const br=el("div","row"); br.append(sb,pb); sum.append(el("h3",null,"Dieser Monat · "+hStr(mins)+" Arbeitszeit"), lg, br); return sum; }
-function dayKind(s){ const x=shiftOf(s); if(x&&x.kind==="vac") return "v"; if(!x||x.kind==="free") return vacAt(s)?"v":"f"; return null; }
+function dayKind(s){ const x=shiftOf(s); if(x&&x.kind==="vac") return "v"; if(!x||x.kind==="free") return "f"; return null; }
 const vacColor=()=>(vacType()||{color:"#2E8B57"}).color;
 function markDay(c,s){ c.classList.remove("vday","fday"); const k=dayKind(s); if(k==="v"){ c.classList.add("vday"); c.style.setProperty("--vbg",vacColor()); } else if(k==="f") c.classList.add("fday"); }
 function fillCell(c,s){ markDay(c,s); c.innerHTML=""; const d=parse(s), x=shiftOf(s), hn=holName(s);
@@ -730,14 +730,16 @@ function openVac(){
     p.append(el("h3",null,"Oder selbst wählen"));
     const vt=vacType(); if(!vt){ p.append(el("p",null,"Lege zuerst unter Einstellungen eine Schichtart vom Typ „Urlaub“ an.")); return; }
     const two=el("div","two"); const a=el("label","f","Von"), b=el("label","f","Bis"); const ia=el("input"), ib=el("input"); ia.type=ib.type="date"; ia.id="vfrom"; ib.id="vto"; ia.value=TODAY(); ib.value=addD(TODAY(),13); a.append(ia); b.append(ib); two.append(a,b); p.append(two);
-    const info=el("div","card"); p.append(info);
+    const info=el("div","card"); p.append(info); let days=[];
     const upd=()=>{ info.innerHTML=""; const f=ia.value, t=ib.value; if(!f||!t||t<f){ info.append(el("div","muted","Bitte Von und Bis wählen.")); go.disabled=true; return; }
-      let n=0, free=0; for(let s=f;s<=t;s=addD(s,1)){ const x=ownShift(s); if(x && x.kind==="work" && !vacAt(s)) n++; else free++; }
+      let n=0, free=0, as=0; days=[]; for(let s=f;s<=t;s=addD(s,1)){ if(vacAt(s)){ free++; continue; } const x=ownShift(s);
+        if(x && x.kind==="work"){ n++; days.push(s); } else if(!planKnown(s) && ![0,6].includes(parse(s).getDay()) && !holName(s)){ n++; as++; days.push(s); } else free++; }
       const y=+f.slice(0,4), rest=vacTotal(y)-vacUsed(y)-n;
       const big=el("div","stat"); big.append(el("b","num",n+" Urlaubstage"), el("span",null,(diffD(f,t)+1)+" Kalendertage, davon "+free+" ohnehin frei"));
+      if(as) info.append(el("div","banner","Für "+(as===n?"diesen Zeitraum":as+" Tage")+" ist noch kein Schichtplan eingetragen – gerechnet wird mit Montag bis Freitag."));
       info.append(big, el("div",rest<0?"":"muted",rest<0?("Achtung: "+(-rest)+" Tage mehr als dein Anspruch "+y+"."):("Danach noch "+rest+" Tage übrig ("+y+")."))); go.disabled=n===0; };
     const go=el("button","btn pri","Eintragen"); go.type="button";
-    go.onclick=()=>{ const f=ia.value, t=ib.value, old=JSON.parse(JSON.stringify(vacList())), u0=vacUsed(+f.slice(0,4)); addVac(f,t); const n=vacUsed(+f.slice(0,4))-u0;
+    go.onclick=()=>{ const f=ia.value, t=ib.value, old=JSON.parse(JSON.stringify(vacList())), u0=vacUsed(+f.slice(0,4)); if(days.some(d=>!planKnown(d))){ vacList().push({id:uid(),a:f,e:t,fixed:days.slice()}); normVacs(); } else addVac(f,t); const n=vacUsed(+f.slice(0,4))-u0;
       save(); closeSheet(); curY=+f.slice(0,4); curM=+f.slice(5,7)-1; toast(n+" Urlaubstage eingetragen","Rückgängig",()=>{ S.vacs=old; save(); render(); }); setTimeout(teamOffer,400); };
     ia.oninput=()=>{ if(ib.value<ia.value) ib.value=ia.value; upd(); }; ib.oninput=upd;
     p.append(el("p","hint","Gezählt werden nur Tage, an denen du laut Schichtplan arbeitest. Ändert sich später dein Schichtplan, passe ich den Urlaub an – vorher frage ich dich."), go); upd();
@@ -1547,7 +1549,7 @@ async function pdfYear(y){
       for(let d=1;d<=31;d++){ const yy=g0+(d-1)*rh;
         if(d>dim){ P.rect(x,yy,cw,rh,[0.98,0.98,0.98],RULE,0.3); continue; }
         const s=y+"-"+pad(m+1)+"-"+pad(d), t=shiftOf(s), wd=parse(s).getDay(), hn=holName(s), we=wd===0||wd===6, by=yy+rh/2+2.8;
-        const isV=(t&&t.kind==="vac")||(!!vacAt(s)&&(!t||t.kind==="free")), W1=[1,1,1], vc=hexRGB((vacType()||{color:"#2E8B57"}).color);
+        const isV=!!(t&&t.kind==="vac"), W1=[1,1,1], vc=hexRGB((vacType()||{color:"#2E8B57"}).color);
         const isF=!isV&&(!t||t.kind==="free"), FG=[0.80,0.92,0.83], FT=[0.1,0.42,0.22];
         if(isV){ P.rect(x,yy,cw,rh,vc,vc,0.3); } else if(isF){ P.rect(x,yy,cw,rh,FG,[0.66,0.84,0.7],0.3); }
         else P.rect(x,yy,cw,rh,hn?HOLC:(we?WEC:null),RULE,0.3);
@@ -1967,7 +1969,7 @@ async function pdfMonth(y,m){
   const top=86, cw=(P.W-2*M)/7, rh=92; ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"].forEach((d,i)=>P.text(M+i*cw+cw/2,top,d,9,true,GREY,"center"));
   const first=y+"-"+pad(m+1)+"-01"; let s=first; while(parse(s).getDay()!==1) s=addD(s,-1); let mins=0;
   for(let r=0;r<6;r++){ if(r===5 && +s.slice(5,7)!==m+1) break; for(let c=0;c<7;c++){ const x=M+c*cw, yy=top+8+r*rh, inM=+s.slice(5,7)===m+1, t=shiftOf(s), hn=holName(s);
-      const isV=inM&&((t&&t.kind==="vac")||(!!vacAt(s)&&(!t||t.kind==="free"))); const isF=inM&&!isV&&(!t||t.kind==="free"); P.rect(x,yy,cw,rh,isV?hexRGB((vacType()||{color:"#2E8B57"}).color):(isF?[0.80,0.92,0.83]:(hn&&inM?[1,0.95,0.8]:null)),RULE,0.5); P.text(x+6,yy+14,String(parse(s).getDate()),11,true,isV?[1,1,1]:(inM?INK:[0.7,0.72,0.74]));
+      const isV=inM&&!!(t&&t.kind==="vac"); const isF=inM&&!isV&&(!t||t.kind==="free"); P.rect(x,yy,cw,rh,isV?hexRGB((vacType()||{color:"#2E8B57"}).color):(isF?[0.80,0.92,0.83]:(hn&&inM?[1,0.95,0.8]:null)),RULE,0.5); P.text(x+6,yy+14,String(parse(s).getDate()),11,true,isV?[1,1,1]:(inM?INK:[0.7,0.72,0.74]));
       if(inM){ if(hn&&!isV) P.text(x+6,yy+rh-8,hn.slice(0,18),6.5,false,[0.6,0.42,0]);
         if(isV){ P.text(x+cw/2,yy+44,t&&t.kind==="vac"?"Urlaub":"frei",14,true,[1,1,1],"center"); if(hn) P.text(x+6,yy+rh-8,hn.slice(0,18),6.5,false,[1,1,1]); }
         else if(isF){ P.text(x+cw/2,yy+44,"frei",14,true,[0.1,0.42,0.22],"center"); }
