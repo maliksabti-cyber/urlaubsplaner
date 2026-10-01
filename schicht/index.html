@@ -122,6 +122,15 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .legend span{display:inline-flex;gap:6px;align-items:center}
 .legend .chip{height:20px;min-width:26px;font-size:13px}
 .hint{font-size:13px;color:var(--soft)}
+.guide{border-color:var(--accent)}
+.glist{display:grid;gap:4px}
+.gstep,.gnext{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--rule)}
+.gnext{border-top:0;padding:4px 0}
+.gstep small,.gnext small{display:block;color:var(--soft);font-size:13px}
+.gstep.done{opacity:.6}
+.gnum{width:28px;height:28px;flex:none;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-weight:800;font-size:14px}
+.gstep.done .gnum{background:var(--ok)}
+.gstep .btn{flex:none;padding:7px 10px;font-size:13px}
 #help{font-weight:800;font-size:18px}
 .news{border-color:var(--accent)}
 .newsrow{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--rule);background:none;padding:10px 0}
@@ -526,8 +535,8 @@ function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("d
 
 /* ---------- Heute ---------- */
 function renderHeute(){
-  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box); newsCard(box);
-  if(backupDue() && dlNs){ const b=el("div","banner"); const t=el("span","grow"); t.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(t,go); box.append(b); }
+  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box); const gOn=guideCard(box); if(!gOn) newsCard(box);
+  if(!gOn && backupDue() && dlNs){ const b=el("div","banner"); const t=el("span","grow"); t.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(t,go); box.append(b); }
   const t=TODAY(), sh=shiftOf(t), hn=holName(t);
   const c=el("div","card today");
   const big=el("div","big"); if(sh){ big.style.background=sh.color; if(isDark(sh.color)) big.classList.add("dark"); big.textContent=sh.short; } else { big.classList.add("free"); big.textContent="–"; } if(dayKind(t)==="v"&&(!sh||sh.kind!=="vac")){ big.classList.remove("free"); big.style.background=vacColor(); big.style.color="#fff"; big.style.border="0"; } else if(dayKind(t)==="f"){ big.style.background=""; big.classList.add("free"); }
@@ -770,7 +779,7 @@ function renderSet(){
   const rc=el("div","card sec"); rc.append(el("h2",null,"Mein Rhythmus"), el("p","hint",S.rots.length?"Eingetragen: "+S.rots.map(r=>r.name||"Rhythmus").join(", "):"Noch kein Rhythmus eingetragen."));
   const add=el("button","btn pri","Rhythmus anlegen oder ändern"); add.type="button"; add.onclick=()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }; rc.append(add); box.append(rc);
   // Schichtarten
-  const tc=el("div","card sec"); tc.append(el("h2",null,"Schichtarten"));
+  const tc=el("div","card sec"); tc.id="types"; tc.tabIndex=-1; tc.append(el("h2",null,"Schichtarten"), el("p","hint","Tippe auf „Ändern“, um Beginn, Ende und Pause einzustellen."));
   const tl=el("div","tlist"); S.types.forEach(t=>{ const it=el("div","titem"); const mid=el("div"); mid.append(el("b",null,t.name), el("div","muted mono",t.kind==="work"&&t.start?(t.start+" – "+t.end+" · "+hStr(minutes(t))):KINDS[t.kind]));
     const e=el("button","btn","Ändern"); e.type="button"; e.onclick=()=>openType(t); const x=el("button","icon-btn","🗑"); x.type="button"; x.setAttribute("aria-label",t.name+" löschen"); x.onclick=()=>deleteType(t); const bx=el("div","row"); bx.append(e); if(t.kind!=="vac") bx.append(x); it.append(chip(t),mid,bx); tl.append(it); });
   const addT=el("button","btn pri","+ Weitere Schicht hinzufügen"); addT.type="button"; addT.onclick=()=>openType(null);
@@ -1131,6 +1140,45 @@ function planImport(code){ let d=null; try{ d=JSON.parse(b64d(code)); }catch(e){
   ask("Plan von "+P.name+" hinzufügen?","Dann siehst du im Schichtplan, wann ihr beide frei habt (♥).",[{label:"Ja, hinzufügen",pri:true,fn:()=>{ const L=partners(); const i=L.findIndex(x=>tKey(x.name)===tKey(P.name)); if(i>=0) L[i]=P; else L.push(P); save(); render(); toast("Plan von "+P.name+" hinzugefügt"); }},{label:"Nein",fn:()=>{}}]); }
 /* Fertige Rhythmus-Vorlagen */
 const RHYTHM_PRESETS=[["2-2-2 + 4 frei","Konti-Schicht, 10 Tage",["F","F","S","S","N","N",null,null,null,null]],["3-3-3 + 3 frei","12-Tage-Rhythmus",["F","F","F","S","S","S","N","N","N",null,null,null]],["4 Tage an, 4 frei","8-Tage-Rhythmus",["F","F","F","F",null,null,null,null]],["Früh/Spät im Wochenwechsel","eine Woche früh, eine Woche spät",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],["Früh/Spät/Nacht wöchentlich","3-Wochen-Wechsel",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],["Mo–Fr Frühschicht","Wochenende frei",["F","F","F","F","F",null,null]]];
+/* ===================== Schritt für Schritt ===================== */
+function gFlag(k){ return !!(S.guide&&S.guide[k]); }
+function gSet(k){ if(!S.guide) S.guide={}; if(S.guide[k]) return; S.guide[k]=true; histMute=true; save(); histMute=false; }
+function planYear(){ const y=new Date().getFullYear(); return new Date().getMonth()>=9 ? y+1 : y; }
+const GUIDE=[
+  {k:"plan",t:"Schichtplan eintragen",w:"Alles andere baut darauf auf: Urlaubstage, Stunden und Verdienst werden aus deinem Plan berechnet.",b:"Rhythmus eintragen",
+   done:()=>(S.rots||[]).length>0 || Object.keys(S.ov).filter(k=>k>=addD(TODAY(),-31)).length>=5,
+   go:()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }},
+  {k:"times",t:"Uhrzeiten prüfen",w:"Stimmen Beginn, Ende und Pause deiner Schichten? Davon hängen Stunden, Zuschläge und Erinnerungen ab.",b:"Uhrzeiten ansehen",
+   done:()=>gFlag("times"), go:()=>{ gSet("times"); goSettings("types"); }},
+  {k:"vac",t:"Urlaubstage prüfen",w:"Wie viele Tage hast du pro Jahr, und wie viele sind vom letzten Jahr übrig?",b:"Urlaubstage prüfen",
+   done:()=>gFlag("vac"), go:()=>{ gSet("vac"); openVacSettings(new Date().getFullYear()); }},
+  {k:"fixed",t:"Feste Termine eintragen",w:"Hast du schon Urlaub, der feststeht (gebucht, Hochzeit, Kita-Schließzeit)? Den zuerst eintragen – dann plant die App drumherum.",b:"Urlaub eintragen",opt:true,
+   done:()=>vacList().some(v=>v.e>=TODAY()), go:()=>openVac()},
+  {k:"calc",get t(){ return "Urlaub "+planYear()+" clever planen"; },w:"Die App sucht Tage, mit denen du aus wenig Urlaub möglichst viel frei bekommst – passend zu deinem Rhythmus.",b:"Urlaub berechnen",
+   done:()=>{ const y=planYear(); return gFlag("calc") || (vacTotal(y)>0 && vacTotal(y)-vacUsed(y)<=0); }, go:()=>{ gSet("calc"); agState.year=planYear(); openAgent(); }},
+  {k:"team",t:"Mit dem Team abstimmen",w:"Sieh, wer wann Urlaub hat, damit nicht zu viele gleichzeitig fehlen.",b:"Zum Team",opt:true,
+   done:()=>!!ts, go:()=>{ closeSheet(); show("team"); }},
+  {k:"remind",t:"Erinnerung einrichten",w:"Dein Handy-Kalender erinnert dich vor jeder Schicht.",b:"Erinnerung einrichten",opt:true,
+   done:()=>+S.remind>0 && gFlag("calx"), go:()=>goSettings("remind")},
+  {k:"pay",t:"Lohn eintragen",w:"Sieh, was du mit Zuschlägen ungefähr verdienst und ob du Überstunden hast.",b:"Lohn eintragen",opt:true,
+   done:()=>payCfg().rate>0, go:()=>openPaySettings()},
+  {k:"backup",t:"Sichern",w:"Deine Daten liegen nur auf diesem Handy. Schick dir die Sicherung z. B. per WhatsApp selbst.",b:"Jetzt sichern",
+   done:()=>!!S.lastBackup && diffD(S.lastBackup,TODAY())<14, go:()=>jsonSave()}];
+const gDone=g=>g.done()||gFlag("skip_"+g.k);
+function guideList(onlyOpen){ const box=el("div","glist"); GUIDE.forEach((g,i)=>{ const d=gDone(g); if(onlyOpen&&d) return; const r=el("div","gstep"+(d?" done":""));
+  r.append(el("span","gnum",d?"✓":String(i+1))); const tx=el("div","grow"); tx.append(el("b",null,g.t+(g.opt?" (optional)":"")),el("small",null,g.w)); r.append(tx);
+  if(!d){ const go=el("button","btn",g.b); go.type="button"; go.onclick=g.go; r.append(go); } box.append(r); }); return box; }
+function guideCard(box){ const open=GUIDE.filter(g=>!gDone(g)); if(!open.length || gFlag("hide")) return false;
+  const n=GUIDE.length-open.length, nx=open[0], i=GUIDE.indexOf(nx); const c=el("div","card sec guide");
+  const h=el("div","row"); h.append(el("h2","grow","Deine nächsten Schritte"), el("span","muted num",n+" von "+GUIDE.length)); c.append(h);
+  const m=el("div","meter"), bar=el("i"); bar.style.width=(n/GUIDE.length*100)+"%"; m.append(bar); c.append(m);
+  const st=el("div","gnext"); st.append(el("span","gnum",String(i+1))); const tx=el("div","grow"); tx.append(el("b",null,nx.t),el("small",null,nx.w)); st.append(tx); c.append(st);
+  const row=el("div","row"); const go=el("button","btn pri grow",nx.b); go.type="button"; go.onclick=nx.go; row.append(go);
+  if(nx.opt){ const sk=el("button","btn ghost","Überspringen"); sk.type="button"; sk.onclick=()=>{ gSet("skip_"+nx.k); renderHeute(); }; row.append(sk); } c.append(row);
+  const all=el("details"); all.append(el("summary",null,"Alle Schritte anzeigen"), guideList()); const hide=el("button","linkbtn","Diese Hilfe ausblenden (unter ? wieder zu finden)"); hide.type="button"; hide.onclick=()=>{ gSet("hide"); renderHeute(); }; all.append(hide); c.append(all);
+  box.append(c); return true; }
+function openGuide(){ openSheet(p=>{ sheetTop(p,"Schritt für Schritt"); p.append(el("p","hint","In dieser Reihenfolge holst du am meisten aus Schicht und Urlaub heraus. Erledigte Schritte werden automatisch abgehakt."), guideList());
+  if(gFlag("hide")){ const sh=el("button","btn","Auf der Startseite wieder anzeigen"); sh.type="button"; sh.onclick=()=>{ S.guide.hide=false; save(); closeSheet(); show("heute"); }; p.append(sh); } }); }
 /* ===================== Hilfe & Neuigkeiten ===================== */
 function goKal(){ closeSheet(); show("kal"); }
 function goSettings(id){ closeSheet(); show("set"); if(id) setTimeout(()=>{ const e=$("#"+id); if(e){ e.scrollIntoView({block:"center"}); e.focus(); } },150); }
@@ -1145,7 +1193,7 @@ const HELP=[
   ["♥","Gemeinsam frei","Schichtplan → „Gemeinsam frei“ → „Meinen Plan als Link schicken“, z. B. per WhatsApp an Partner oder Freunde. Wer den Link öffnet, sieht ♥ an den Tagen, an denen ihr beide frei habt.",()=>openPartners()],
   ["👥","Team","Team-Tab: mit deinem Konto vom Team-Urlaubsplaner anmelden. Dort siehst du, wer wann Urlaub hat und ob zu viele gleichzeitig fehlen.",()=>{ closeSheet(); show("team"); }],
   ["💾","Sichern","Deine Daten liegen nur auf diesem Handy. Ab und zu auf „Jetzt sichern“ tippen und die Datei z. B. per WhatsApp an dich selbst schicken.",()=>jsonSave()]];
-function openHelp(){ openSheet(p=>{ sheetTop(p,"So geht's"); p.append(el("p","hint","Tippe ein Thema an. Mit „Ausprobieren“ springst du direkt hin."));
+function openHelp(){ openSheet(p=>{ sheetTop(p,"So geht's"); const gs=el("button","btn pri","Schritt für Schritt: Was mache ich zuerst?"); gs.type="button"; gs.onclick=openGuide; p.append(gs, el("p","hint","Oder tippe ein Thema an. Mit „Ausprobieren“ springst du direkt hin."));
   HELP.forEach(([i,t,txt,fn])=>{ const d=el("details"); const sm=el("summary",null,i+"  "+t); d.append(sm, el("p",null,txt)); const b=el("button","btn","Ausprobieren"); b.type="button"; b.onclick=fn; d.append(b); p.append(d); }); }); }
 const NEWS_V=1;
 function newsCard(box){ if((+S.newsSeen||0)>=NEWS_V) return; const c=el("div","card sec news"); c.append(el("h2",null,"Neu in der App"));
@@ -1474,7 +1522,7 @@ async function jsonSave(){ await shareFile(new TextEncoder().encode(JSON.stringi
 function markBackup(){ S.lastBackup=TODAY(); histMute=true; save(); histMute=false; if(view==="heute") renderHeute(); }
 /* Erinnerung: nur wenn die Daten allein auf dem Gerät liegen */
 function backupDue(){ if(!CFG.localMode || !S.onboarded) return false; return !S.lastBackup || diffD(S.lastBackup,TODAY())>=14; }
-async function calSave(){ const txt=makeICS(); if(!/BEGIN:VEVENT/.test(txt)){ toast("Im nächsten Jahr sind noch keine Schichten eingetragen."); return; } await shareFile(new TextEncoder().encode(txt),"Schichtplan.ics","text/calendar","Schichtplan"); }
+async function calSave(){ gSet("calx"); const txt=makeICS(); if(!/BEGIN:VEVENT/.test(txt)){ toast("Im nächsten Jahr sind noch keine Schichten eingetragen."); return; } await shareFile(new TextEncoder().encode(txt),"Schichtplan.ics","text/calendar","Schichtplan"); }
 
 /* ===================== Rückgängig / Wiederholen (für alles) ===================== */
 let undoS=[], redoS=[], lastSnap=null, lastT=0, histMute=false;
