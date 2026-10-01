@@ -734,8 +734,8 @@ const PRESETS=[
 let editRot=null;
 function renderSet(){
   const box=$("#v-set"); box.innerHTML="";
-  if(CFG.localMode){ const kc=el("div","card sec"); kc.append(el("h2",null,"Testversion"), el("p","hint","In der Testversion gibt es keine Anmeldung. Deine Daten bleiben nur auf diesem Gerät. In der fertigen App meldest du dich mit E-Mail an und alles wird gesichert."));
-    const l=el("label","f","Vorname"), i=el("input"); i.type="text"; i.id="myname"; i.value=S.name||""; i.onchange=()=>{ S.name=i.value.trim().slice(0,40); save(); $("#who").textContent=S.name||"Testversion"; }; l.append(i); kc.append(l); box.append(kc); }
+  if(CFG.localMode){ const kc=el("div","card sec"); kc.append(el("h2",null,"Deine Daten"), el("p","hint","Deine Daten sind auf diesem Handy gespeichert, eine Anmeldung brauchst du nicht. Teile ab und zu unten eine Sicherung, z. B. an dich selbst per WhatsApp oder Mail."));
+    const l=el("label","f","Vorname"), i=el("input"); i.type="text"; i.id="myname"; i.value=S.name||""; i.onchange=()=>{ S.name=i.value.trim().slice(0,40); save(); $("#who").textContent=S.name||""; }; l.append(i); kc.append(l); box.append(kc); }
   else { const kc=el("div","card sec"); kc.append(el("h2",null,"Konto"));
     const l=el("label","f","Vorname"), i=el("input"); i.type="text"; i.id="myname"; i.value=S.name||""; i.onchange=()=>{ S.name=i.value.trim().slice(0,40); save(); $("#who").textContent=(S.name?S.name+" · ":"")+(sess?sess.email:""); }; l.append(i); kc.append(l);
     kc.append(el("div","muted",sess?sess.email:"")); const sy=el("div","syncline"); sy.id="sync"; kc.append(sy); setSync(dirty?"off":"ok");
@@ -770,7 +770,7 @@ function renderSet(){
   box.append(uc);
   // Daten
   const dc=el("div","card sec"); dc.append(el("h2",null,"Sichern & Übertragen"));
-  dc.append(el("p","hint","Deine Daten werden automatisch in deinem Konto gesichert. Zusätzlich kannst du hier eine Sicherung teilen oder einspielen."));
+  dc.append(el("p","hint",CFG.localMode?"Deine Daten liegen nur auf diesem Handy. Teile hier ab und zu eine Sicherung, damit nichts verloren geht, und spiel sie bei Bedarf wieder ein.":"Deine Daten werden automatisch in deinem Konto gesichert. Zusätzlich kannst du hier eine Sicherung teilen oder einspielen."));
   const ta=el("textarea"); ta.id="backup"; ta.placeholder="Hier eine Sicherung einfügen …"; ta.setAttribute("aria-label","Sicherung");
   const r=el("div","row"); const cp=el("button","btn","Sicherung als Text kopieren"), im=el("button","btn","Sicherung einspielen"), ics=el("button","btn","Kalender-Datei (.ics) kopieren"); cp.type=im.type=ics.type="button";
   cp.onclick=async()=>{ const txt=JSON.stringify(S); ta.value=txt; try{ await navigator.clipboard.writeText(txt); toast("Sicherung kopiert"); }catch(e){ ta.focus(); ta.select(); toast("Text ist markiert – jetzt kopieren"); } };
@@ -1358,7 +1358,10 @@ async function deleteAccount(){ try{ const t=await token(); await cloudDelete();
 
 /* ---------- Start ---------- */
 async function boot(){
-  if(CFG.localMode){ sess=null; S=load(); if(!S || !S.onboarded){ S=S||defaults(); openOnboarding(); return; } enterApp(); return; }
+  if(CFG.localMode){ sess=null;
+    /* Daten aus einer früheren Anmeldung auf diesem Gerät übernehmen */
+    if(!lsGet(dataKey())){ try{ let best=null; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!/^su_data_.+$/.test(k) || /_dirty$/.test(k)) continue; const d=JSON.parse(localStorage.getItem(k)); if(validData(d) && (!best || (d.updated||0)>(best.updated||0))) best=d; } if(best) lsSet(dataKey(),JSON.stringify(best)); }catch(e){} }
+    S=load(); if(!S || !S.onboarded){ S=S||defaults(); openOnboarding(); return; } enterApp(); return; }
   if(!CFG.apiKey || !CFG.projectId || /HIER_/.test(CFG.apiKey+CFG.projectId)){ authLoading("Die App ist noch nicht eingerichtet (config.js)."); return; }
   try{ sess=JSON.parse(lsGet("su_sess")||"null"); }catch(e){ sess=null; }
   if(!sess || !sess.uid){ sess=null; showAuth("login"); return; }
@@ -1372,7 +1375,7 @@ async function boot(){
   enterApp(); pull();
 }
 $("#aretry").onclick=()=>boot();
-function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").hidden=false; $("#who").textContent=(S.name?S.name+" · ":"")+(sess?sess.email:""); if(dirty||lsGet(dataKey()+"_dirty")==="1") dirty=true; show("heute"); if(typeof navStack!=="undefined") navStack.length=0; if(typeof updHist==="function") updHist(); if(typeof updBack==="function") updBack(); }
+function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").hidden=false; $("#who").textContent=[S.name,sess&&sess.email].filter(Boolean).join(" · "); if(dirty||lsGet(dataKey()+"_dirty")==="1") dirty=true; show("heute"); if(typeof navStack!=="undefined") navStack.length=0; if(typeof updHist==="function") updHist(); if(typeof updBack==="function") updBack(); }
 
 /* ---------- Einrichtung (3 Schritte) ---------- */
 const ONB_MODELS=[
