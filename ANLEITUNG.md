@@ -17,3 +17,17 @@ Alles geht am Handy im Browser (Chrome/Safari). Wir gehen die Schritte im Chat z
 **Später etwas ändern:** neue `index.html` bei GitHub hochladen (gleicher Name, überschreiben) – alle haben sofort die neue Version.
 **Kosten:** Firebase „Spark“ (kostenlos) + GitHub Pages (kostenlos). Keine Kreditkarte nötig.
 **Passwort vergessen:** mit E-Mail → „Passwort vergessen?“. Ohne E-Mail → Admin löscht den Nutzer in Firebase → Authentication → Nutzer, dann neu registrieren.
+
+---
+
+# Schicht & Urlaub (persönlicher Schichtplan) – Ordner `schicht/`
+
+Eigene App für deinen Schichtrhythmus, Urlaub, Feiertage und PDF-Export. Läuft unter
+`https://DEINNAME.github.io/urlaubsplaner/schicht/` und nutzt dasselbe Firebase-Projekt.
+
+1. **Regel veröffentlichen** – Firestore → „Regeln“ → Inhalt von `firestore.rules` (enthält jetzt den Block `nutzer`) einfügen → „Veröffentlichen“. Ohne diesen Schritt klappt die Cloud-Sicherung nicht.
+2. **Hochladen** – den Ordner `schicht/` (index.html, config.js, manifest.webmanifest, sw.js) und die neue `firestore.rules` ins Repository.
+3. **Öffnen** – Link aufrufen → „Konto erstellen“. Jeder sieht nur seine eigenen Schichtdaten.
+
+**Nur testen ohne Anmeldung:** in `schicht/config.js` `localMode: true` setzen – dann bleiben die Daten nur im Browser.
+**Achtung:** „Konto löschen“ in Schicht & Urlaub löscht das Firebase-Konto – also auch die Anmeldung für den Team-Urlaubsplaner, wenn dieselbe E-Mail benutzt wird.

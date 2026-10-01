@@ -51,5 +51,13 @@ service cloud.firestore {
         && request.resource.data.bytes is bytes && request.resource.data.bytes.size() < 950000;
       allow delete: if isAdmin() || ownsOld();
     }
+
+    // Schicht & Urlaub (schicht/): jeder Nutzer hat genau ein eigenes Dokument, nur er selbst darf es lesen/ändern
+    match /nutzer/{uid} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['data','updated'])
+        && request.resource.data.data is string && request.resource.data.data.size() < 900000;
+    }
   }
 }
