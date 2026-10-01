@@ -270,7 +270,7 @@ body.painting .toast{bottom:calc(170px + env(safe-area-inset-bottom,0px))}
 
 /* Unten */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabs-in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs-in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 .tabs button{border:0;background:none;padding:9px 0 10px;display:grid;justify-items:center;gap:2px;font-size:12px;font-weight:600;color:var(--soft)}
 .tabs button svg{width:22px;height:22px}
 .tabs button[aria-selected="true"]{color:var(--accent)}
@@ -353,6 +353,7 @@ input[type=email],input[type=password]{border:1px solid var(--rule);background:v
   <section id="v-stat" class="sec" hidden></section>
   <section id="v-urlaub" class="sec" hidden></section>
   <section id="v-set" class="sec" hidden></section>
+  <section id="v-team" class="sec" hidden></section>
 </main>
 
 <button class="fab" id="fab" type="button">+ Urlaub</button>
@@ -365,6 +366,7 @@ input[type=email],input[type=password]{border:1px solid var(--rule);background:v
   <button role="tab" data-v="heute" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Heute</button>
   <button role="tab" data-v="kal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Schichtplan</button>
   <button role="tab" data-v="urlaub" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M12 1.5v1.5M12 13v1.5M4.9 3.9l1 1M18.1 3.9l-1 1M3 21c3-3 6-4 9-4s6 1 9 4"/></svg>Urlaub</button>
+  <button role="tab" data-v="team" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.6c2.7-.3 4.8 1.4 5.5 4.4"/></svg>Team</button>
   <button role="tab" data-v="stat" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Statistik</button>
 </div></nav>
 </div>
@@ -509,9 +511,9 @@ function vacType(){ return S.types.find(t=>t.kind==="vac"); }
 let view="heute", curY=new Date().getFullYear(), curM=new Date().getMonth(), kalMode="monat", statY=curY, statM=curM;
 let selMode=false, sel=new Set();
 function toast(msg,btn,fn){ const t=$("#toast"); $("#toastt").textContent=msg; const b=$("#toastb"); b.hidden=!btn; if(btn){ b.textContent=btn; b.onclick=()=>{ t.hidden=true; fn(); }; } t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true, btn?6000:2600); }
-function show(v){ view=v; document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v))); ["heute","kal","urlaub","stat","set"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
+function show(v){ view=v; document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v))); ["heute","kal","urlaub","stat","set","team"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.v));
-function render(){ if(!S) return; if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); }
+function render(){ if(!S) return; if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); if(view==="team") renderTeam(); }
 function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("div","banner"); const t=el("span","grow"); t.innerHTML="<b>Beispiel-Rhythmus.</b> Stell unter Einstellungen deinen eigenen Schichtrhythmus ein."; const go=el("button","btn","Jetzt einstellen"); go.type="button"; go.onclick=()=>show("set"); b.append(t,go); box.append(b); }
 
 /* ---------- Heute ---------- */
@@ -693,7 +695,7 @@ function openVac(){
       info.append(big, el("div",rest<0?"":"muted",rest<0?("Achtung: "+(-rest)+" Tage mehr als dein Anspruch "+y+"."):("Danach noch "+rest+" Tage übrig ("+y+")."))); go.disabled=n===0; };
     const go=el("button","btn pri","Eintragen"); go.type="button";
     go.onclick=()=>{ const f=ia.value, t=ib.value, old=JSON.parse(JSON.stringify(vacList())), u0=vacUsed(+f.slice(0,4)); addVac(f,t); const n=vacUsed(+f.slice(0,4))-u0;
-      save(); closeSheet(); curY=+f.slice(0,4); curM=+f.slice(5,7)-1; toast(n+" Urlaubstage eingetragen","Rückgängig",()=>{ S.vacs=old; save(); render(); }); };
+      save(); closeSheet(); curY=+f.slice(0,4); curM=+f.slice(5,7)-1; toast(n+" Urlaubstage eingetragen","Rückgängig",()=>{ S.vacs=old; save(); render(); }); setTimeout(teamOffer,400); };
     ia.oninput=()=>{ if(ib.value<ia.value) ib.value=ia.value; upd(); }; ib.oninput=upd;
     p.append(el("p","hint","Gezählt werden nur Tage, an denen du laut Schichtplan arbeitest. Ändert sich später dein Schichtplan, passe ich den Urlaub an – vorher frage ich dich."), go); upd();
   });
@@ -1076,10 +1078,11 @@ function agModel(year){ const days=[], idx={}; const today=TODAY(); let assumed=
   for(let s=year+"-01-01"; s<=year+"-12-31"; s=addD(s,1)){ const x=shiftOf(s); idx[s]=days.length;
     if(planKnown(s)) days.push({s, off:!x||x.kind==="free", own:!!x&&x.kind==="vac", past:s<=today, fe:ferien(s)});
     else { const w=parse(s).getDay(), off=w===0||w===6||!!holName(s); if(!off&&s>today) assumed++; days.push({s, off, own:false, past:s<=today, fe:ferien(s), as:!off}); } }
+  if(teamOn()){ const m=teamAway(false); days.forEach(d=>{ const st=m.get(d.s); if(st && st.size>=team.limit) d.full=st.size; }); }
   return {days, idx, assumed}; }
 function agSpan(M,i0,i1,chosen){ const free=i=>{ const x=M.days[i]; return x && (x.off||x.own||chosen.has(i)); }; let a=i0,b=i1; while(a-1>=0&&free(a-1)) a--; while(b+1<M.days.length&&free(b+1)) b++; return {a,b,len:b-a+1}; }
 function agCost(M,i0,i1){ let c=0; for(let i=i0;i<=i1;i++){ const x=M.days[i]; if(!x.off&&!x.own) c++; } return c; }
-function agValid(M,i0,i1,chosen,monthOk){ for(let i=i0;i<=i1;i++){ const x=M.days[i]; if(x.past||x.own||chosen.has(i)) return false; }
+function agValid(M,i0,i1,chosen,monthOk){ for(let i=i0;i<=i1;i++){ const x=M.days[i]; if(x.past||x.own||chosen.has(i)||x.full) return false; }
   if(!monthOk(M.days[i0].s)||!monthOk(M.days[i1].s)) return false; if(M.days[i0].off||M.days[i1].off) return false; return true; }
 function agCounted(M,chosen){ const cnt=new Uint8Array(M.days.length); let i=0;
   while(i<M.days.length){ if(!(M.days[i].off||M.days[i].own||chosen.has(i))){ i++; continue; } let j=i,has=false; while(j<M.days.length&&(M.days[j].off||M.days[j].own||chosen.has(j))){ if(M.days[j].own||chosen.has(j)) has=true; j++; } if(has) for(let k=i;k<j;k++) cnt[k]=1; i=j; }
@@ -1111,7 +1114,7 @@ function planBlock(M,wd,monthOk,preferFerien,cal,alts){
   return pick.map((p,n)=>Object.assign(agItem(M,p.i,p.j,new Set()),{on:n===0,alt:n>0})); }
 function planWeekends(M,budget,monthOk){ const out=[], per=Math.max(1,Math.min(12,budget));
   for(let m=0;m<12&&out.length<per;m++){ let best=null;
-    for(let i=0;i<M.days.length;i++){ const x=M.days[i]; if(+x.s.slice(5,7)-1!==m) continue; if(x.off||x.past||x.own||!monthOk(x.s)) continue; const w=parse(x.s).getDay(); if(w!==1&&w!==5) continue;
+    for(let i=0;i<M.days.length;i++){ const x=M.days[i]; if(+x.s.slice(5,7)-1!==m) continue; if(x.off||x.past||x.own||x.full||!monthOk(x.s)) continue; const w=parse(x.s).getDay(); if(w!==1&&w!==5) continue;
       const sp=agSpan(M,i,i,new Set()); if(sp.len<3) continue; const sc=sp.len; if(!best||sc>best.sc) best={i,sc}; }
     if(best) out.push(agItem(M,best.i,best.i,new Set())); }
   return out; }
@@ -1172,6 +1175,7 @@ function openAgent(){
       if(q.mode==="split" && plan.length<2 && y===y0 && !q.year){ const keepP=plan, keepM=M; y=y0+1; rest=vacTotal(y)-vacUsed(y); M=agModel(y); calc(); if(plan.length>=2){ agState.year=y; sy.value=y; info(); note="In "+y0+" passt nur noch ein Block. Hier der Vorschlag für "+y+"."; } else { y=y0; rest=vacTotal(y)-vacUsed(y); M=keepM; plan=keepP; } }
       if(!plan.length && y===y0){ const y1=y0+1; const r1=vacTotal(y1)-vacUsed(y1); if(r1>0){ y=y1; rest=r1; agState.year=y1; sy.value=y1; info(); M=agModel(y); calc(); if(plan.length) note="In "+y0+" passt nichts mehr. Hier der Vorschlag für "+y1+"."; } }
       if(!plan.length){ say(rest?"Dazu finde ich nichts. Probier „Maximal frei“ oder einen anderen Monat.":"Für "+y+" sind keine Urlaubstage übrig."); return; }
+      if(teamOn() && M.days.some(d=>d.full)) note=(note?note+" ":"")+"Ich lasse Tage aus, an denen schon "+team.limit+" aus dem Team im Urlaub sind.";
       if(M.assumed>30) note=(note?note+" ":"")+"Für "+y+" ist noch kein Schichtplan eingetragen. Ich rechne dort mit Montag bis Freitag. Trag unter „Rotation“ deinen Rhythmus ein, dann wird es genauer.";
       agState.plan=plan; agState.meta={year:y,title,rest,note}; draw(); }
     function draw(){
@@ -1186,7 +1190,7 @@ function openAgent(){
       const row=el("div","row"); const sv=el("button","btn pri grow",on.length?(on.length===1?"Vorschlag eintragen":"Alle "+on.length+" eintragen"):"Nichts ausgewählt"); sv.type="button"; sv.disabled=!on.length;
       sv.onclick=()=>{ const vt=vacType(); if(!vt){ toast("Keine Schichtart vom Typ Urlaub vorhanden."); return; } const before={}; let n=0;
         const old=JSON.parse(JSON.stringify(vacList())); on.forEach(x=>{ n+=x.cost; if(x.as){ vacList().push({id:uid(),a:x.start,e:x.end,fixed:x.work.slice()}); normVacs(); } else addVac(x.start,x.end); });
-        save(); curY=+on[0].start.slice(0,4); curM=+on[0].start.slice(5,7)-1; closeSheet(); show("kal"); toast(n+" Urlaubstage eingetragen","Rückgängig",()=>{ S.vacs=old; save(); render(); }); };
+        save(); curY=+on[0].start.slice(0,4); curM=+on[0].start.slice(5,7)-1; closeSheet(); show("kal"); toast(n+" Urlaubstage eingetragen","Rückgängig",()=>{ S.vacs=old; save(); render(); }); setTimeout(teamOffer,400); };
       const ag=el("button","btn",agState.meta.title==="Zufallsurlaub"?"Neu würfeln":"Neu berechnen"); ag.type="button"; ag.onclick=run; row.append(sv,ag); out.append(row); }
     if(agState.plan.length && agState.meta) draw();
   });
@@ -1393,6 +1397,139 @@ function logout(){ clearTimeout(pushT); const done=()=>{ lsSet("su_sess",null); 
 async function deleteAccount(){ try{ const t=await token(); await cloudDelete(); await authCall("delete",{idToken:t}); lsSet(dataKey(),null); lsSet(dataKey()+"_dirty",null); lsSet("su_sess",null); sess=null; S=null; location.reload(); }
   catch(e){ toast(authMsg(e)); } }
 
+/* ===================== Team (gemeinsam mit dem Team-Urlaubsplaner, gleiche Firebase-Daten) ===================== */
+const FSB=()=>"https://firestore.googleapis.com/v1/projects/"+CFG.projectId+"/databases/(default)/documents";
+const tKey=n=>String(n||"").trim().toLowerCase();
+function tSynthMail(name){ const s=tKey(name.replace(/\s+/g," ")).replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,".").replace(/^\.+|\.+$/g,"").slice(0,50); return (s||"nutzer")+"@ohne-mail.example.com"; }
+async function tEmailHash(e){ const t=e.trim().toLowerCase(); try{ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("zfp-urlaub:"+t)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(_){ let h=5381; for(const c of t) h=((h*33)^c.charCodeAt(0))>>>0; return "f"+h.toString(16); } }
+function tEmailMask(e){ const [u,d]=e.trim().toLowerCase().split("@"); return (u.length<=2?u[0]:u.slice(0,2))+"***@"+d; }
+let ts=null; try{ ts=JSON.parse(lsGet("su_team")||"null"); }catch(e){ ts=null; }
+const team={loaded:false,loading:false,err:null,members:[],vac:[],me:null,limit:2,mode:"login",msg:""};
+try{ const c=JSON.parse(lsGet("su_team_cache")||"null"); if(c && ts && c.uid===ts.uid){ Object.assign(team,{members:c.members||[],vac:c.vac||[],me:c.me||null,limit:c.limit||2,loaded:true}); } }catch(e){}
+function tsSet(j,email){ ts={uid:j.localId||j.user_id||(ts&&ts.uid), email:(email||j.email||(ts&&ts.email)||"").toLowerCase(), idToken:j.idToken||j.id_token, refreshToken:j.refreshToken||j.refresh_token, exp:Date.now()+((+(j.expiresIn||j.expires_in)||3600)-120)*1000}; lsSet("su_team",JSON.stringify(ts)); }
+async function tToken(){ if(!ts) throw Object.assign(new Error("NO_SESSION"),{code:"NO_SESSION"}); if(Date.now()<ts.exp && ts.idToken) return ts.idToken;
+  let r; try{ r=await fetch("https://securetoken.googleapis.com/v1/token?key="+CFG.apiKey,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(ts.refreshToken)}); }catch(e){ throw Object.assign(new Error("NETWORK"),{code:"NETWORK"}); }
+  const j=await r.json().catch(()=>({})); if(!r.ok){ const m=(j.error&&j.error.message)||"HTTP_"+r.status; throw Object.assign(new Error(m),{code:m}); } tsSet(j,ts.email); return ts.idToken; }
+function fsVal(v){ if(!v) return null; if("stringValue" in v) return v.stringValue; if("integerValue" in v) return +v.integerValue; if("doubleValue" in v) return v.doubleValue; if("booleanValue" in v) return v.booleanValue; return null; }
+function fsDoc(d){ const o={id:d.name.split("/").pop()}; for(const k in (d.fields||{})) o[k]=fsVal(d.fields[k]); return o; }
+function fsFields(o){ const f={}; for(const k in o){ const v=o[k]; f[k]=v==null?{nullValue:null}:typeof v==="boolean"?{booleanValue:v}:typeof v==="number"?{integerValue:String(Math.round(v))}:{stringValue:String(v)}; } return {fields:f}; }
+async function fsReq(path,method,body){ let r; try{ r=await fetch(FSB()+path,{method:method||"GET",headers:Object.assign({Authorization:"Bearer "+await tToken()},body?{"Content-Type":"application/json"}:{}),body:body?JSON.stringify(body):undefined}); }catch(e){ if(e.code) throw e; throw Object.assign(new Error("NETWORK"),{code:"NETWORK"}); }
+  const j=await r.json().catch(()=>({})); if(!r.ok){ const m=(j.error&&j.error.status)||"HTTP_"+r.status; throw Object.assign(new Error(m),{code:m}); } return j; }
+async function fsList(col){ const out=[]; let pt=""; do{ const j=await fsReq("/"+col+"?pageSize=300"+(pt?"&pageToken="+encodeURIComponent(pt):"")); (j.documents||[]).forEach(d=>out.push(fsDoc(d))); pt=j.nextPageToken||""; }while(pt); return out; }
+const isTeamAdmin=()=>!!(ts && CFG.adminEmail && ts.email===String(CFG.adminEmail).toLowerCase());
+const teamOn=()=>!!(ts && team.me && (team.me.approved || isTeamAdmin()));
+function tErr(e){ const c=String((e&&(e.code||e.message))||"");
+  if(/NETWORK|Failed to fetch/.test(c)) return "Keine Internetverbindung.";
+  if(/PERMISSION_DENIED/.test(c)) return "Dafür fehlt die Freigabe.";
+  return authMsg(e); }
+async function teamLoad(){ if(!ts || team.loading) return; team.loading=true; team.err=null; if(view==="team") renderTeam();
+  try{ const mem=(await fsList("mitarbeiter")).filter(a=>typeof a.name==="string");
+    team.members=mem; team.me=mem.find(a=>a.id===ts.uid)||mem.find(a=>a.uid===ts.uid)||null;
+    const lim=mem.find(a=>Number.isFinite(a.maxWeg)); team.limit=lim?Math.max(1,Math.min(7,Math.round(lim.maxWeg))):2;
+    team.vac= teamOn() ? (await fsList("urlaube")).filter(v=>typeof v.name==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v.start||"")&&/^\d{4}-\d{2}-\d{2}$/.test(v.end||"")&&v.start<=v.end) : [];
+    team.loaded=true; lsSet("su_team_cache",JSON.stringify({uid:ts.uid,members:team.members,vac:team.vac,me:team.me,limit:team.limit}));
+  }catch(e){ team.err=tErr(e); const c=String(e.code||""); if(/TOKEN|REFRESH|USER_NOT_FOUND|USER_DISABLED|NO_SESSION/.test(c)){ teamLogout(true); team.msg="Bitte melde dich neu an."; } }
+  team.loading=false; if(view==="team") renderTeam(); }
+function teamLogout(silent){ ts=null; lsSet("su_team",null); lsSet("su_team_cache",null); Object.assign(team,{loaded:false,members:[],vac:[],me:null,err:null,mode:"login"}); if(!silent) renderTeam(); }
+/* Wer ist an welchem Tag weg (ohne mich) */
+function teamAway(withMe){ const m=new Map(), me=team.me?tKey(team.me.name):null;
+  for(const v of team.vac){ const k=tKey(v.name); if(!withMe && k===me) continue; for(let s=v.start;s<=v.end;s=addD(s,1)){ let st=m.get(s); if(!st) m.set(s,st=new Set()); if(!st.has(k)) st.add(k); } } return m; }
+function teamNames(set){ const by=new Map(team.members.map(a=>[tKey(a.name),a.name])); return [...set].map(k=>by.get(k)||k); }
+/* Zeiträume, in denen zu viele gleichzeitig weg sind */
+function teamClashes(from,days){ const m=teamAway(true), out=[]; let cur=null;
+  for(let i=0;i<days;i++){ const s=addD(from,i), st=m.get(s), n=st?st.size:0;
+    if(n>team.limit){ const who=[...st].sort().join("|"); if(cur && cur.who===who && cur.e===addD(s,-1)){ cur.e=s; } else { cur={a:s,e:s,n,who,names:teamNames(st)}; out.push(cur); } } else cur=null; }
+  return out; }
+/* Mein Urlaub: was fehlt im Team, was gibt es nur im Team */
+function teamDiff(){ if(!team.me) return {missing:[],extra:[]}; const me=tKey(team.me.name), mine=team.vac.filter(v=>tKey(v.name)===me), loc=vacList().filter(v=>v.e>=TODAY());
+  const missing=loc.filter(v=>!mine.some(t=>t.start===v.a&&t.end===v.e));
+  const extra=mine.filter(t=>t.end>=TODAY() && !vacList().some(v=>!(v.e<t.start||v.a>t.end)));
+  return {missing,extra,mine}; }
+async function teamPush(list){ const me=team.me; if(!me) return 0; const mine=team.vac.filter(v=>tKey(v.name)===tKey(me.name)); let n=0;
+  for(const v of list){ for(const t of mine.filter(t=>!(t.end<v.a||t.start>v.e))){ await fsReq("/urlaube/"+t.id,"DELETE"); }
+    await fsReq("/urlaube","POST",fsFields({name:me.name,start:v.a,end:v.e,created:Date.now()})); n++; }
+  return n; }
+/* Nach dem Eintragen fragen, ob es ins Team soll */
+function teamOffer(){ if(!teamOn()) return; const d=teamDiff(); if(!d.missing.length) return;
+  const cl=d.missing.map(v=>{ const m=teamAway(false); let worst=0; for(let s=v.a;s<=v.e;s=addD(s,1)){ const n=(m.get(s)||new Set()).size+1; if(n>worst) worst=n; } return worst; }), over=Math.max(...cl)>team.limit;
+  ask("Ans Team senden?",(over?"Achtung: Dann wären bis zu "+Math.max(...cl)+" gleichzeitig weg (erlaubt: "+team.limit+").\n":"")+"Soll dein Urlaub auch im Team erscheinen?",[
+    {label:"Ja, ans Team senden",pri:true,fn:async()=>{ try{ const n=await teamPush(d.missing); toast(n+(n===1?" Urlaub":" Urlaube")+" ans Team gesendet"); teamLoad(); }catch(e){ toast(tErr(e)); } }},
+    {label:"Später",fn:()=>{}}]); }
+function openInvite(){ const url=location.origin+location.pathname+"#team";
+  const txt="Hallo! Trag deinen Urlaub bei uns im Team ein, dann sehen wir Überschneidungen sofort: "+url+" – Link öffnen, unten auf „Team“ tippen und ein Konto erstellen.";
+  openSheet(p=>{ sheetTop(p,"Kollegen einladen"); p.append(el("p","hint","Schick den Link an deine Kollegen. Wer sich anmeldet, erscheint bei dir unter „Team“ und wartet auf deine Freigabe."));
+    const g=el("div","sharegrid"); const mk=(t,s,href)=>{ const a=el("a","sharebtn"); a.href=href; a.target="_blank"; a.rel="noopener"; a.append(el("b",null,t),el("small",null,s)); return a; };
+    g.append(mk("WhatsApp","Nachricht senden","https://wa.me/?text="+encodeURIComponent(txt)), mk("E-Mail","Mail schreiben","mailto:?subject="+encodeURIComponent("Einladung ins Team: Schicht & Urlaub")+"&body="+encodeURIComponent(txt)));
+    const cp=el("button","sharebtn"); cp.type="button"; cp.append(el("b",null,"Link kopieren"),el("small",null,"zum Einfügen")); cp.onclick=async()=>{ try{ await navigator.clipboard.writeText(txt); toast("Einladung kopiert"); }catch(e){ ta.hidden=false; ta.select(); } }; g.append(cp);
+    if(navigator.share){ const sh=el("button","sharebtn"); sh.type="button"; sh.append(el("b",null,"Teilen …"),el("small",null,"andere Apps")); sh.onclick=()=>navigator.share({title:"Schicht & Urlaub",text:txt}).catch(()=>{}); g.append(sh); }
+    const ta=el("textarea"); ta.id="invtext"; ta.readOnly=true; ta.value=txt; ta.hidden=true; p.append(g,ta); }); }
+function renderTeam(){
+  const box=$("#v-team"); box.innerHTML="";
+  if(!ts){ const c=el("div","card sec"); c.append(el("h2",null,"Team"), el("p","hint","Seht gemeinsam, wer wann Urlaub hat, und vermeidet, dass zu viele gleichzeitig fehlen. Es ist dasselbe Team wie im Team-Urlaubsplaner: Wer dort schon ein Konto hat, meldet sich einfach an."));
+    const seg=el("div","seg full"); [["login","Anmelden"],["new","Konto erstellen"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-selected",String(team.mode===k)); b.onclick=()=>{ team.mode=k; team.msg=""; renderTeam(); }; seg.append(b); });
+    const f=el("form"); f.style.display="grid"; f.style.gap="10px"; f.autocomplete="on";
+    const fl=(lab,id,type,ph,ac)=>{ const l=el("label","f",lab), i=el("input"); i.type=type; i.id=id; i.placeholder=ph||""; if(ac) i.autocomplete=ac; l.append(i); f.append(l); return i; };
+    let nm=null, ml, pw;
+    if(team.mode==="new"){ nm=fl("Vor- und Nachname","tname","text","so wie im Team bekannt","name"); if(S.name && !nm.value) nm.value=S.name; ml=fl("E-Mail (freiwillig)","tmail","email","name@beispiel.de","email"); }
+    else ml=fl("E-Mail oder Name","tmail","text","name@beispiel.de oder Vor- und Nachname","username");
+    pw=fl("Passwort","tpw","password","mindestens 6 Zeichen",team.mode==="new"?"new-password":"current-password");
+    const msg=el("div","amsg"+(team.msg?" err":""),team.msg||""); msg.setAttribute("role","status"); const go=el("button","btn pri",team.mode==="new"?"Konto erstellen":"Anmelden"); go.type="submit"; f.append(msg,go);
+    f.onsubmit=async e=>{ e.preventDefault(); msg.className="amsg err"; const v=ml.value.trim(), p=pw.value;
+      if(team.mode==="new"){ const name=nm.value.trim().replace(/\s+/g," "); if(name.length<2||name.length>60){ msg.textContent="Bitte deinen Namen eingeben."; return; }
+        if(v && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){ msg.textContent="Die E-Mail-Adresse sieht nicht richtig aus (oder leer lassen)."; return; }
+        if(p.length<6){ msg.textContent="Bitte ein Passwort mit mindestens 6 Zeichen wählen."; return; }
+        go.disabled=true; msg.className="amsg"; msg.textContent="Einen Moment …";
+        try{ const mail=v||tSynthMail(name); const j=await authCall("signUp",{email:mail,password:p,returnSecureToken:true}); tsSet(j,mail);
+          const all=(await fsList("mitarbeiter")).filter(a=>typeof a.name==="string");
+          if(all.some(a=>a.id!==ts.uid && a.uid && tKey(a.name)===tKey(name))){ try{ await authCall("delete",{idToken:ts.idToken}); }catch(_){} teamLogout(true); team.msg="Den Namen „"+name+"“ gibt es schon mit Konto. Bitte anmelden oder den Namen anders schreiben."; renderTeam(); return; }
+          const admin=isTeamAdmin(); await fsReq("/mitarbeiter/"+ts.uid,"PATCH",fsFields({name,tage:null,emailHash:v?await tEmailHash(v):null,emailMask:v?tEmailMask(v):null,uid:ts.uid,created:Date.now(),approved:admin}));
+          team.msg=""; await teamLoad(); toast(admin?"Team eingerichtet":"Konto erstellt – wartet auf Freigabe"); }
+        catch(err){ msg.className="amsg err"; msg.textContent=tErr(err); go.disabled=false; } }
+      else { if(!v){ msg.textContent="Bitte E-Mail oder Namen eingeben."; return; } if(!p){ msg.textContent="Bitte dein Passwort eingeben."; return; }
+        go.disabled=true; msg.className="amsg"; msg.textContent="Einen Moment …"; const mail=v.includes("@")?v:tSynthMail(v);
+        try{ const j=await authCall("signInWithPassword",{email:mail,password:p,returnSecureToken:true}); tsSet(j,mail); team.msg=""; await teamLoad(); }
+        catch(err){ msg.className="amsg err"; msg.textContent=tErr(err)+(v.includes("@")?"":" (Wer sich mit E-Mail registriert hat, bitte die E-Mail eingeben.)"); go.disabled=false; } } };
+    c.append(seg,f); box.append(c); return; }
+  if(!team.loaded){ const c=el("div","card"); c.append(el("p",null,team.err?team.err:"Lade dein Team …")); if(team.err){ const r=el("button","btn","Nochmal versuchen"); r.type="button"; r.onclick=teamLoad; c.append(r); } box.append(c); if(!team.loading && !team.err) teamLoad(); return; }
+  const head=el("div","card sec"); const hr=el("div","row"); hr.append(el("h2","grow","Team")); const rl=el("button","btn",team.loading?"Lädt …":"↻ Aktualisieren"); rl.type="button"; rl.disabled=team.loading; rl.onclick=teamLoad; hr.append(rl); head.append(hr);
+  if(team.err) head.append(el("div","banner",team.err));
+  if(!team.me){ head.append(el("p",null,"Mit diesem Konto ist noch niemand im Team eingetragen."), el("p","hint","Melde dich ab und erstelle unter „Konto erstellen“ einen Eintrag mit deinem Namen.")); }
+  else if(!teamOn()){ head.append(el("p",null,"Hallo "+team.me.name.split(" ")[0]+"! Dein Konto wartet auf die Freigabe."), el("p","hint","Sobald du freigegeben bist, siehst du hier den Urlaub deiner Kollegen. Tipp danach auf „Aktualisieren“.")); }
+  else { const app=team.members.filter(a=>a.approved); head.append(el("p","muted",team.me.name+" · "+app.length+(app.length===1?" Person":" Personen")+" im Team · höchstens "+team.limit+" gleichzeitig im Urlaub"));
+    const iv=el("button","btn pri","Kollegen einladen"); iv.type="button"; iv.onclick=openInvite; head.append(iv); }
+  const lo=el("button","linkbtn","Vom Team abmelden"); lo.type="button"; lo.onclick=()=>teamLogout(); head.append(lo); box.append(head);
+  if(isTeamAdmin()){ const ac=el("div","card sec"); ac.append(el("h2",null,"Verwalten"));
+    const l=el("label","f","Höchstens gleichzeitig im Urlaub"), sel=el("select"); sel.id="tlimit"; for(let n=1;n<=7;n++){ const o=el("option",null,n===1?"1 Person":n+" Personen"); o.value=n; sel.append(o); } sel.value=team.limit;
+    sel.onchange=async()=>{ const n=+sel.value; try{ await fsReq("/mitarbeiter/"+team.me.id+"?updateMask.fieldPaths=maxWeg","PATCH",fsFields({maxWeg:n})); team.limit=n; toast("Gespeichert: höchstens "+n+" gleichzeitig"); teamLoad(); }catch(e){ toast(tErr(e)); sel.value=team.limit; } };
+    l.append(sel); ac.append(l, el("p","hint","Gilt für alle im Team. Der Urlaubs-Assistent plant dann nur noch Tage, an denen noch Platz ist."));
+    const pend=team.members.filter(a=>!a.approved && a.uid);
+    ac.append(el("h3",null,pend.length?"Wartet auf Freigabe":"Keine offenen Anfragen"));
+    pend.forEach(a=>{ const r=el("div","trow"); r.append(el("b","grow",a.name), el("small","muted",a.emailMask||"ohne E-Mail"));
+      const ok=el("button","btn pri","Freigeben"); ok.type="button"; ok.onclick=async()=>{ ok.disabled=true; try{ await fsReq("/mitarbeiter/"+a.id+"?updateMask.fieldPaths=approved","PATCH",fsFields({approved:true})); toast(a.name+" freigegeben"); teamLoad(); }catch(e){ toast(tErr(e)); ok.disabled=false; } };
+      r.append(ok); ac.append(r); });
+    box.append(ac); }
+  if(!teamOn()) return;
+  // Mein Urlaub
+  const d=teamDiff(), mc=el("div","card sec"); mc.append(el("h2",null,"Dein Urlaub im Team"));
+  if(!d.missing.length && !d.extra.length) mc.append(el("p","muted","Alles abgeglichen: Dein Urlaub ist im Team eingetragen."));
+  if(d.missing.length){ mc.append(el("p",null,d.missing.length+(d.missing.length===1?" Urlaub fehlt":" Urlaube fehlen")+" noch im Team: "+d.missing.map(v=>fmtS(v.a)+"–"+fmtS(v.e)).join(", ")));
+    const sb=el("button","btn pri","Ans Team senden"); sb.type="button"; sb.onclick=async()=>{ sb.disabled=true; sb.textContent="Sende …"; try{ const n=await teamPush(d.missing); toast(n+(n===1?" Urlaub":" Urlaube")+" gesendet"); await teamLoad(); }catch(e){ toast(tErr(e)); sb.disabled=false; sb.textContent="Ans Team senden"; } }; mc.append(sb); }
+  d.extra.forEach(t=>{ const r=el("div","trow"); r.append(el("span","grow","Nur im Team: "+fmtS(t.start)+"–"+fmtS(t.end)));
+    const im=el("button","btn","Übernehmen"); im.type="button"; im.onclick=()=>{ addVac(t.start,t.end); save(); toast("In deinen Plan übernommen"); renderTeam(); };
+    const dl=el("button","btn bad","Löschen"); dl.type="button"; dl.onclick=async()=>{ try{ await fsReq("/urlaube/"+t.id,"DELETE"); toast("Im Team gelöscht"); teamLoad(); }catch(e){ toast(tErr(e)); } };
+    r.append(im,dl); mc.append(r); });
+  box.append(mc);
+  // Überschneidungen
+  const cl=teamClashes(TODAY(),400), cc=el("div","card sec"); cc.append(el("h2",null,"Überschneidungen"));
+  if(!cl.length) cc.append(el("p","muted","Keine: Nie sind mehr als "+team.limit+" gleichzeitig im Urlaub."));
+  cl.slice(0,30).forEach(x=>{ const r=el("div","trow"); const t=el("div","grow"); t.append(el("b",null,(x.a===x.e?fmt(x.a):fmtS(x.a)+" – "+fmtS(x.e))+": "+x.n+" gleichzeitig weg"), el("div","muted",x.names.join(", "))); r.append(t, el("span","chip",String(x.n))); r.lastChild.style.setProperty("--c","var(--bad)"); cc.append(r); });
+  box.append(cc);
+  // Wer ist bald weg
+  const up=team.vac.filter(v=>v.end>=TODAY() && v.start<=addD(TODAY(),120)).sort((a,b)=>a.start<b.start?-1:1), uc=el("div","card sec"); uc.append(el("h2",null,"Demnächst im Urlaub"));
+  if(!up.length) uc.append(el("p","muted","In den nächsten 4 Monaten ist niemand im Urlaub eingetragen."));
+  up.forEach(v=>{ const r=el("div","trow"); r.append(el("b","grow",v.name), el("span","num",fmtS(v.start)+" – "+fmtS(v.end))); uc.append(r); });
+  box.append(uc);
+}
 /* ---------- Start ---------- */
 async function boot(){
   if(CFG.localMode){ sess=null;
@@ -1412,7 +1549,9 @@ async function boot(){
   enterApp(); pull();
 }
 $("#aretry").onclick=()=>boot();
-function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").hidden=false; $("#who").textContent=[S.name,sess&&sess.email].filter(Boolean).join(" · "); if(dirty||lsGet(dataKey()+"_dirty")==="1") dirty=true; show("heute"); if(typeof navStack!=="undefined") navStack.length=0; if(typeof updHist==="function") updHist(); if(typeof updBack==="function") updBack(); }
+function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").hidden=false; $("#who").textContent=[S.name,sess&&sess.email].filter(Boolean).join(" · "); if(dirty||lsGet(dataKey()+"_dirty")==="1") dirty=true; show("heute"); if(typeof navStack!=="undefined") navStack.length=0; if(typeof updHist==="function") updHist(); if(typeof updBack==="function") updBack();
+  if(location.hash==="#team"){ try{ history.replaceState(null,"",location.pathname); }catch(e){} show("team"); }
+  if(ts) teamLoad(); }
 
 /* ---------- Einrichtung (3 Schritte) ---------- */
 const ONB_MODELS=[
@@ -1464,7 +1603,7 @@ function finishOnb(){
   let start; if(weekly){ start=addD(mondayOnOrBefore(t),-7*Math.max(0,onb.pos)); } else { start=addD(t,-Math.max(0,onb.pos)); }
   S.rots=pt.length?[{id:"r"+uid(),name,start,pattern:pt.slice()}]:[]; S.weekendFree=onb.weekendFree; S.holFree=onb.holFree; S.land=onb.land; S.showFerien=onb.showFerien; S.vacPerYear=onb.vac; S.carry={}; if(onb.carry) S.carry[new Date().getFullYear()]=onb.carry;
   S.example=false; S.onboarded=true; for(const k in holCache) delete holCache[k]; save(); enterApp();
-  if(!pt.length){ show("kal"); setSel(true); toast("Wähle rechts eine Schicht und tippe auf die Tage."); } else toast("Dein Schichtplan ist fertig!"); }
+  if(view==="team"){ toast("Erstelle jetzt dein Konto fürs Team."); } else if(!pt.length){ show("kal"); setSel(true); toast("Wähle rechts eine Schicht und tippe auf die Tage."); } else toast("Dein Schichtplan ist fertig!"); }
 
 /* ---------- Urlaub-Ansicht ---------- */
 let uY=new Date().getFullYear();
