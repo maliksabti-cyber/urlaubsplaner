@@ -1,11 +1,13 @@
 rules_version = '2';
-// Urlaubsplaner Team ZFP – Sicherheitsregeln
-// Jeder bestätigte Nutzer sieht alle Urlaube, ändern darf er nur seine eigenen. Der Admin darf alles.
+// Schicht & Urlaub – Team – Sicherheitsregeln
+// Jeder bestätigte Nutzer sieht alle Urlaube, ändern darf er nur seine eigenen. Hosts dürfen alles.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function isAdmin() { return signedIn() && request.auth.token.email == 'malik.sabti@googlemail.com'; }
     function myPath() { return /databases/$(database)/documents/mitarbeiter/$(request.auth.uid); }
+    // Host: der Gründer (diese E-Mail) und alle freigegebenen Personen mit host == true
+    function isAdmin() { return signedIn() && (request.auth.token.email == 'malik.sabti@googlemail.com'
+      || (exists(myPath()) && get(myPath()).data.approved == true && get(myPath()).data.get('host', false) == true)); }
     function approved() { return isAdmin() || (signedIn() && exists(myPath()) && get(myPath()).data.approved == true); }
     function myName() { return get(myPath()).data.name; }
     function ownsNew() { return approved() && request.resource.data.name == myName(); }
