@@ -638,7 +638,7 @@ function renderHeute(){
   top.append(big,info); top.onclick=()=>openDay(t); top.style.cursor="pointer"; c.append(top);
   const w=el("div","week"); for(let i=0;i<7;i++){ const s=addD(t,i), x=shiftOf(s), b=el("button"); b.type="button"; if(i===0) b.classList.add("now"); markDay(b,s); b.append(el("span",null,DOW[parse(s).getDay()]+" "+parse(s).getDate()), chip(x)); b.onclick=()=>openDay(s); w.append(b); } c.append(w);
   let ns=null; for(let i=sh&&sh.kind==="work"?1:0;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(x&&x.kind==="work"){ ns=[s,x]; break; } }
-  if(ns) c.append(el("div","nextline","Nächste Schicht: "+(ns[0]===t?"heute":ns[0]===addD(t,1)?"morgen":fmt(ns[0]))+" · "+ns[1].name+(ns[1].start?" ab "+ns[1].start+" Uhr":"")));
+  if(ns) c.append(el("div","nextline",(sh&&sh.kind==="work"?"Nächste Schicht danach: ":"Nächste Schicht: ")+(ns[0]===t?"heute":ns[0]===addD(t,1)?"morgen":fmt(ns[0]))+" · "+ns[1].name+(ns[1].start?" ab "+ns[1].start+" Uhr":"")));
   box.append(c);
   // 2) Schnellknöpfe
   const qa=el("div","quick"); [["✎","Schichten eintragen",()=>{ show("kal"); setSel(true); }],["↻","Mein Rhythmus",()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }],["☀","Urlaub eintragen",()=>openVac()],["⇪","Plan teilen",()=>openShare()]].forEach(([i,l,fn])=>{ const b=el("button","qbtn"); b.type="button"; b.append(el("span","qi",i),el("span",null,l)); b.onclick=fn; qa.append(b); }); box.append(qa);
@@ -888,6 +888,7 @@ function renderStat(){
   const vc=el("div","card stats3"); [[String(used)+" / "+tot,"Urlaub verplant"],[String(tot-used),"Urlaub übrig"],[String(sick),"Krankheitstage"]].forEach(([a,b])=>{ const d=el("div","stat"); d.append(el("b","num",a),el("span",null,b+" "+statY)); vc.append(d); }); box.append(vc);
 }
 
+function goAbr(){ closeSheet(); statMode="abr"; S.statMode="abr"; histMute=true; save(); histMute=false; show("stat"); }
 function renderRange(box){ let a,e;
   if(statMode==="abr"){ if(!statA) statA=payPeriod(TODAY())[0]; [a,e]=payPeriod(statA);
     const h=el("div","mhead"); const p=el("button","icon-btn","‹"), n=el("button","icon-btn","›"); p.type=n.type="button"; p.setAttribute("aria-label","Vorheriger Zeitraum"); n.setAttribute("aria-label","Nächster Zeitraum");
@@ -1317,6 +1318,8 @@ const S_={ /* wiederverwendbare Schritte */
   times:{t:"Uhrzeiten & Pausen prüfen",w:"Stimmen Beginn, Ende und Pause deiner Schichten? Bei der Schicht auf „Ändern“ tippen.",b:"Uhrzeiten ansehen",go:()=>goSettings("types")},
   vacdays:{t:"Urlaubstage prüfen",w:"Stimmt dein Anspruch und der Resturlaub vom letzten Jahr?",b:"Urlaubstage prüfen",go:()=>openVacSettings(planYear())},
   expire:{t:"Resturlaub vor dem Verfall nehmen",get w(){ const y=new Date().getFullYear(), x=expWarn(y); return x?x.left+" Tage aus "+(y-1)+" verfallen am "+fmtS(x.date)+" – zuerst diese einplanen.":"Resturlaub aus dem Vorjahr verfällt meist am 31.3. Die App warnt dich rechtzeitig."; },b:"Resturlaub einplanen",opt:true,done:()=>!expWarn(new Date().getFullYear()),go:()=>{ agState.year=new Date().getFullYear(); openAgent(); }},
+  swap:{t:"Tausch vermerken",w:"Schicht getauscht? Tag antippen → „Getauscht mit …“ – so vergisst du keinen Gegendienst.",b:"Zum Schichtplan",opt:true,done:()=>swaps().length>0,go:()=>{ closeSheet(); show("kal"); toast("Tippe auf den Tag → „Getauscht mit …“"); }},
+  payperiod:{t:"Abrechnungszeitraum einstellen",w:"Rechnet deine Firma z. B. vom 16. bis 15. ab? Dann stimmt die Statistik mit dem Lohnzettel überein.",b:"Abrechnung öffnen",opt:true,done:()=>payDay()>1,go:()=>{ goAbr(); }},
   land:{t:"Bundesland prüfen",w:"Damit Feiertage (und in NRW die Schulferien) stimmen.",b:"Bundesland ansehen",go:()=>goSettings("land")},
   fixed:{t:"Feste Termine eintragen",w:"Urlaub, der schon feststeht (gebucht, Hochzeit, Kita zu) – zuerst eintragen, dann wird drumherum geplant.",b:"Urlaub eintragen",opt:true,done:futVac,go:()=>openVac()},
   calc:{get t(){ return "Urlaub "+planYear()+" berechnen"; },w:"Tippe an, was dir wichtig ist (z. B. Sommerferien + Brückentage). Die App zeigt, wie du mit wenig Urlaubstagen am meisten frei hast.",b:"Urlaub berechnen",go:()=>{ agState.year=planYear(); openAgent(); }},
@@ -1351,8 +1354,8 @@ const GOALS=[
   {id:"start",i:"🚀",t:"App einrichten",s:"Erste Schritte in der richtigen Reihenfolge",steps:["rhythm","times","vacdays","fixed","calc","teamopt","cal","payopt","backup"]},
   {id:"plan",i:"☀️",t:"Urlaub fürs Jahr planen",s:"Möglichst viel frei mit wenig Urlaubstagen",steps:["vacdays","expire","land","fixed","teamlook","calc","enter","push","request"]},
   {id:"team",i:"👥",t:"Urlaub mit dem Team abstimmen",s:"Für Mitarbeiter",steps:["teamlogin","approved","teamlook","myvac","push","request"]},
-  {id:"shift",i:"📅",t:"Schichtplan ändern",s:"Tausch, Dienständerung, krank",steps:["paint","sick","rhythmchk","cal","partnerlink"]},
-  {id:"money",i:"💶",t:"Verdienst & Überstunden",s:"Was verdiene ich, wie viele Überstunden?",steps:["times","pay","soll","stat"]},
+  {id:"shift",i:"📅",t:"Schichtplan ändern",s:"Tausch, Dienständerung, krank",steps:["paint","swap","sick","rhythmchk","cal","partnerlink"]},
+  {id:"money",i:"💶",t:"Verdienst & Überstunden",s:"Was verdiene ich, wie viele Überstunden?",steps:["times","pay","soll","payperiod","stat"]},
   {id:"partner",i:"♥",t:"Frei mit Partner/Familie",s:"Sehen, wann ihr beide frei habt",steps:["sendplan","getplan","both","bothvac"]},
   {id:"admin",i:"🧑‍💼",t:"Team leiten",s:"Für den Chef / Admin",steps:["teamlogin","limit","invite","approve","clash"]},
   {id:"backup",i:"💾",t:"Daten sichern / Handy wechseln",s:"Nichts verlieren",steps:["backup","sendself","newphone"]}];
@@ -1403,15 +1406,20 @@ const HELP=[
   ["🔔","Erinnerung vor der Schicht","Zahnrad → „Sichern & Übertragen“: bei „Erinnerung“ z. B. „1 Stunde vorher“ wählen, dann „In den Handy-Kalender“ tippen und die Datei mit deinem Kalender öffnen. Der Kalender erinnert dich dann vor jeder Schicht.",()=>goSettings("remind")],
   ["♥","Gemeinsam frei","Schichtplan → „Gemeinsam frei“ → „Meinen Plan als Link schicken“, z. B. per WhatsApp an Partner oder Freunde. Wer den Link öffnet, sieht ♥ an den Tagen, an denen ihr beide frei habt.",()=>openPartners()],
   ["👥","Team","Team-Tab: mit deinem Konto vom Team-Urlaubsplaner anmelden. Dort siehst du, wer wann Urlaub hat und ob zu viele gleichzeitig fehlen.",()=>{ closeSheet(); show("team"); }],
+  ["📄","Urlaubsantrag","Nach dem Eintragen in der Meldung auf „📄 Antrag“ tippen – oder im Urlaub-Tab „Urlaubsantrag für den Chef“ und die Urlaube auswählen. Du bekommst ein PDF zum Ausdrucken oder Schicken.",()=>openAntragPick()],
+  ["⏳","Resturlaub & Verfall","Urlaub-Tab → „Urlaubstage einstellen“: Resturlaub übernehmen und einstellen, wann er verfällt (meist 31.3.). Urlaub im neuen Jahr wird zuerst vom Rest abgezogen; die App warnt rechtzeitig.",()=>openVacSettings(new Date().getFullYear())],
+  ["⇄","Schichttausch","Im Schichtplan auf den Tag tippen, oben die neue Schicht wählen und unten „Getauscht mit …“ ausfüllen (Name, Gegentag). Unter Schichtplan → „⇄ Tausch“ siehst du offene und erledigte Tausche.",()=>{ swaps().length?openSwaps():goKal(); }],
+  ["📊","Abrechnungszeitraum","Schichtplan → „Statistik ansehen“ → „Abrechnung“: Beginn-Tag eintragen (z. B. 16). Oder „Von – Bis“ für einen beliebigen Zeitraum – mit Stunden, Zuschlägen und Verdienst.",()=>{ goAbr(); }],
   ["💾","Sichern","Deine Daten liegen nur auf diesem Handy. Ab und zu auf „Jetzt sichern“ tippen und die Datei z. B. per WhatsApp an dich selbst schicken.",()=>jsonSave()]];
 function openHelp(){ openSheet(p=>{ sheetTop(p,"So geht's"); const gs=el("button","btn pri","Was möchtest du machen? – Schritt für Schritt"); gs.type="button"; gs.onclick=openGoals; p.append(gs, el("p","hint","Oder tippe ein Thema an. Mit „Ausprobieren“ springst du direkt hin."));
   HELP.forEach(([i,t,txt,fn])=>{ const d=el("details"); const sm=el("summary",null,i+"  "+t); d.append(sm, el("p",null,txt)); const b=el("button","btn","Ausprobieren"); b.type="button"; b.onclick=fn; d.append(b); p.append(d); }); }); }
-const NEWS_V=1;
+const NEWS_V=2;
 function newsCard(box){ if((+S.newsSeen||0)>=NEWS_V) return; const c=el("div","card sec news"); c.append(el("h2",null,"Neu in der App"));
-  [["💶","Verdienst ausrechnen","Stundenlohn eintragen – die App rechnet Zuschläge für Nacht, Sonntag und Feiertag aus.",()=>openPaySettings()],
-   ["⏱","Überstunden im Blick","Soll-Stunden eintragen und sehen, wie viel du mehr oder weniger gearbeitet hast.",()=>openPaySettings()],
-   ["🔔","Erinnerung vor der Schicht","Dein Handy-Kalender erinnert dich vor jeder Schicht.",()=>goSettings("remind")],
-   ["♥","Gemeinsam frei","Plan per WhatsApp teilen und sehen, wann ihr beide frei habt.",()=>openPartners()]].forEach(([i,t,s,fn])=>{
+  [["📄","Urlaubsantrag als PDF","Fertiger Antrag für den Chef – auch für mehrere Urlaube auf einmal, mit richtig gezählten Tagen.",()=>openAntragPick()],
+   ["⏳","Resturlaub & Verfall","Rest aus dem Vorjahr übernehmen. Die App warnt, bevor er am 31.3. verfällt (Stichtag einstellbar).",()=>openVacSettings(new Date().getFullYear())],
+   ["⏱","Läuft gerade …","Oben bei „Heute“: wann deine Schicht beginnt und wann Feierabend ist – auch nach der Nachtschicht.",()=>{ window.scrollTo(0,0); toast("Steht ganz oben unter deiner heutigen Schicht"); }],
+   ["⇄","Schichttausch merken","Tag antippen → „Getauscht mit …“. Offene Gegendienste siehst du im Schichtplan.",()=>{ swaps().length?openSwaps():(goKal(), toast("Tippe auf einen Tag → „Getauscht mit …“")); }],
+   ["📊","Abrechnungszeitraum","Statistik und Verdienst z. B. vom 16. bis 15. – passend zu deinem Lohnzettel.",()=>{ goAbr(); }]].forEach(([i,t,s,fn])=>{
     const r=el("button","newsrow"); r.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t),el("small",null,s)); r.append(el("span","newsi",i),tx,el("span","muted","›")); r.onclick=fn; c.append(r); });
   const ok=el("button","btn ghost","Verstanden"); ok.type="button"; ok.onclick=()=>{ S.newsSeen=NEWS_V; histMute=true; save(); histMute=false; renderHeute(); }; c.append(ok); box.append(c); }
 /* ===================== Teilen: erst Vorschau, dann „Wie teilen?“ ===================== */

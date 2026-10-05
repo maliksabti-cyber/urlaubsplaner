@@ -23,8 +23,8 @@ const res=await p.evaluate(async()=>{ const out=[]; for(const g of GOALS){ for(c
 const bad=res.filter(x=>/FEHLER|nichts/.test(x)); ok(!bad.length, 'Alle '+res.length+' Schritt-Knöpfe führen direkt zum Ziel'+(bad.length?': '+bad.join(', '):''));
 // Abschluss
 await heute(); await p.evaluate(()=>{ S.goal='money'; S.pay={rate:20}; S.soll=37.5; save(); }); await heute();
-ok(/Uhrzeiten/.test(await p.locator('.guide .gnext b').innerText()) && /2 von 4/.test(await p.locator('.guide .num').innerText()), 'Verdienst-Ziel: Lohn+Soll automatisch abgehakt (2 von 4), nächster: Uhrzeiten');
-await p.getByRole('button',{name:'✓ Erledigt'}).tap(); await p.waitForTimeout(150); ok(/Statistik ansehen/.test(await p.locator('.guide .gnext b').innerText()),'dann: Statistik ansehen'); await p.getByRole('button',{name:'✓ Erledigt'}).tap(); await p.waitForTimeout(150);
+ok(/Uhrzeiten/.test(await p.locator('.guide .gnext b').innerText()) && /2 von 5/.test(await p.locator('.guide .num').innerText()), 'Verdienst-Ziel: Lohn+Soll automatisch abgehakt (2 von 5), nächster: Uhrzeiten');
+await p.getByRole('button',{name:'✓ Erledigt'}).tap(); await p.waitForTimeout(150); ok(/Abrechnungszeitraum/.test(await p.locator('.guide .gnext b').innerText()),'dann: Abrechnungszeitraum (optional)'); await p.getByRole('button',{name:'Überspringen'}).tap(); await p.waitForTimeout(150); ok(/Statistik ansehen/.test(await p.locator('.guide .gnext b').innerText()),'dann: Statistik ansehen'); await p.getByRole('button',{name:'✓ Erledigt'}).tap(); await p.waitForTimeout(150);
 ok(/Geschafft/.test(await p.locator('.guide').innerText()), 'Alle erledigt → „Geschafft!“');
 await p.getByRole('button',{name:'Ziel abschließen'}).tap(); await p.waitForTimeout(150);
 ok(/App einrichten|Was möchtest du machen/i.test(await p.locator('.guide h2').innerText()), 'Nach Abschluss: zurück zu Einrichtung bzw. Zielauswahl');

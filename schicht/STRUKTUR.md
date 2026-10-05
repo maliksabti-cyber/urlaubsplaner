@@ -26,6 +26,7 @@ Leitfaden nach dem 6-Schritte-Plan zur App-Entwicklung. Jede Änderung wird gege
 
 ## 2. Oberfläche & Wege (Gesicht)
 - Unten 4 Tabs: **Heute · Schichtplan · Urlaub · Team**. Oben: ‹ Zurück, ↶ Rückgängig, ? Hilfe, ⚙ Einstellungen.
+- Hilfe „So geht's“ und Karte „Neu in der App“ (`NEWS_V`) werden bei neuen Funktionen ergänzt.
 - Startseite: Heute (mit Live-Zeile: läuft gerade / beginnt in / Feierabend) + 7 Tage → Schnellknöpfe → Lotse (Ziel → Schritte) → Urlaub → Als Nächstes.
 - Jeder Knopf führt direkt zur Funktion; der Pfeil oben links führt zum vorherigen Fenster bzw. Schritt zurück.
 - Regeln: große, fette Überschriften; nur eine Hinweis-Karte zur Zeit; Wichtiges in Rot oder Orange.
