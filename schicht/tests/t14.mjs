@@ -1,0 +1,22 @@
+import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
+const c = await b.newContext({...devices['Pixel 7']}); const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
+await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(800);
+for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(250); }
+await p.evaluate(()=>{ S.guide={hide:true,pickhide:true}; histMute=true; save(); histMute=false; undoS.length=0; updHist(); }); await p.locator('.tabs button[data-v="heute"]').tap(); await p.waitForTimeout(200); await p.evaluate(()=>document.querySelector('#toast').hidden=true);
+ok(await p.locator('.news').isVisible(), 'Startseite zeigt „Neu in der App“');
+await p.screenshot({path:'/tmp/claude-0/n-news.png'});
+await p.locator('.newsrow',{hasText:'Verdienst ausrechnen'}).tap(); await p.waitForTimeout(200);
+ok(/Lohn & Zuschläge/i.test(await p.locator('#pan h2').first().innerText()), '„Verdienst ausrechnen“ öffnet Lohn-Einstellungen');
+await p.evaluate(()=>closeSheet()); await p.locator('.newsrow',{hasText:'Erinnerung'}).tap(); await p.waitForTimeout(400);
+ok(await p.isVisible('#v-set') && await p.locator('#remind').isVisible(), '„Erinnerung“ springt zur Erinnerungs-Auswahl');
+await p.locator('.tabs button[data-v="heute"]').tap(); await p.waitForTimeout(200);
+await p.getByRole('button',{name:'Verstanden'}).tap(); await p.waitForTimeout(200);
+ok(!(await p.locator('.news').count()) && await p.evaluate(()=>S.newsSeen===1 && document.querySelector('#hundo').disabled), '„Verstanden“ blendet die Karte aus (ohne Rückgängig-Schritt)');
+await p.reload(); await p.waitForTimeout(600); ok(!(await p.locator('.news').count()), 'Bleibt nach Neuladen ausgeblendet');
+await p.locator('#help').tap(); await p.waitForTimeout(200);
+ok(await p.locator('#pan details').count()===10, 'Hilfe „So geht\'s“ mit 10 Themen');
+await p.locator('#pan summary',{hasText:'Gemeinsam frei'}).tap(); await p.screenshot({path:'/tmp/claude-0/n-help.png'});
+await p.locator('#pan details[open] button').tap(); await p.waitForTimeout(200);
+ok(/Gemeinsam frei/i.test(await p.locator('#pan h2').first().innerText()), '„Ausprobieren“ öffnet die Funktion');
+ok(errs.length===0,'Keine Skriptfehler '+errs.join('|')); await b.close();
