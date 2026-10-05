@@ -156,6 +156,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypbar{display:flex;align-items:center;gap:8px;height:76px;overflow:hidden;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:8px 10px;min-height:56px}
 .ypbar small{display:block;color:var(--soft);font-size:12px;line-height:1.25}.ypbar b{font-size:15px}.ypbar .btn{min-height:44px}
 .ypopen{width:100%;min-height:48px}
+.instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
 .mrow{width:100%;min-height:56px}.mrow .qi{font-size:22px;width:32px;text-align:center}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
@@ -690,7 +691,7 @@ function liveLine(t,now){ now=now||new Date(); if(iso(now)!==t) return null; con
 setInterval(()=>{ if(!S||view!=="heute") return; const d=$("#live"), lv=liveLine(TODAY()); if(d&&lv){ d.textContent=lv[0]; d.classList.toggle("run",lv[1]); } },60000);
 let hM=null;
 function renderHeute(){
-  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box);
+  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box); installCard(box,true);
   const t=TODAY(), sh=shiftOf(t), hn=holName(t);
   // 1) Heute + nächste 7 Tage in einer Karte
   const c=el("div","card sec todaycard"); const top=el("div","today");
@@ -1233,10 +1234,26 @@ function cellChip(id){ return id?chip(typeOf(id)):el("span","chip blank"); }
 function weekGrid(weeks,small){ const g=el("div","wgrid"+(small?" small":"")); g.append(el("span")); WDS.forEach(d=>g.append(el("span","wh",d)));
   weeks.forEach((w,i)=>{ g.append(el("span","wl",(i+1)+". Wo")); w.forEach(id=>g.append(cellChip(id))); }); return g; }
 function tplStats(weeks){ const all=weeks.flat(), w=all.filter(id=>{ const t=id&&typeOf(id); return t&&t.kind==="work"; }).length; let m=0; all.forEach(id=>{ if(id) m+=minutes(typeOf(id)); }); return weeks.length+(weeks.length===1?" Woche":" Wochen")+" · "+w+" Schichten · "+(all.length-w)+" frei · Ø "+hStr(Math.round(m/weeks.length))+" pro Woche"; }
+/* App installieren: ein Tipp, dann liegt die App wie eine echte App auf dem Handy */
+let instEv=null; window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); instEv=e; if(typeof render==="function"&&S) render(); });
+window.addEventListener("appinstalled",()=>{ instEv=null; lsSet("su_installed","1"); if(S) render(); toast("App installiert – du findest sie jetzt auf dem Startbildschirm."); });
+function isInstalled(){ return (window.matchMedia&&matchMedia("(display-mode: standalone)").matches) || navigator.standalone===true; }
+function installCard(box,small){ if(isInstalled()) return; if(small && lsGet("su_inst_hide")) return;
+  const c=el("div","card sec instcard"); const tx=el("div","grow"); tx.append(el("b",null,"📲 Als App aufs Handy"), el("small",null,"Ein Tipp – dann öffnet sie sich wie eine echte App, ohne Browser."));
+  const b=el("button","btn pri","App installieren"); b.type="button"; b.onclick=appInstall; c.append(tx,b);
+  if(small){ const x=el("button","icon-btn","✕"); x.type="button"; x.setAttribute("aria-label","Ausblenden"); x.onclick=()=>{ lsSet("su_inst_hide","1"); render(); }; c.append(x); }
+  box.append(c); }
+async function appInstall(){ if(instEv){ instEv.prompt(); try{ await instEv.userChoice; }catch(e){} instEv=null; return; }
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  openSheet(p=>{ sheetTop(p,"App installieren");
+    const steps=ios?["Unten in Safari auf das Teilen-Symbol tippen (Viereck mit Pfeil nach oben).","Nach unten scrollen und „Zum Home-Bildschirm“ wählen.","Oben rechts auf „Hinzufügen“ tippen – fertig."]
+      :["Oben rechts im Browser auf ⋮ (drei Punkte) tippen.","„App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen.","Bestätigen – fertig. Die App liegt jetzt auf deinem Startbildschirm."];
+    const ol=el("ol","inststeps"); steps.forEach(t=>ol.append(el("li",null,t))); p.append(ol);
+    if(ios) p.append(el("p","hint","Wichtig: Auf dem iPhone geht das nur in Safari.")); }); }
 /* „Mehr“: alles, was nicht jeden Tag gebraucht wird */
-function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; const c=el("div","card sec"); c.append(el("h2",null,"Mehr"));
+function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; installCard(box); const c=el("div","card sec"); c.append(el("h2",null,"Mehr"));
   [["👥","Team","Urlaub mit Kollegen abgleichen",()=>show("team")],["📊","Statistik & Verdienst","Stunden, Überstunden, Zuschläge",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
-   ["📄","Urlaubsantrag","PDF für den Chef",()=>openAntragPick()],["❓","Hilfe","So funktioniert die App",()=>openHelp()],["⚙","Einstellungen","Schichtarten, Bundesland, Sicherung",()=>show("set")],["🔄","App aktualisieren","Neueste Version laden",()=>appUpdate()]].forEach(([i,t,d,fn])=>{
+   ["📄","Urlaubsantrag","PDF für den Chef",()=>openAntragPick()],["❓","Hilfe","So funktioniert die App",()=>openHelp()],["⚙","Einstellungen","Schichtarten, Bundesland, Sicherung",()=>show("set")],["🔄","App aktualisieren","Neueste Version laden",()=>appUpdate()]].filter(Boolean).forEach(([i,t,d,fn])=>{
     const b=el("button","vrow mrow"); b.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t), el("small",null,d)); b.append(el("span","qi",i), tx, el("span","muted","›")); b.onclick=fn; c.append(b); });
   box.append(c); newsCard(box); }
 /* Rhythmus und einzelne Schichten an einem Ort */
@@ -2572,7 +2589,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-1";
+const APP_VERSION="2026.10.05-2";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
