@@ -158,6 +158,8 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypbar{display:flex;align-items:center;gap:8px;height:76px;overflow:hidden;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:8px 10px;min-height:56px}
 .ypbar small{display:block;color:var(--soft);font-size:12px;line-height:1.25}.ypbar b{font-size:15px}.ypbar .btn{min-height:44px}
 .ypopen{width:100%;min-height:48px}
+/* Im Jahreskalender erscheinen Meldungen oben, damit unten kein Knopf verdeckt wird */
+body.ypon .toast,body:has(#yplan:not([hidden])) .toast{bottom:auto!important;top:calc(64px + env(safe-area-inset-top,0px))}
 .yimg img{width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;display:block;cursor:zoom-in;background:#fff}
 .ypstep{font-weight:700;font-size:14px;line-height:1.3}.ypflash{animation:ypfl .9s}@keyframes ypfl{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 4px var(--accent)}}
 .instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
@@ -1770,7 +1772,7 @@ function vacPicker(year,onSaved){ const st={y:year,m:year===new Date().getFullYe
 let yp={y:null,h:0,a:null,e:null,mode:"vac",brush:null};
 function openYearPlanner(y,mode){ yp.mode=mode||"vac"; if(y) yp.y=y; if(!yp.y) yp.y=planYear(); yp.h=(yp.y===new Date().getFullYear() && new Date().getMonth()>=6)?1:0; yp.tapped=false; yp.a=yp.e=null;
   let ov=$("#yplan"); if(!ov){ ov=el("div","yplan"); ov.id="yplan"; ov.setAttribute("role","dialog"); ov.setAttribute("aria-modal","true"); document.body.append(ov); }
-  ov.hidden=false; try{ history.pushState({yp:1},""); }catch(e){} drawYP(); }
+  ov.hidden=false; document.body.classList.add("ypon"); try{ history.pushState({yp:1},""); }catch(e){} drawYP(); }
 function ypPending(){ const r=ypRange(); if(!r) return false; return yp.mode==="shift" || vacCount(r[0],r[1]).n>0; }
 function closeYP(force){ const ov=$("#yplan"); if(!ov || ov.hidden) return;
   if(force!==true && ypPending()){ const sh=yp.mode==="shift";
@@ -1778,7 +1780,7 @@ function closeYP(force){ const ov=$("#yplan"); if(!ov || ov.hidden) return;
       {label:sh?"Ja, eintragen":"Ja, Urlaub speichern",pri:true,fn:()=>{ const b=document.querySelector("#ypbar button[data-save]"); if(b) b.click(); closeYP(true); }},
       {label:"Nein, verwerfen",fn:()=>{ yp.a=yp.e=null; yp.tapped=false; closeYP(true); }},
       {label:"Weiter bearbeiten"}]); return; }
-  ov.hidden=true; render(); }
+  ov.hidden=true; document.body.classList.remove("ypon"); render(); }
 function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*6;
   const top=el("div","yptop"); const x=el("button","icon-btn","✕"); x.type="button"; x.setAttribute("aria-label","Schließen"); x.onclick=()=>closeYP();
   const pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Zurück"); nx.setAttribute("aria-label","Weiter");
@@ -2719,7 +2721,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-15";
+const APP_VERSION="2026.10.05-16";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
