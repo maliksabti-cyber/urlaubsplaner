@@ -11,7 +11,7 @@ const st=()=>p.evaluate(()=>{ const sc=document.querySelector('#mscroll'), top=k
 let s0=await st();
 ok(/März 2027/.test(s0.title) && s0.top==='mb-2027-03', 'Beim Öffnen steht der aktuelle Monat oben: '+s0.title);
 ok(await p.evaluate(()=>{ const t=document.querySelector('#mscroll .day.now'), sc=document.querySelector('#mscroll'); const r=t.getBoundingClientRect(), q=sc.getBoundingClientRect(); return t.dataset.s==='2027-03-20' && r.top>=q.top && r.bottom<=q.bottom+1; }), 'Heute (20.3.) ist im Bild');
-ok(s0.n===7 && await p.locator('#mscroll .day[data-s="2027-03-20"]').count()===1, 'Anfangs 7 Monate, jeder Tag nur einmal');
+ok(s0.n===7 && await p.locator('#mscroll .day:not(.out)[data-s="2027-03-20"]').count()===1, 'Anfangs 7 Monate, jeder Tag nur einmal');
 // nach unten scrollen lädt nach
 for(let i=0;i<8;i++){ await p.evaluate(()=>{ const sc=document.querySelector('#mscroll'); sc.scrollTop=sc.scrollHeight; }); await p.waitForTimeout(120); }
 let s1=await st();
@@ -35,7 +35,7 @@ ok(/Februar 2027/.test((await st()).title), '‹ scrollt zum Vormonat');
 // Malen per Touch (echte Touch-Ereignisse)
 await p.evaluate(()=>{ kalJump(ymOf(2027,2)); setSel(true); brush='S'; drawBrushes(); }); await p.waitForTimeout(250);
 const cdp=await c.newCDPSession(p);
-const ctr=async s=>p.evaluate(s=>{ const r=document.querySelector('#mscroll .day[data-s="'+s+'"]').getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; },s);
+const ctr=async s=>p.evaluate(s=>{ const r=document.querySelector('#mscroll .day:not(.out)[data-s="'+s+'"]').getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; },s);
 const touch=async(type,pt)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:pt?[{x:pt.x,y:pt.y}]:[]});
 const drag=async(pts,hold=0)=>{ await touch('touchStart',pts[0]); if(hold) await p.waitForTimeout(hold); for(const q of pts.slice(1)){ await touch('touchMove',q); await p.waitForTimeout(30); } await touch('touchEnd'); await p.waitForTimeout(250); };
 const ov=()=>p.evaluate(()=>Object.keys(S.ov).sort().join(','));

@@ -16,7 +16,7 @@ ok(r.used===8, 'Gezählt: '+r.used+' Urlaubstage (Mo–Do ×2), nicht 11');
 ok(r.days['13']==='F/f' && r.days['14']==='F/f' && r.days['15']==='F/f', 'Fr 13., Sa 14., So 15. bleiben frei (F): '+[r.days['13'],r.days['14'],r.days['15']].join(' '));
 ok(r.days['12']==='U/v' && r.days['16']==='U/v', 'Do 12. und Mo 16. sind Urlaub (U)');
 await p.evaluate(()=>{ curY=2026; curM=10; show('kal'); setSel(false); document.querySelector('#toast').hidden=true; }); await p.waitForTimeout(200);
-const cell=await p.evaluate(()=>{ const c=document.querySelector('.day[data-s="2026-11-13"]'); return c.className+' | '+c.querySelector('.chip').textContent; });
+const cell=await p.evaluate(()=>{ const c=document.querySelector('.day:not(.out)[data-s="2026-11-13"]'); return c.className+' | '+c.querySelector('.chip').textContent; });
 ok(/fday/.test(cell) && !/vday/.test(cell) && /\| F$/.test(cell), 'Kalender Fr 13.11.: grün „frei“, nicht Urlaubsfarbe ('+cell+')');
 await p.screenshot({path:'/tmp/claude-0/v-nov.png'});
 // Ohne Schichtplan: Mo–Fr annehmen

@@ -7,12 +7,12 @@ await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 await p.evaluate(()=>{ setSel(false); S.rots=[{id:'r',name:'Mo-Fr',start:'2024-01-01',pattern:['F','F','F','F','F',null,null]}]; S.vacs=[]; S.ov={}; S.swaps=[]; S.holFree=true; S.pay={rate:20}; S.soll=40; S.guide={hide:true,pickhide:true}; S.newsSeen=9; save(); kalMode='monat'; curY=2027; curM=2; show('kal'); });
 // 1) Tausch im Tagesfenster
-await p.locator('#v-kal .day[data-s="2027-03-23"]').tap(); await p.waitForTimeout(150);
+await p.locator('#v-kal .day:not(.out)[data-s="2027-03-23"]').tap(); await p.waitForTimeout(150);
 await p.locator('#swapadd').tap(); await p.fill('#swapwho','Jonas'); await p.fill('#swapother','2027-03-27'); await p.locator('#swapsave').tap(); await p.waitForTimeout(150);
 ok(/Getauscht mit Jonas · Gegentag 27\.3\. · offen/.test(await p.locator('#swapbox').innerText()), 'Tagesfenster: „Getauscht mit Jonas · Gegentag 27.3. · offen“');
 ok(await p.evaluate(()=>S.swaps.length===1 && S.swaps[0].d==='2027-03-23' && S.swaps[0].o==='2027-03-27'), 'Tausch gespeichert (Tag + Gegentag)');
 await p.evaluate(()=>closeSheet()); await p.waitForTimeout(100);
-ok(await p.locator('#v-kal .day[data-s="2027-03-23"] .swp').count()===1 && await p.locator('#v-kal .day[data-s="2027-03-27"] .swp').count()===1 && await p.locator('#v-kal .day[data-s="2027-03-24"] .swp').count()===0, 'Kalender markiert Tag und Gegentag mit ⇄');
+ok(await p.locator('#v-kal .day:not(.out)[data-s="2027-03-23"] .swp').count()===1 && await p.locator('#v-kal .day:not(.out)[data-s="2027-03-27"] .swp').count()===1 && await p.locator('#v-kal .day:not(.out)[data-s="2027-03-24"] .swp').count()===0, 'Kalender markiert Tag und Gegentag mit ⇄');
 ok(/1 offen/.test(await p.locator('#swaplist').innerText()), 'Schichtplan: Knopf „⇄ Tausch (1 offen)“');
 await p.locator('#swaplist').tap(); await p.waitForTimeout(150);
 ok(/Offen \(1\)/i.test(await p.locator('#pan').innerText()) && /Erledigt \(0\)/i.test(await p.locator('#pan').innerText()), 'Liste: Offen (1), Erledigt (0)');
