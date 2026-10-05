@@ -169,6 +169,7 @@ body.ypon .toast,body:has(#yplan:not([hidden])) .toast{bottom:auto!important;top
 .ypstep{font-weight:700;font-size:14px;line-height:1.3}.ypflash{animation:ypfl .9s}@keyframes ypfl{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 4px var(--accent)}}
 .instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
 .applink{font:600 15px/1.4 var(--f-body);word-break:break-all;background:var(--tint);border-radius:8px;padding:10px 12px;margin:4px 0 10px;user-select:all}
+.wkrow{display:flex;align-items:center;gap:10px;width:100%;border:0;border-top:1px solid var(--rule);background:none;padding:8px 2px;text-align:left;font:inherit;color:inherit;min-height:48px}.wkrow.now{background:var(--tint);border-radius:8px}.wkrow.past{opacity:.55}.wkd{width:52px;font-weight:700}.wkt{font-size:14px}
 .mrow{width:100%;min-height:56px}.mrow .qi{font-size:22px;width:32px;text-align:center}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
@@ -771,25 +772,20 @@ function renderHeute(){
   // 3) Lotse / Neuigkeiten / Sicherung (immer nur eins)
   const gOn=activeGoal()?lotseCard(box):false;
   if(!activeGoal() && backupDue() && dlNs){ const b=el("div","banner"); const tx=el("span","grow"); tx.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(tx,go); box.append(b); }
-  // 4) Urlaub
-  const y=+t.slice(0,4), used=vacUsed(y), tot=vacTotal(y), rest=tot-used;
-  const vk=el("div","card sec vcard"); const vh=el("div","vhead"); const vn=el("div"); vn.append(el("b","num vbig",String(rest)), el("span",null,rest===1?" Urlaubstag übrig":" Urlaubstage übrig")); vh.append(el("h3",null,"Urlaub "+y), vn); vk.append(vh);
-  const m=el("div","meter"), mi=el("i"); mi.style.width=Math.min(100,tot?used/tot*100:0)+"%"; if(used>tot) mi.style.background="var(--bad)"; m.append(mi); vk.append(m, el("div","muted small",used+" von "+tot+" verplant"));
-  { const eb2=el("button","btn ghost","✎ Urlaubstage bearbeiten ("+tot+" Tage im Jahr)"); eb2.type="button"; eb2.onclick=()=>openVacSettings(y); vk.append(eb2); }
-  { const eb=expBanner(y,"expheute"); if(eb) vk.append(eb); }
-  const ab=el("div","row"); { const yb=el("button","btn pri grow","📅 Urlaub im Jahreskalender eintragen"); yb.type="button"; yb.onclick=()=>openYearPlanner(y); ab.append(yb); vk.append(ab); }
-  const vl=el("div","vlist"); vl.append(el("h3",null,"Deine Urlaube "+y)); const all=vacBlocks(y), up=all.filter(b=>b.e>=t);
-  if(!all.length) vl.append(el("p","muted","Noch kein Urlaub eingetragen."));
-  else if(!up.length) vl.append(el("p","muted","Alle Urlaube "+y+" liegen schon hinter dir."));
-  up.slice(0,4).forEach(b=>{ const r=el("button","vrow"); r.type="button"; const tx=el("div","grow"); tx.append(el("b",null,b.a===b.e?fmt(b.a):dShort(b.a)+" – "+dShort(b.e)), el("small",null,b.a>t?"in "+diffD(t,b.a)+(diffD(t,b.a)===1?" Tag":" Tagen"):"läuft gerade")); r.append(chip(vacType()), tx, el("span","num",b.n+(b.n===1?" Urlaubstag":" Urlaubstage"))); r.onclick=()=>openVacBlock(b); vl.append(r); });
-  if(all.length>Math.min(4,up.length)){ const mo=el("button","linkbtn","Alle Urlaube ansehen ›"); mo.type="button"; mo.onclick=()=>show("urlaub"); vl.append(mo); }
-  vk.append(vl); box.append(vk);
+  // 4) Diese Woche (Mo–So): Schichten und Stunden
+  { const mo=addD(t,-((parse(t).getDay()+6)%7)); let n=0, mins=0, left=0, lm=0; const wk=el("div","card sec"); wk.append(el("h3",null,"Diese Woche"));
+    for(let i=0;i<7;i++){ const s=addD(mo,i), x=shiftOf(s), dk=dayKind(s); const r=el("button","wkrow"+(s===t?" now":"")+(s<t?" past":"")); r.type="button"; r.onclick=()=>openDay(s);
+      r.append(el("span","wkd",DOW[parse(s).getDay()]+" "+parse(s).getDate()+"."), vacChip(s,x));
+      const tx=dk==="v"?"Urlaub":(x&&x.kind==="work"&&x.start?x.start+" – "+x.end+" Uhr · "+hStr(minutes(x)):x&&x.kind!=="free"?x.name:"Frei"); r.append(el("span","grow wkt",tx)); wk.append(r);
+      if(x&&x.kind==="work"){ n++; mins+=minutes(x); if(s>=t){ left++; lm+=minutes(x); } } }
+    wk.append(el("p","hint",n+(n===1?" Schicht":" Schichten")+" · "+hStr(mins)+(left?" · noch "+left+(left===1?" Schicht":" Schichten")+" ("+hStr(lm)+")":" · Woche geschafft"))); box.append(wk); }
   // 5) Als Nächstes (kurz)
   let nf=null; for(let i=1;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(!x || x.kind==="free"){ let e=s; for(let k=0;k<60;k++){ const n=addD(e,1), z=shiftOf(n); if(!z || z.kind==="free") e=n; else break; } nf=[s,e]; break; } }
   const rows=[];
   const tFree=!sh||sh.kind==="free"; if(tFree){ let e=t; while(diffD(t,e)<60){ const n=addD(e,1), z=shiftOf(n); if(!z||z.kind==="free") e=n; else break; } rows.push(["🌿","Heute frei",e===t?"nur heute":"frei bis "+fmt(e)+" ("+(diffD(t,e)+1)+" Tage)"]); if(nf && nf[0]<=e) nf=null; }
   if(nf) rows.push(["🌿","Nächstes Frei",nf[0]===nf[1]?fmt(nf[0]):fmtS(nf[0])+" – "+fmtS(nf[1])+" ("+(diffD(nf[0],nf[1])+1)+" Tage)"]);
-  { const nv=vacList().filter(v=>v.e>=t&&vacDaysOf(v).length).sort((x,z)=>x.a<z.a?-1:1)[0]; if(nv) rows.push(["☀️","Nächster Urlaub",(nv.a===nv.e?fmtS(nv.a)+nv.a.slice(0,4):fmtS(nv.a)+" – "+fmtS(nv.e)+nv.e.slice(0,4))+(nv.a>t?" · in "+diffD(t,nv.a)+" Tagen":" · läuft gerade")]); }
+  { const nv=vacList().filter(v=>v.e>=t&&vacDaysOf(v).length).sort((x,z)=>x.a<z.a?-1:1)[0]; if(nv){ rows.push(["☀️","Nächster Urlaub",(nv.a===nv.e?fmtS(nv.a)+nv.a.slice(0,4):fmtS(nv.a)+" – "+fmtS(nv.e)+nv.e.slice(0,4))+(nv.a>t?" · in "+diffD(t,nv.a)+" Tagen":" · läuft gerade")]);
+    if(nv.a>t){ let w=0; for(let d=t; d<nv.a; d=addD(d,1)){ const x=shiftOf(d); if(x&&x.kind==="work") w++; } rows.push(["💪","Bis zum Urlaub",w===0?"keine Schicht mehr – gleich geht's los!":"noch "+w+(w===1?" Arbeitstag":" Arbeitstage")]); } } }
   if(partners().length){ const bf=bothFreeNext(1)[0]; rows.push(["♥","Gemeinsam frei",bf?(bf[0]===bf[1]?fmt(bf[0]):fmtS(bf[0])+" – "+fmtS(bf[1])):"in den nächsten Monaten nicht"]); }
   if(rows.length){ const nx=el("div","card sec"); nx.append(el("h3",null,"Als Nächstes")); rows.forEach(([i,l,v])=>{ const r=el("div","nxrow"); r.append(el("span","nxi",i)); const tx=el("div","grow"); tx.append(el("small",null,l), el("b",null,v)); r.append(tx); nx.append(r); }); box.append(nx); }
 }
@@ -2492,7 +2488,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-25";
+const APP_VERSION="2026.10.05-26";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
