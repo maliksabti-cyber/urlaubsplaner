@@ -2353,7 +2353,7 @@ function tErr(e){ const c=String((e&&(e.code||e.message))||"");
 async function teamLoad(){ if(!ts || team.loading) return; team.loading=true; team.err=null; if(view==="team") renderTeam();
   try{ const mem=(await fsList("mitarbeiter")).filter(a=>typeof a.name==="string");
     team.members=mem; team.me=mem.find(a=>a.id===ts.uid)||mem.find(a=>a.uid===ts.uid)||null;
-    const lim=mem.find(a=>Number.isFinite(a.maxWeg)); team.limit=lim?Math.max(1,Math.min(7,Math.round(lim.maxWeg))):2;
+    const lim=mem.find(a=>Number.isFinite(a.maxWeg)); team.limit=lim?Math.max(1,Math.min(999,Math.round(lim.maxWeg))):999;
     team.vac= teamOn() ? (await fsList("urlaube")).filter(v=>typeof v.name==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v.start||"")&&/^\d{4}-\d{2}-\d{2}$/.test(v.end||"")&&v.start<=v.end) : [];
     team.loaded=true; lsSet("su_team_cache",JSON.stringify({uid:ts.uid,members:team.members,vac:team.vac,me:team.me,limit:team.limit}));
   }catch(e){ team.err=tErr(e); const c=String(e.code||""); if(/TOKEN|REFRESH|USER_NOT_FOUND|USER_DISABLED|NO_SESSION/.test(c)){ teamLogout(true); team.msg="Bitte melde dich neu an."; } }
@@ -2363,6 +2363,7 @@ function teamLogout(silent){ ts=null; lsSet("su_team",null); lsSet("su_team_cach
 function teamAway(withMe){ const m=new Map(), me=team.me?tKey(team.me.name):null;
   for(const v of team.vac){ const k=tKey(v.name); if(!withMe && k===me) continue; for(let s=v.start;s<=v.end;s=addD(s,1)){ let st=m.get(s); if(!st) m.set(s,st=new Set()); if(!st.has(k)) st.add(k); } } return m; }
 function teamNames(set){ const by=new Map(team.members.map(a=>[tKey(a.name),a.name])); return [...set].map(k=>by.get(k)||k); }
+function limTxt(){ return team.limit>=999?"keine Grenze für gleichzeitigen Urlaub":"höchstens "+team.limit+" gleichzeitig im Urlaub"; }
 /* Zeiträume, in denen zu viele gleichzeitig weg sind */
 function teamClashes(from,days){ const m=teamAway(true), out=[]; let cur=null;
   for(let i=0;i<days;i++){ const s=addD(from,i), st=m.get(s), n=st?st.size:0;
@@ -2423,15 +2424,17 @@ function renderTeam(){
   if(team.err) head.append(el("div","banner",team.err));
   if(!team.me){ head.append(el("p",null,"Mit diesem Konto ist noch niemand im Team eingetragen."), el("p","hint","Melde dich ab und erstelle unter „Konto erstellen“ einen Eintrag mit deinem Namen.")); }
   else if(!teamOn()){ head.append(el("p",null,"Hallo "+team.me.name.split(" ")[0]+"! Dein Konto wartet auf die Freigabe."), el("p","hint","Sobald du freigegeben bist, siehst du hier den Urlaub deiner Kollegen. Tipp danach auf „Aktualisieren“.")); }
-  else { const app=team.members.filter(a=>a.approved); head.append(el("p","muted",team.me.name+" · "+app.length+(app.length===1?" Person":" Personen")+" im Team · höchstens "+team.limit+" gleichzeitig im Urlaub"));
+  else { const app=team.members.filter(a=>a.approved); head.append(el("p","muted",team.me.name+" · "+app.length+(app.length===1?" Person":" Personen")+" im Team · "+limTxt()));
     const iv=el("button","btn pri","Kollegen einladen"); iv.type="button"; iv.onclick=openInvite; head.append(iv); }
   const lo=el("button","linkbtn","Vom Team abmelden"); lo.type="button"; lo.onclick=()=>teamLogout(); head.append(lo); box.append(head);
   if(isTeamAdmin()){ const ac=el("div","card sec"); ac.append(el("h2",null,"Verwalten"));
-    const l=el("label","f","Höchstens gleichzeitig im Urlaub"), sel=el("select"); sel.id="tlimit"; for(let n=1;n<=7;n++){ const o=el("option",null,n===1?"1 Person":n+" Personen"); o.value=n; sel.append(o); } sel.value=team.limit;
-    sel.onchange=async()=>{ const n=+sel.value; try{ await fsReq("/mitarbeiter/"+team.me.id+"?updateMask.fieldPaths=maxWeg","PATCH",fsFields({maxWeg:n})); team.limit=n; toast("Gespeichert: höchstens "+n+" gleichzeitig"); teamLoad(); }catch(e){ toast(tErr(e)); sel.value=team.limit; } };
-    l.append(sel); ac.append(l, el("p","hint","Gilt für alle im Team. Der Urlaubsrechner schlägt dann nur noch Tage vor, an denen noch Platz ist."));
+    ac.append(el("p","hint","Dein Team kann beliebig viele Mitglieder haben – lade so viele Kollegen ein, wie du willst, und gib sie frei."));
+    const l=el("label","f","Wie viele dürfen gleichzeitig im Urlaub sein?"), sel=el("select"); sel.id="tlimit"; { const o=el("option",null,"Keine Grenze"); o.value=999; sel.append(o); } for(let n=1;n<=50;n++){ const o=el("option",null,n===1?"1 Person":n+" Personen"); o.value=n; sel.append(o); } if(team.limit<999&&team.limit>50){ const o=el("option",null,team.limit+" Personen"); o.value=team.limit; sel.append(o); } sel.value=team.limit;
+    sel.onchange=async()=>{ const n=+sel.value; try{ await fsReq("/mitarbeiter/"+team.me.id+"?updateMask.fieldPaths=maxWeg","PATCH",fsFields({maxWeg:n})); team.limit=n; toast("Gespeichert: "+limTxt()); teamLoad(); }catch(e){ toast(tErr(e)); sel.value=team.limit; } };
+    l.append(sel); ac.append(l, el("p","hint","Das ist keine Teamgröße, sondern nur die Grenze für gleichzeitigen Urlaub. Der Urlaubsrechner schlägt dann nur Tage vor, an denen noch Platz ist."));
     const pend=team.members.filter(a=>!a.approved && a.uid);
-    ac.append(el("h3",null,pend.length?"Wartet auf Freigabe":"Keine offenen Anfragen"));
+    ac.append(el("h3",null,pend.length?"Wartet auf Freigabe ("+pend.length+")":"Keine offenen Anfragen"));
+    if(pend.length>1){ const all=el("button","btn pri","Alle "+pend.length+" freigeben"); all.type="button"; all.onclick=async()=>{ all.disabled=true; let n=0; for(const a of pend){ try{ await fsReq("/mitarbeiter/"+a.id+"?updateMask.fieldPaths=approved","PATCH",fsFields({approved:true})); n++; }catch(e){} } toast(n+" Kollegen freigegeben"); teamLoad(); }; ac.append(all); }
     pend.forEach(a=>{ const r=el("div","trow"); r.append(el("b","grow",a.name), el("small","muted",a.emailMask||"ohne E-Mail"));
       const ok=el("button","btn pri","Freigeben"); ok.type="button"; ok.onclick=async()=>{ ok.disabled=true; try{ await fsReq("/mitarbeiter/"+a.id+"?updateMask.fieldPaths=approved","PATCH",fsFields({approved:true})); toast(a.name+" freigegeben"); teamLoad(); }catch(e){ toast(tErr(e)); ok.disabled=false; } };
       r.append(ok); ac.append(r); });
@@ -2449,7 +2452,7 @@ function renderTeam(){
   box.append(mc);
   // Überschneidungen
   const cl=teamClashes(TODAY(),400), cc=el("div","card sec"); cc.append(el("h2",null,"Überschneidungen"));
-  if(!cl.length) cc.append(el("p","muted","Keine: Nie sind mehr als "+team.limit+" gleichzeitig im Urlaub."));
+  if(!cl.length) cc.append(el("p","muted",team.limit>=999?"Keine Grenze eingestellt.":"Keine: Nie sind mehr als "+team.limit+" gleichzeitig im Urlaub."));
   cl.slice(0,30).forEach(x=>{ const r=el("div","trow"); const t=el("div","grow"); t.append(el("b",null,(x.a===x.e?fmt(x.a):fmtS(x.a)+" – "+fmtS(x.e))+": "+x.n+" gleichzeitig weg"), el("div","muted",x.names.join(", "))); r.append(t, el("span","chip",String(x.n))); r.lastChild.style.setProperty("--c","var(--bad)"); cc.append(r); });
   box.append(cc);
   // Wer ist bald weg
@@ -2681,7 +2684,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-7";
+const APP_VERSION="2026.10.05-8";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
