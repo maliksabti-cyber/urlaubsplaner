@@ -5,7 +5,7 @@ await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 await p.evaluate(()=>{ S.rots=[{id:'r',name:'x',start:'2026-01-05',pattern:['F','F','F','F',null,null,null]}]; S.guide={hide:true,pickhide:true}; S.newsSeen=9; S.vacs=[]; save(); show('heute'); document.querySelector('#toast').hidden=true; });
 await p.waitForTimeout(150);
-await p.locator('#v-heute').getByRole('button',{name:'Urlaub berechnen'}).tap(); await p.waitForTimeout(250);
+await p.evaluate(()=>{ show('mehr'); }); await p.locator('#v-mehr .mrow',{hasText:'Urlaubsrechner'}).tap(); await p.waitForTimeout(250);
 ok(await p.locator('#vpick').count()===1 && await p.getByRole('button',{name:/Selbst im Kalender eintragen/}).isVisible(), 'Urlaubsrechner hat „Selbst eintragen“ mit Kalender + Sprungknopf oben');
 await p.getByRole('button',{name:/Selbst im Kalender eintragen/}).tap(); await p.waitForTimeout(400);
 // zum November blättern, 9. und 19. antippen

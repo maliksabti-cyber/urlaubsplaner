@@ -21,7 +21,7 @@ const ics=await A.evaluate(()=>{ S.remind=60; S.ov[addD(TODAY(),2)]='F'; return 
 ok(/BEGIN:VALARM[\s\S]*TRIGGER:-PT60M[\s\S]*END:VALARM/.test(ics), 'Kalender-Datei enthält Erinnerung 60 min vorher');
 // 5) Vorlage 2-2-2 eintragen mit Start an Tag 3 (S)
 await A.evaluate(()=>{ S.ov={}; S.rots=[]; S.tpls=[]; S.holFree=false; save(); show('heute'); });
-await A.getByRole('button',{name:'Mein Rhythmus'}).first().tap(); await A.waitForTimeout(200);
+await A.getByRole('button',{name:/Rhythmus & Schichten/}).first().tap(); await A.waitForTimeout(200);
 await A.locator('summary',{hasText:'Fertige Vorlage'}).tap(); await A.locator('#pan .onbopt',{hasText:'2-2-2 + 4 frei'}).tap(); await A.waitForTimeout(200);
 await A.locator('#pan .pick button').nth(2).tap(); await A.getByRole('button',{name:'In den Kalender eintragen'}).tap(); await A.waitForTimeout(300);
 const pr=await A.evaluate(()=>[0,1,2,3,4,5,6].map(i=>{ const x=shiftOf(addD(TODAY(),i)); return x?x.short:'-'; }).join(''));

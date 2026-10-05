@@ -8,7 +8,7 @@ await p.evaluate(()=>{ S.rots=[]; S.tpls=[]; save(); });
 ok(await p.locator('.tabs button').count()===4, '4 Tabs unten');
 ok(!(await p.isVisible('#fab')) && !(await p.locator('#hredo').count()), 'Kein schwebender Knopf, kein Wiederholen-Knopf');
 await p.locator('.tabs button[data-v="heute"]').tap(); await p.waitForTimeout(200);
-await p.getByRole('button',{name:'Mein Rhythmus'}).first().tap(); await p.waitForTimeout(300);
+await p.getByRole('button',{name:/Rhythmus & Schichten/}).first().tap(); await p.waitForTimeout(300);
 ok(/Rhythmus anlegen/i.test(await p.locator('#pan h2').first().innerText()) && !(await p.locator('#tplname').count()) && !(await p.getByText('Oder aus dem Kalender').count()), 'Rhythmus-Editor: kein Namensfeld, keine Kalender-Übernahme');
 // Woche 1: Mo-Fr Früh ; Woche 2: Mo-Fr Spät
 await p.locator('#pan .pick button').nth(0).tap(); await p.getByRole('button',{name:'Mo–Fr füllen'}).tap();
