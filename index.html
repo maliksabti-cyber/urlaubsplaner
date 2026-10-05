@@ -668,6 +668,23 @@ function vacAt(s){ return vacList().find(v=>v.a<=s && s<=v.e)||null; }
 function vacDayCounts(s){ if(holName(s)) return false; const own=ownShift(s); if(own) return own.kind==="work";
   return !rotAt(s) && !Object.prototype.hasOwnProperty.call(S.ov,s) && ![0,6].includes(parse(s).getDay()); }
 function vacOnDay(v,s){ const own=ownShift(s); if(own && own.kind==="sick") return false; if(holName(s)) return false; if(v.fixed) return v.fixed.includes(s); return vacDayCounts(s); }
+/* ===== Team-Vorbereitung (Architektur) =====
+   Private Daten (S.vacs, S.ov …) und Team-Sichtbarkeit sind getrennt: S.share.vac[urlaubsId] = true/false
+   ist eine eigene Verknüpfungstabelle. Verlässt man ein Team, wird nur diese Tabelle/Team-Kopie gelöscht –
+   der private Planer bleibt unberührt. */
+function shareVacGet(id){ const m=(S.share&&S.share.vac)||{}; return id in m?!!m[id]:consentGet("vacDefault"); }
+function shareVacSet(id,on){ if(!S.share) S.share={}; if(!S.share.vac) S.share.vac={}; S.share.vac[id]=!!on; }
+function shareClean(){ const m=(S.share&&S.share.vac)||{}, ids=new Set(vacList().map(v=>v.id)); Object.keys(m).forEach(k=>{ if(!ids.has(k)) delete m[k]; }); }
+/* Zentrales Einverständnis-Modul: an einer Stelle für Team-Beitritt, Namensanzeige, Kinder-Angabe, Standard-Sichtbarkeit */
+const CONSENT={ teamJoin:{t:"Daten im Team freigeben",d:"Ohne diese Zustimmung wird nichts ans Team übertragen.",def:false},
+  showName:{t:"Meinen Namen im Team-Kalender zeigen",d:"Sonst sehen andere nur Farbe und Form.",def:false},
+  hasKids:{t:"Ich habe Kinder (Vorrang in den Schulferien)",d:"Wird nur mit Zustimmung zur Datenfreigabe geteilt.",def:false},
+  vacDefault:{t:"Neuen Urlaub im Team sichtbar machen",d:"Kann bei jedem Urlaub einzeln geändert werden.",def:true} };
+function consentGet(k){ const c=S.consent||{}; return k in c?!!c[k]:!!(CONSENT[k]&&CONSENT[k].def); }
+function consentSet(k,v){ if(!S.consent) S.consent={}; S.consent[k]=!!v; save(); }
+function consentCard(box){ const c=el("div","card sec"); c.id="consent"; c.append(el("h2",null,"Datenschutz & Freigaben"), el("p","hint","Gilt für die Team-Funktion (kommt bald). Deine privaten Daten bleiben immer nur bei dir."));
+  Object.entries(CONSENT).forEach(([k,o])=>{ const l=el("label","sw"), cb=el("input"); cb.type="checkbox"; cb.id="cs_"+k; cb.checked=consentGet(k); cb.onchange=()=>consentSet(k,cb.checked); const tx=el("span"); tx.append(el("b",null,o.t), el("small",null," – "+o.d)); l.append(cb,tx); c.append(l); });
+  box.append(c); }
 /* Urlaubskontingent: höchstens so viele Urlaubstage pro Kalenderjahr, wie der Anspruch hergibt */
 function vacRest(y){ return vacTotal(y)-vacUsed(y); }
 function vacOver(days,exclId){ const keep=S.vacs; if(exclId) S.vacs=keep.filter(v=>v.id!==exclId);
@@ -711,7 +728,9 @@ function carryOf(y){ if(S.carryAuto&&S.carryAuto[y]) return Math.max(0,Math.min(
 function expCfg(){ const e=S.expire||{}; return {on:e.on!==false, md:/^\d\d-\d\d$/.test(e.md||"")?e.md:"03-31"}; }
 function expInfo(y,co){ const c=expCfg(); if(!c.on) return null; const carry=co!=null?co:carryOf(y); if(carry<=0) return null; const date=y+"-"+c.md; let u=0;
   for(let s=y+"-01-01"; s<=date; s=addD(s,1)){ const t=shiftOf(s); if(t&&t.kind==="vac") u++; } const left=Math.max(0,carry-u); return {carry,date,used:Math.min(carry,u),left,passed:TODAY()>date}; }
-function vacTotal(y){ const x=expInfo(y); return (+S.vacPerYear||0)+carryOf(y)+((S.vacCorr&&+S.vacCorr[y])||0)-(x&&x.passed?x.left:0); }
+/* Jahresanspruch: bei Teilzeit auf Wunsch anteilig (Anspruch bei 5-Tage-Woche × Arbeitstage ÷ 5) */
+function vacBase(){ const b=+S.vacPerYear||0; return S.wmode==="teil"&&S.vacProRata&&wDays()<5?Math.round(b*wDays()/5):b; }
+function vacTotal(y){ const x=expInfo(y); return vacBase()+carryOf(y)+((S.vacCorr&&+S.vacCorr[y])||0)-(x&&x.passed?x.left:0); }
 /* Hinweis „X Tage aus Vorjahr verfallen am …“ (nur solange noch etwas zu retten ist) */
 function expWarn(y){ const x=expInfo(y); if(!x||x.passed||!x.left) return null; return x; }
 function expBanner(y,id){ const x=expWarn(y); if(!x) return null; const b=el("div","banner exp"); b.id=id; const t=el("span","grow"); t.style.flexBasis="100%";
@@ -1121,6 +1140,7 @@ function renderSet(){
   // Arbeitszeit
   const lc=el("div","card sec"); lc.append(el("h2",null,"Arbeitszeit"), el("p","hint",+S.soll>0?"Soll "+String(S.soll).replace(".",",")+" h/Woche":"Für Überstunden in der Statistik."));
   const lb=el("button","btn","Soll-Stunden einstellen"); lb.type="button"; lb.onclick=()=>openWorkSettings(); lc.append(lb); box.append(lc);
+  consentCard(box);
   // Daten
   const dc=el("div","card sec"); dc.id="data"; dc.tabIndex=-1; dc.append(el("h2",null,"Sichern & Übertragen"));
   dc.append(el("p","hint",CFG.localMode?"Deine Daten liegen nur auf diesem Handy. Teile hier ab und zu eine Sicherung, damit nichts verloren geht, und spiel sie bei Bedarf wieder ein.":"Deine Daten werden automatisch in deinem Konto gesichert. Zusätzlich kannst du hier eine Sicherung teilen oder einspielen."));
@@ -1511,6 +1531,8 @@ function openWorkSettings(){ openSheet(p=>{ sheetTop(p,"Arbeitszeit");
     p.append(num("Soll-Stunden pro Woche","psoll",S.soll||"","0.5",v=>S.soll=v,60,"Stunden pro Woche"));
     p.append(num("Arbeitstage pro Woche","pwdays",S.wdays||((S.wmode==="teil")?"":5),"1",v=>S.wdays=v?Math.max(1,Math.min(7,Math.round(v))):null,7,"Tage"));
     p.append(el("p","hint",(S.wmode==="teil"?"Teilzeit: ":"Vollzeit: ")+"Ein Urlaubs-/Krankheitstag ohne eigenen Wert zählt Soll-Stunden ÷ Arbeitstage pro Woche."));
+    if(S.wmode==="teil"){ const sw=el("label","sw"), cb=el("input"); cb.type="checkbox"; cb.id="prorata"; cb.checked=!!S.vacProRata; const b=+S.vacPerYear||0;
+      const tx=el("span",null,"Urlaubsanspruch anteilig: "+b+" Tage bei 5-Tage-Woche → "+Math.round(b*wDays()/5)+" Tage bei "+wDays()+" Tagen"); cb.onchange=()=>{ S.vacProRata=cb.checked; save(); render(); }; sw.append(cb,tx); p.append(sw); }
     { const l=el("label","f","Überstunden-Konto zählt ab"), i=el("input"); i.type="date"; i.id="psince"; i.value=kontoSince(); i.onchange=()=>{ if(isDay(i.value)){ S.since=i.value; save(); } }; l.append(i); p.append(l); }
     p.append(num("Zeitgutschrift bei Arbeit an Feiertagen (%)","pholcredit",S.holCredit||"","5",v=>S.holCredit=v||0), el("p","hint","Wie viele Stunden du zusätzlich aufgeschrieben bekommst – z. B. 100 % = doppelte Zeit aufs Arbeitszeitkonto."));
     p.append(el("p","hint","Urlaub und Krankheit werden mit "+(+S.soll>0?"Soll-Stunden ÷ 5":"dem Durchschnitt deiner Schichten")+" pro Tag gerechnet."));
@@ -2309,10 +2331,11 @@ function normData(d){ if(!d || typeof d!=="object" || d.v!==1 || !Array.isArray(
   d.rots=Array.isArray(d.rots)?d.rots.filter(r=>r&&isDay(r.start)&&Array.isArray(r.pattern)):[];
   ["ov","notes","carry"].forEach(k=>{ if(!obj(d[k])) d[k]={}; });
   ["vacs","tpls","partners","swaps"].forEach(k=>{ if(!Array.isArray(d[k])) d[k]=[]; });
+  if(!obj(d.share)) d.share={}; if(!obj(d.share.vac)) d.share.vac={}; if(!obj(d.consent)) d.consent={};
   d.vacs=d.vacs.filter(v=>v&&isDay(v.a)&&isDay(v.e)).map(v=>({...v,id:v.id||uid()})); d.tpls=d.tpls.filter(t=>t&&Array.isArray(t.weeks));
   delete d.pay; if(["team","admin","start"].includes(d.goal)) d.goal=null;
   if(!LAENDER.some(x=>x[0]===d.land)) d.land=D.land; if(!(+d.vacPerYear>=0)) d.vacPerYear=D.vacPerYear; return d; }
-function save(){ if(!S) return; S.updated=Date.now(); lsSet(dataKey(),JSON.stringify(S)); dirty=true; lsSet(dataKey()+"_dirty","1"); clearTimeout(pushT); pushT=setTimeout(push,1200); }
+function save(){ if(!S) return; try{ shareClean(); }catch(e){} S.updated=Date.now(); lsSet(dataKey(),JSON.stringify(S)); dirty=true; lsSet(dataKey()+"_dirty","1"); clearTimeout(pushT); pushT=setTimeout(push,1200); }
 async function push(){ if(!sess||!dirty||!S) return; try{ setSync("sync"); await cloudPut(JSON.stringify(S),S.updated||Date.now()); dirty=false; lsSet(dataKey()+"_dirty",null); setSync("ok"); }catch(e){ setSync("off"); } }
 async function pull(){ if(!sess||!S) return; try{ setSync("sync"); const r=await cloudGet(); const localDirty=lsGet(dataKey()+"_dirty")==="1";
     if(r && r.data){ let d=null; try{ d=JSON.parse(r.data); }catch(_){}
@@ -2525,6 +2548,7 @@ function openVacBlock(b){ const v0=vacList().find(x=>x.id===b.id); if(!v0){ toas
     sv.onclick=()=>{ const r=calc(); if(!r) return; if(r.over&&r.over.length){ toast(quotaMsg(r.over)); return; } const old=JSON.parse(JSON.stringify(vacList())); const v=vacList().find(x=>x.id===v0.id); if(!v) return;
       v.a=ia.value; v.e=ib.value; if(v.fixed || r.as) v.fixed=r.days.slice(); normVacs(); save(); closeSheet(); render();
       { const y=+ia.value.slice(0,4); toast("Urlaub geändert: "+fmtS(ia.value)+" – "+fmtS(ib.value)+" · noch "+vacRest(y)+" übrig","Rückgängig",()=>{ S.vacs=old; save(); render(); }); } };
+    { const l=el("label","sw"), cb=el("input"); cb.type="checkbox"; cb.id="ve_team"; cb.checked=shareVacGet(v0.id); cb.onchange=()=>{ shareVacSet(v0.id,cb.checked); save(); }; l.append(cb, el("span",null,"Im Team sichtbar (sobald die Team-Funktion aktiv ist)")); p.append(l); }
     ia.oninput=()=>{ if(ib.value<ia.value) ib.value=ia.value; calc(); }; ib.oninput=calc; p.append(sv); calc();
     const r=el("div","row");
     const cal=el("button","btn","Im Kalender zeigen"); cal.type="button"; cal.onclick=()=>{ curY=+v0.a.slice(0,4); curM=+v0.a.slice(5,7)-1; kalMode="monat"; closeSheet(); show("kal"); }; r.append(cal);
@@ -2583,7 +2607,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-38";
+const APP_VERSION="2026.10.05-39";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
