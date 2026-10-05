@@ -1,60 +1,10 @@
 rules_version = '2';
-// Schicht & Urlaub – Team – Sicherheitsregeln
-// Jeder bestätigte Nutzer sieht alle Urlaube, ändern darf er nur seine eigenen. Hosts dürfen alles.
+// Schicht & Urlaub – Sicherheitsregeln
+// Nur für die Cloud-Sicherung (localMode: false): jeder Nutzer hat genau ein eigenes Dokument,
+// nur er selbst darf es lesen und ändern. Alles andere ist gesperrt.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function myPath() { return /databases/$(database)/documents/mitarbeiter/$(request.auth.uid); }
-    // Host: der Gründer (diese E-Mail) und alle freigegebenen Personen mit host == true
-    function isAdmin() { return signedIn() && (request.auth.token.email == 'malik.sabti@googlemail.com'
-      || (exists(myPath()) && get(myPath()).data.approved == true && get(myPath()).data.get('host', false) == true)); }
-    function approved() { return isAdmin() || (signedIn() && exists(myPath()) && get(myPath()).data.approved == true); }
-    function myName() { return get(myPath()).data.name; }
-    function ownsNew() { return approved() && request.resource.data.name == myName(); }
-    function ownsOld() { return approved() && resource.data.name == myName(); }
-
-    // Benutzer: sich selbst anmelden (wartet auf Bestätigung), nur der Admin bestätigt/ändert/löscht
-    match /mitarbeiter/{id} {
-      allow read: if signedIn();
-      allow create: if isAdmin() || (signedIn() && id == request.auth.uid
-        && request.resource.data.keys().hasOnly(['name','tage','emailHash','emailMask','uid','created','approved'])
-        && request.resource.data.name is string
-        && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 60
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.approved == false
-        && request.resource.data.tage == null);
-      // eigene Urlaubstage darf man selbst eintragen – sonst nichts
-      allow update: if isAdmin() || (signedIn() && id == request.auth.uid
-        && resource.data.approved == true
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tage'])
-        && request.resource.data.tage is int
-        && request.resource.data.tage >= 0 && request.resource.data.tage <= 99);
-      allow delete: if isAdmin();
-    }
-
-    match /urlaube/{id} {
-      allow read: if approved();
-      allow create: if (isAdmin() || ownsNew())
-        && request.resource.data.keys().hasOnly(['name','start','end','created'])
-        && request.resource.data.start is string && request.resource.data.end is string;
-      allow update: if isAdmin() || (ownsOld() && ownsNew());
-      allow delete: if isAdmin() || ownsOld();
-    }
-
-    // Persönlicher Bereich: PDF-Liste und die PDF-Dateien selbst
-    match /dokumente/{id} {
-      allow read: if approved();
-      allow create: if isAdmin() || ownsNew();
-      allow delete: if isAdmin() || ownsOld();
-    }
-    match /dateien/{id} {
-      allow read: if approved();
-      allow create: if (isAdmin() || ownsNew())
-        && request.resource.data.bytes is bytes && request.resource.data.bytes.size() < 950000;
-      allow delete: if isAdmin() || ownsOld();
-    }
-
-    // Schicht & Urlaub (schicht/): jeder Nutzer hat genau ein eigenes Dokument, nur er selbst darf es lesen/ändern
     match /nutzer/{uid} {
       allow read, delete: if signedIn() && request.auth.uid == uid;
       allow create, update: if signedIn() && request.auth.uid == uid

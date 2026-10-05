@@ -13,5 +13,5 @@ Bei einer neuen Version in `index.html` die Zeile `APP_VERSION="…"` hochzähle
 
 **Daten:** bleiben auf dem eigenen Handy (`localMode: true` in `config.js`). Ab und zu unter Einstellungen eine Sicherung teilen.
 
-**Team-Funktion:** nutzt das Firebase-Projekt aus `config.js`. Regeln stehen in `firestore.rules`
+**Cloud-Sicherung (optional):** nur wenn in `config.js` `localMode: false` steht. Dann die Regeln aus `firestore.rules` in Firebase veröffentlichen.
 (Firebase → Firestore → „Regeln“ → einfügen → „Veröffentlichen“).
