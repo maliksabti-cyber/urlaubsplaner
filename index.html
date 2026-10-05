@@ -174,6 +174,13 @@ body.ypon .toast,body:has(#yplan:not([hidden])) .toast{bottom:auto!important;top
 .mrow{width:100%;min-height:56px}.mrow .qi{font-size:22px;width:32px;text-align:center}
 .pdfopt{flex-wrap:wrap;gap:8px}.pdfopt .seg button{padding:9px 10px}
 .ptab .tbl td,.ptab .tbl th{font-size:13px;padding:5px 4px}.ptab .tbl .chip{height:18px;min-width:22px;font-size:11px}
+.tmk{font-size:18px;line-height:1;display:inline-flex;align-items:center;gap:1px}.tmk.sm{font-size:11px}.tmk b{font-size:8px;color:var(--ink)}
+.tgrid .tday{min-height:56px;align-content:start}.tmks{display:flex;flex-wrap:wrap;gap:1px;justify-content:center}.tday.over{box-shadow:inset 0 0 0 2px var(--bad)}
+.tlegend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:14px}.tnote{display:flex;gap:10px;align-items:center;border-top:1px solid var(--rule);padding:8px 0}.tnote.new b{color:var(--accent)}.tnote small{display:block;color:var(--soft)}
+.turg{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--tint)}.turg.mid{background:#FFE8B3;color:#7A5200}.turg.hi{background:#FAD4D4;color:#B42318}
+.tmrow{border-top:1px solid var(--rule);padding:10px 0;display:grid;gap:8px}.tpal{display:flex;flex-wrap:wrap;gap:6px}.tpal button{width:28px;height:28px;border-radius:50%;border:2px solid transparent}.tpal button.on{border-color:var(--ink)}.tpal .tsh{background:var(--card);border:1px solid var(--rule);border-radius:6px;font-size:16px}.tpal .tsh.on{border:2px solid var(--ink)}
+.banner.tip>.grow{flex:1 1 100%}
+.tbanner{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
 .ypbrush{display:flex;gap:6px;overflow-x:auto;padding:2px 0}.ypb{flex:none;display:grid;justify-items:center;gap:1px;min-width:52px;padding:3px 5px;border:2px solid var(--rule);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
@@ -532,6 +539,7 @@ nav.tabs button{min-height:56px}
   <section id="v-stat" class="sec" hidden></section>
   <section id="v-urlaub" class="sec" hidden></section>
   <section id="v-set" class="sec" hidden></section>
+  <section id="v-team" class="sec" hidden></section>
   <section id="v-mehr" class="sec" hidden></section>
 </main>
 
@@ -752,9 +760,9 @@ let selMode=false, sel=new Set();
 function toast(msg,btn,fn,btn2,fn2){ const t=$("#toast"); if(typeof toastPre!=="undefined" && toastPre){ msg=toastPre+" · "+msg; toastPre=""; } $("#toastt").textContent=msg; const b=$("#toastb"); b.hidden=!btn; if(btn){ b.textContent=btn; b.onclick=()=>{ t.hidden=true; fn(); }; }
   let c=$("#toastb2"); if(!c){ c=el("button"); c.type="button"; c.id="toastb2"; t.append(c); } c.hidden=!btn2; if(btn2){ c.textContent=btn2; c.onclick=()=>{ t.hidden=true; fn2(); }; }
   t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true, btn2?9000:btn?6000:2600); }
-function show(v){ view=v; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",kal:"Schichtplan",urlaub:"Urlaub",mehr:"Mehr",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="mehr" && ["stat","set"].includes(v))))); ["heute","kal","urlaub","stat","set","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
+function show(v){ view=v; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",kal:"Schichtplan",urlaub:"Urlaub",mehr:"Mehr",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.v));
-function render(){ if(!S) return; if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); if(view==="mehr") renderMehr(); const vr=$("#v-"+view); if(vr) drRestore(vr,"v:v-"+view); }
+function render(){ if(!S) return; if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); if(view==="mehr") renderMehr(); if(view==="team" && typeof renderTeam==="function") renderTeam(); const vr=$("#v-"+view); if(vr) drRestore(vr,"v:v-"+view); }
 function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("div","banner"); const t=el("span","grow"); t.innerHTML="<b>Beispiel-Rhythmus.</b> Stell unter Einstellungen deinen eigenen Schichtrhythmus ein."; const go=el("button","btn","Jetzt einstellen"); go.type="button"; go.onclick=()=>show("set"); b.append(t,go); box.append(b); }
 
 /* ---------- Heute ---------- */
@@ -790,6 +798,7 @@ function renderHeute(){
       tx.append(el("b",null,tp.name), el("small",null,[m!=null?tp.start+" – "+tp.end+" Uhr"+(+tp.pause?" · "+tp.pause+" Min. Pause":"")+(tp.kind==="work"?" · "+hStr(m):""):"", wt].filter(Boolean).join(" · ")||(tp.kind==="work"?"keine Uhrzeit – antippen zum Eintragen":"kein Wert – antippen zum Eintragen")));
       r.append(chip(tp), tx, el("span","muted","›")); r.onclick=()=>openType(tp); sc.append(r); });
     const nb=el("button","btn","+ Neue Schichtart"); nb.type="button"; nb.onclick=()=>openType(null); sc.append(nb); box.append(sc); }
+  if(typeof teamUnread==="function" && TEAM.data){ const n=teamUnread(); if(n){ const b=el("button","banner tbanner"); b.type="button"; b.append(el("span","grow","📬 "+n+(n===1?" neue Team-Nachricht":" neue Team-Nachrichten"))); b.onclick=()=>show("team"); box.append(b); } }
   // 3) Lotse / Neuigkeiten / Sicherung (immer nur eins)
   const gOn=activeGoal()?lotseCard(box):false;
   if(!activeGoal() && backupDue() && dlNs){ const b=el("div","banner"); const tx=el("span","grow"); tx.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(tx,go); box.append(b); }
@@ -1328,7 +1337,7 @@ function desktopShortcut(){ const mac=/mac/i.test(navigator.platform||navigator.
     const ol=el("ol","inststeps"); ["Chrome oder Edge: rechts in der Adressleiste auf das Symbol „Installieren“ (Bildschirm mit Pfeil) klicken.","Oder Menü ⋮ → „Streamen, speichern und teilen“ → „Seite als App installieren“ (Edge: „Apps“ → „Diese Website als App installieren“).","Danach liegt „Schicht & Urlaub“ im Startmenü – mit Rechtsklick auch auf dem Desktop."].forEach(t=>ol.append(el("li",null,t))); p.append(ol); }); }
 /* „Mehr“: alles, was nicht jeden Tag gebraucht wird */
 function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; installCard(box); const c=el("div","card sec"); c.append(el("h2",null,"Mehr"));
-  [["📊","Statistik","Stunden und Überstunden",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
+  [["👥","Team","Team erstellen oder beitreten, Team-Kalender",()=>show("team")],["📊","Statistik","Stunden und Überstunden",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
    ["❓","Hilfe","So funktioniert die App",()=>openHelp()],["📆","Mit Apple/Google Kalender verbinden","Schichten und Urlaub in deinen Handy-Kalender",()=>ask("Kalender verbinden?","Deine Schichten und dein Urlaub werden als Kalender-Datei übergeben.\nApple: Datei öffnen → „Alle hinzufügen“.\nGoogle: calendar.google.com → Einstellungen → Importieren.",[{label:"Ja, verbinden",pri:true,fn:()=>calSave()},{label:"Nein"}])],["⚙","Einstellungen","Schichtarten, Bundesland, Sicherung",()=>show("set")],["🔄","App aktualisieren","Neueste Version laden",()=>appUpdate()]].filter(Boolean).forEach(([i,t,d,fn])=>{
     const b=el("button","vrow mrow"); b.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t), el("small",null,d)); b.append(el("span","qi",i), tx, el("span","muted","›")); b.onclick=fn; c.append(b); });
   box.append(c); newsCard(box); }
@@ -2400,6 +2409,7 @@ window.addEventListener("hashchange",()=>{ if(!S || !S.onboarded || $("#appui").
   });
 function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").hidden=false; $("#who").textContent=[S.name,sess&&sess.email].filter(Boolean).join(" · "); if(dirty||lsGet(dataKey()+"_dirty")==="1") dirty=true; show("heute"); if(typeof navStack!=="undefined") navStack.length=0; if(typeof updHist==="function") updHist(); if(typeof updBack==="function") updBack();
   if(location.hash.startsWith("#plan=")){ const code=location.hash.slice(6); try{ history.replaceState(null,"",location.pathname); }catch(e){} setTimeout(()=>planImport(code),300); }
+  if(typeof teamOnEnter==="function") teamOnEnter();
 }
 
 /* ---------- Einrichtung (3 Schritte) ---------- */
@@ -2605,9 +2615,10 @@ async function pdfVac(y){
   await pdfSave(P.build(),"Urlaub_"+y+".pdf"); }
 boot();
 </script>
+<script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-39";
+const APP_VERSION="2026.10.05-40";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */

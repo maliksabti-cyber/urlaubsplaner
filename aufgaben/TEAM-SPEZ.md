@@ -21,11 +21,17 @@
 ## Architektur-Regeln (verbindlich für alle Stufen)
 1. **Trennung privat ↔ Team:** private Einträge (`S.vacs`, `S.ov` …) und Team-Sichtbarkeit liegen getrennt. Sichtbarkeit über eigene Verknüpfungstabelle `S.share.vac[urlaubsId]`; in Firebase später eigene Sammlung `teamEntries` (Team-Kopie, nur mit Einverständnis). Team verlassen/entfernt = nur Team-Kopie + Verknüpfung löschen. ✅ Grundlage gebaut
 2. **Urlaub eintragen** bringt das Feld „Im Team sichtbar“ schon mit (Standard aus Einverständnis-Modul). ✅ gebaut (Urlaub bearbeiten)
-3. **Zentrales Benachrichtigungssystem** `notify({typ, an, titel, text, frist, aktion})` für Konfliktanfragen, automatische und manuelle Erinnerungen, finale Freigabe. Erst in-App (Posteingang + Dringlichkeit), später derselbe Kanal mit echtem Push (Server nötig). ⏳ Stufe 2/3
+3. **Zentrales Benachrichtigungssystem** `notify({type,to,title,text,due,range})` in `team.js` – Konflikt, Erinnerung (manuell gebaut), Freigabe (Stufe 3). In-App-Posteingang mit Dringlichkeit; echter Push später über denselben Kanal. ✅ Grundlage
 4. **PDF als ein Modul** (`makePDF` + Bausteine: Format A4/A3, Inhaltsverzeichnis, Monatsseite `drawMonthPage`) für privat und Team. ✅ Bausteine da; Team-Ansicht nutzt sie in Stufe 3
 5. **Zentrales Einverständnis-Modul** `CONSENT` / `consentGet` / `consentSet` (Team-Beitritt, Namensanzeige, Kinder, Standard-Sichtbarkeit) – Einstellungen → „Datenschutz & Freigaben“. ✅ gebaut
 6. **Konfliktlogik** mit 3+ Personen: feste Reihenfolge, wer zuerst gefragt wird (1. später eingetragen zuerst gefragt; 2. in Schulferien zuerst Personen ohne Kinder; 3. bei Gleichstand späterer Eintrag; 4. sonst Admin). Früh mit 3–5 Fake-Nutzern testen. ⏳ Stufe 3
-7. **Vertreter-Kette** maximal 3 Ebenen. ⏳ Stufe 2
+7. **Vertreter-Kette** maximal 3 Ebenen (`MAXDEP`). ✅
 8. **Teilzeit** wirkt auf Stunden **und** Resturlaub (anteiliger Anspruch, Schalter in „Arbeitszeit“). ✅ gebaut
 9. **Kalender-Sync:** Änderungen/Löschungen sollen den externen Eintrag mitziehen. Heute: Kalender-Datei mit festen IDs (erneuter Import aktualisiert in Apple). Automatisch ohne Neu-Import geht nur mit Abo-Link vom Server. ⏳ mit Server
-10. **Testumgebung:** mehrere Fake-Nutzer (nachgebautes Firebase im Test) vor echten Kollegen. ⏳ Stufe 2
+10. **Testumgebung:** `tests/fake-firebase.mjs` + `tests/t40-team.mjs` (3 Fake-Nutzer). ✅ (prüft keine Firebase-Regeln)
+
+## Stand Stufe 2 (Team-Grundlage) ✅
+`team.js`: Anmeldung, Team erstellen, Beitritt per Link (Kinder-Frage, Einverständnis, Name zeigen), Admin/Vertreter (max. 3 Ebenen), einmalige Vertreter-Empfehlung ab 3 Mitgliedern, Team-Monatskalender (Farbe, Form, Initialen ab 9 Mitgliedern, Popup mit X, Namen nur mit Einverständnis), Admin-Maske (Name, Farbe, Form, Grenze, Frist, Überschneidungen, Erinnern, Entfernen), Überschneidungsprüfung nur beim Eintragen/Ändern, Posteingang mit Dringlichkeit, Team verlassen/entfernt löscht nur Team-Daten.
+
+## Offen: Stufe 3
+Konfliktlösung (Ausweichtage per Klick, Reihenfolge 3+ Personen, Kinder-Vorrang in Ferien mit Rückfrage, automatische Erinnerung, Admin-Entscheid), finale Freigabe → Team-PDF.

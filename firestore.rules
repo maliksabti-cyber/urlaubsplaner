@@ -1,15 +1,49 @@
 rules_version = '2';
 // Schicht & Urlaub – Sicherheitsregeln
-// Nur für die Cloud-Sicherung (localMode: false): jeder Nutzer hat genau ein eigenes Dokument,
-// nur er selbst darf es lesen und ändern. Alles andere ist gesperrt.
+// • nutzer/{uid}: eigene Cloud-Sicherung (nur wenn localMode: false)
+// • teams/…: Team-Funktion. Private Daten liegen NICHT hier – nur freigegebene Team-Kopien.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
+
     match /nutzer/{uid} {
       allow read, delete: if signedIn() && request.auth.uid == uid;
       allow create, update: if signedIn() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['data','updated'])
         && request.resource.data.data is string && request.resource.data.data.size() < 900000;
+    }
+
+    match /teams/{t} {
+      function teamDoc() { return get(/databases/$(database)/documents/teams/$(t)); }
+      function meDoc() { return /databases/$(database)/documents/teams/$(t)/members/$(request.auth.uid); }
+      function isMem() { return signedIn() && exists(meDoc()); }
+      function isAdm() { return isMem() && get(meDoc()).data.role in ['admin','deputy']; }
+
+      // Name + Einladungscode prüfen beim Beitritt (Team-ID ist zufällig)
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAdm() || (isMem() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deputyHint']));
+      allow delete: if isMem() && get(meDoc()).data.role == 'admin';
+
+      match /members/{m} {
+        allow read: if isMem();
+        allow create: if signedIn() && m == request.auth.uid && (
+          (teamDoc().data.createdBy == request.auth.uid && request.resource.data.role == 'admin')
+          || (request.resource.data.invite == teamDoc().data.invite && request.resource.data.role == 'member'));
+        allow update: if isAdm() || (m == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','kids','showName']));
+        allow delete: if isAdm() || m == request.auth.uid;
+      }
+      match /entries/{e} {
+        allow read: if isMem();
+        allow create, update: if isMem() && request.resource.data.uid == request.auth.uid;
+        allow delete: if isMem() && (resource.data.uid == request.auth.uid || isAdm());
+      }
+      match /notes/{n} {
+        allow read, create: if isMem();
+        allow delete: if isAdm();
+      }
     }
   }
 }
