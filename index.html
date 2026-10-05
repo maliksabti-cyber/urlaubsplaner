@@ -1310,7 +1310,7 @@ function desktopShortcut(){ const mac=/mac/i.test(navigator.platform||navigator.
     const ol=el("ol","inststeps"); ["Chrome oder Edge: rechts in der Adressleiste auf das Symbol „Installieren“ (Bildschirm mit Pfeil) klicken.","Oder Menü ⋮ → „Streamen, speichern und teilen“ → „Seite als App installieren“ (Edge: „Apps“ → „Diese Website als App installieren“).","Danach liegt „Schicht & Urlaub“ im Startmenü – mit Rechtsklick auch auf dem Desktop."].forEach(t=>ol.append(el("li",null,t))); p.append(ol); }); }
 /* „Mehr“: alles, was nicht jeden Tag gebraucht wird */
 function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; installCard(box); const c=el("div","card sec"); c.append(el("h2",null,"Mehr"));
-  [["👥","Team","Urlaub mit Kollegen abgleichen",()=>show("team")],["📊","Statistik & Verdienst","Stunden, Überstunden, Zuschläge",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
+  [["📊","Statistik & Verdienst","Stunden, Überstunden, Zuschläge",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
    ["📄","Urlaubsantrag","PDF für den Chef",()=>openAntragPick()],["❓","Hilfe","So funktioniert die App",()=>openHelp()],["⚙","Einstellungen","Schichtarten, Bundesland, Sicherung",()=>show("set")],["🔄","App aktualisieren","Neueste Version laden",()=>appUpdate()]].filter(Boolean).forEach(([i,t,d,fn])=>{
     const b=el("button","vrow mrow"); b.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t), el("small",null,d)); b.append(el("span","qi",i), tx, el("span","muted","›")); b.onclick=fn; c.append(b); });
   box.append(c); newsCard(box); }
@@ -1588,13 +1588,10 @@ const S_={ /* wiederverwendbare Schritte */
   newphone:{t:"Auf dem neuen Handy einspielen",w:"Dort die App öffnen → Zahnrad → „Sicherung einspielen“ → Datei wählen.",b:"Zum Einspielen",go:()=>goSettings("data")}};
 S_.teamopt={...S_.teamlogin,t:"Mit dem Team verbinden",opt:true}; S_.payopt={...S_.pay,opt:true};
 const GOALS=[
-  {id:"start",i:"🚀",t:"App einrichten",s:"Erste Schritte in der richtigen Reihenfolge",steps:["rhythm","times","vacdays","fixed","calc","teamopt","cal","payopt","backup"]},
-  {id:"plan",i:"☀️",t:"Urlaub fürs Jahr planen",s:"Möglichst viel frei mit wenig Urlaubstagen",steps:["vacdays","expire","land","fixed","teamlook","calc","enter","push","request"]},
-  {id:"team",i:"👥",t:"Urlaub mit dem Team abstimmen",s:"Für Mitarbeiter",steps:["teamlogin","approved","teamlook","myvac","push","request"]},
+  {id:"plan",i:"☀️",t:"Urlaub fürs Jahr planen",s:"Möglichst viel frei mit wenig Urlaubstagen",steps:["vacdays","expire","land","fixed","calc","enter","request"]},
   {id:"shift",i:"📅",t:"Schichtplan ändern",s:"Tausch, Dienständerung, krank",steps:["paint","swap","sick","rhythmchk","cal","partnerlink"]},
   {id:"money",i:"💶",t:"Verdienst & Überstunden",s:"Was verdiene ich, wie viele Überstunden?",steps:["times","pay","soll","payperiod","stat"]},
   {id:"partner",i:"♥",t:"Frei mit Partner/Familie",s:"Sehen, wann ihr beide frei habt",steps:["sendplan","getplan","both","bothvac"]},
-  {id:"admin",i:"🧑‍💼",t:"Team leiten",s:"Für den Chef / Admin",steps:["teamlogin","limit","invite","approve","clash"]},
   {id:"backup",i:"💾",t:"Daten sichern / Handy wechseln",s:"Nichts verlieren",steps:["backup","sendself","newphone"]}];
 const goalById=id=>GOALS.find(g=>g.id===id);
 function gMan(gid){ if(!S.gman) S.gman={}; if(!S.gman[gid]) S.gman[gid]=[]; return S.gman[gid]; }
@@ -1603,7 +1600,7 @@ function markStep(gid,k,on){ const m=gMan(gid), o=gOpen(gid); const i=m.indexOf(
 function runStep(gid,k){ const fromSheet=!$("#sheet").hidden, v0=view; S_[k].go(); if(fromSheet && $("#sheet").hidden){ navStack.push({guide:gid,view:v0}); try{ history.pushState({g:1},""); }catch(e){} updBack(); } }
 function gOpen(gid){ if(!S.gopen) S.gopen={}; if(!S.gopen[gid]) S.gopen[gid]=[]; return S.gopen[gid]; }
 function setGoal(id){ S.goal=id; histMute=true; save(); histMute=false; closeSheet(); show("heute"); window.scrollTo(0,0); }
-function activeGoal(){ if(S.goal && goalById(S.goal)) return S.goal; if(!gFlag("hide") && !gFlag("startdone") && goalById("start").steps.some(k=>!stepDone("start",k))) return "start"; return null; }
+function activeGoal(){ if(S.goal && goalById(S.goal)) return S.goal; return null; }
 function stepRow(gid,k,i,big){ const st=S_[k], d=stepDone(gid,k), r=el("div",(big?"gnext":"gstep")+(d?" done":""));
   r.append(el("span","gnum",d?"✓":String(i+1))); const tx=el("div","grow"); tx.append(el("b",null,st.t+(st.opt?" (optional)":"")), el("small",null,st.w)); r.append(tx);
   if(!big){ const go=el("button","btn",d?"Öffnen":st.b); go.type="button"; go.onclick=()=>runStep(gid,k); r.append(go);
@@ -1627,7 +1624,7 @@ function lotseCard(box){ const gid=activeGoal(); if(gid) return goalCard(box,gid
 function openGoals(){ openSheet(p=>{ sheetTop(p,"Was möchtest du machen?"); p.append(el("p","hint","Wähle ein Ziel – die App führt dich Schritt für Schritt hin. Jeder Schritt hat einen Knopf, der dich direkt dorthin bringt."));
   const g=el("div","goalgrid"); GOALS.forEach(x=>{ const b=el("button","goalbtn"); b.type="button"; const n=x.steps.filter(k=>stepDone(x.id,k)).length; b.append(el("span","gi",x.i), el("b",null,x.t), el("small",null,x.s), el("small","gprog",n+" von "+x.steps.length+" erledigt")); b.onclick=()=>{ if(gFlag("pickhide")) S.guide.pickhide=false; setGoal(x.id); }; g.append(b); }); p.append(g);
   const ov=el("details"); ov.append(el("summary",null,"Übersicht: alle Schritte aller Ziele")); GOALS.forEach(x=>{ const h=el("button","btn ghost",x.i+" "+x.t+" – Schritte ansehen"); h.type="button"; h.onclick=()=>openGuide(x.id); ov.append(h); }); p.append(ov); }); }
-function openGuide(gid){ gid=gid||activeGoal()||"start"; const g=goalById(gid); openSheet(p=>{ sheetTop(p,g.i+" "+g.t); p.dataset.sheet="guide-"+gid; p.append(el("p","hint","Häkchen = erledigt. Antippen zum Abwählen oder Abhaken. Mit dem Pfeil oben links kommst du von jedem Schritt hierher zurück."));
+function openGuide(gid){ gid=gid||activeGoal(); const g=goalById(gid); if(!g){ openGoals(); return; } openSheet(p=>{ sheetTop(p,g.i+" "+g.t); p.dataset.sheet="guide-"+gid; p.append(el("p","hint","Häkchen = erledigt. Antippen zum Abwählen oder Abhaken. Mit dem Pfeil oben links kommst du von jedem Schritt hierher zurück."));
   const gl=el("div","glist"); g.steps.forEach((k,i)=>gl.append(stepRow(gid,k,i,false))); p.append(gl);
   const ch=el("button","btn","Anderes Ziel wählen"); ch.type="button"; ch.onclick=openGoals; p.append(ch); }); }
 /* ===================== Hilfe & Neuigkeiten ===================== */
@@ -1642,7 +1639,6 @@ const HELP=[
   ["⏱","Überstunden","Im selben Fenster deine Soll-Stunden pro Woche eintragen (z. B. 37,5). Die Statistik zeigt dann Über- oder Minusstunden.",()=>openPaySettings()],
   ["🔔","Erinnerung vor der Schicht","Zahnrad → „Sichern & Übertragen“: bei „Erinnerung“ z. B. „1 Stunde vorher“ wählen, dann „In den Handy-Kalender“ tippen und die Datei mit deinem Kalender öffnen. Der Kalender erinnert dich dann vor jeder Schicht.",()=>goSettings("remind")],
   ["♥","Gemeinsam frei","Schichtplan → „Gemeinsam frei“ → „Meinen Plan als Link schicken“, z. B. per WhatsApp an Partner oder Freunde. Wer den Link öffnet, sieht ♥ an den Tagen, an denen ihr beide frei habt.",()=>openPartners()],
-  ["👥","Team","Team (unter „Mehr“): mit deinem Team-Konto anmelden. Dort siehst du, wer wann Urlaub hat und ob zu viele gleichzeitig fehlen.",()=>{ closeSheet(); show("team"); }],
   ["📄","Urlaubsantrag","Nach dem Eintragen in der Meldung auf „📄 Antrag“ tippen – oder im Urlaub-Tab „Urlaubsantrag für den Chef“ und die Urlaube auswählen. Du bekommst ein PDF zum Ausdrucken oder Schicken.",()=>openAntragPick()],
   ["⏳","Resturlaub & Verfall","Urlaub-Tab → „Urlaubstage einstellen“: Resturlaub übernehmen und einstellen, wann er verfällt (meist 31.3.). Urlaub im neuen Jahr wird zuerst vom Rest abgezogen; die App warnt rechtzeitig.",()=>openVacSettings(new Date().getFullYear())],
   ["⇄","Schichttausch","Im Schichtplan auf den Tag tippen, oben die neue Schicht wählen und unten „Getauscht mit …“ ausfüllen (Name, Gegentag). Unter Schichtplan → „⇄ Tausch“ siehst du offene und erledigte Tausche.",()=>{ swaps().length?openSwaps():goKal(); }],
@@ -2351,7 +2347,9 @@ async function fsList(col){ const out=[]; let pt=""; do{ const j=await fsReq("/"
 const isTeamOwner=()=>!!(ts && CFG.adminEmail && ts.email===String(CFG.adminEmail).toLowerCase());
 const isHostRec=a=>!!(a && (a.host===true || (CFG.adminEmail && a.emailHash && a.emailHash===team.ownerHash)));
 const isTeamAdmin=()=>isTeamOwner() || !!(ts && team.me && team.me.approved && team.me.host===true);
-const teamOn=()=>!!(ts && team.me && (team.me.approved || isTeamAdmin()));
+/* Team-Funktion ist abgeschaltet */
+const TEAM_OFF=true;
+const teamOn=()=>!TEAM_OFF && !!(ts && team.me && (team.me.approved || isTeamAdmin()));
 function tErr(e){ const c=String((e&&(e.code||e.message))||"");
   if(/NETWORK|Failed to fetch/.test(c)) return "Keine Internetverbindung.";
   if(/PERMISSION_DENIED/.test(c)) return "Dafür fehlt die Freigabe.";
@@ -2505,10 +2503,10 @@ $("#help").onclick=()=>openHelp();
 /* Link angetippt, während die App schon offen ist */
 window.addEventListener("hashchange",()=>{ if(!S || !S.onboarded || $("#appui").hidden) return; const h=location.hash;
   if(h.startsWith("#plan=")){ try{ history.replaceState(null,"",location.pathname); }catch(e){} planImport(h.slice(6)); }
-  else if(h==="#team"){ try{ history.replaceState(null,"",location.pathname); }catch(e){} show("team"); } });
+  else if(h==="#team"){ try{ history.replaceState(null,"",location.pathname); }catch(e){} } });
 function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").hidden=false; $("#who").textContent=[S.name,sess&&sess.email].filter(Boolean).join(" · "); if(dirty||lsGet(dataKey()+"_dirty")==="1") dirty=true; show("heute"); if(typeof navStack!=="undefined") navStack.length=0; if(typeof updHist==="function") updHist(); if(typeof updBack==="function") updBack();
   if(location.hash.startsWith("#plan=")){ const code=location.hash.slice(6); try{ history.replaceState(null,"",location.pathname); }catch(e){} setTimeout(()=>planImport(code),300); }
-  if(location.hash==="#team"){ try{ history.replaceState(null,"",location.pathname); }catch(e){} show("team"); }
+  if(location.hash==="#team"){ try{ history.replaceState(null,"",location.pathname); }catch(e){} }
   if(ts) teamLoad(); }
 
 /* ---------- Einrichtung (3 Schritte) ---------- */
@@ -2705,7 +2703,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-10";
+const APP_VERSION="2026.10.05-11";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
