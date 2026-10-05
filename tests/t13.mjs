@@ -1,7 +1,7 @@
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const errs=[]; const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
-async function person(){ const c=await b.newContext({...devices['Pixel 7'],acceptDownloads:true}); await c.addInitScript(()=>{ navigator.canShare=undefined; }); const p=await c.newPage(); p.on('pageerror',e=>errs.push(e.message)); await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
+async function person(){ const c=await b.newContext({...devices['Pixel 7'],acceptDownloads:true}); await c.addInitScript(()=>{ navigator.canShare=undefined; }); const p=await c.newPage(); p.on('pageerror',e=>errs.push(e.message)); await p.goto('http://localhost:8765/'); await p.waitForTimeout(700);
   for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); } return p; }
 const A=await person();
 // 1) Zuschläge: Nacht Sa 22–So 6 (Pause 30), Feiertag 25.12. Früh
@@ -30,7 +30,7 @@ ok(pr==='SSNN---', 'Vorlage 2-2-2 ab heute mit Spätschicht: '+pr);
 await A.evaluate(()=>{ S.name='Malik'; save(); });
 const link=await A.evaluate(()=>planLink()); ok(link.length<4000, 'Plan-Link ist '+link.length+' Zeichen lang');
 const B=await person(); await B.evaluate(()=>{ S.rots=[{id:'r1',name:'Mo-Fr',start:'2026-01-05',pattern:['F','F','F','F','F',null,null]}]; S.ov={}; save(); });
-await B.goto(link.replace('https://maliksabti-cyber.github.io/urlaubsplaner/schicht/','http://localhost:8765/schicht/').replace(/^http:\/\/localhost:8765\/schicht\/(?=#)/,'http://localhost:8765/schicht/')); await B.waitForTimeout(900);
+await B.goto(link.replace('https://maliksabti-cyber.github.io/urlaubsplaner/schicht/','http://localhost:8765/').replace(/^http:\/\/localhost:8765\/schicht\/(?=#)/,'http://localhost:8765/')); await B.waitForTimeout(900);
 ok(/Plan von Malik hinzufügen/i.test(await B.locator('#ask').innerText()), 'Link öffnen fragt: „Plan von Malik hinzufügen?“');
 await B.getByRole('button',{name:'Ja, hinzufügen'}).tap(); await B.waitForTimeout(300);
 const bf=await B.evaluate(()=>{ const out=[]; for(let i=0;i<10;i++){ const s=addD(TODAY(),i); out.push(bothFree(s)?'♥':'·'); } return out.join(''); });
@@ -40,5 +40,5 @@ await B.locator('.tabs button[data-v="kal"]').tap(); await B.waitForTimeout(200)
 ok(await B.locator('.day .both').count()>0, 'Schichtplan markiert gemeinsame freie Tage mit ♥');
 await B.locator('.tabs button[data-v="heute"]').tap(); ok(/Gemeinsam frei/.test(await B.locator('#v-heute').innerText()) && /Nächste Schicht/.test(await B.locator('#v-heute').innerText()), 'Startseite: „Nächste Schicht“ und „Gemeinsam frei“');
 // 7) Beschädigter Link
-await B.goto('http://localhost:8765/schicht/#plan=kaputt!!'); await B.waitForTimeout(800); ok(/beschädigt/.test(await B.locator('#toastt').innerText()), 'Kaputter Link: verständliche Meldung');
+await B.goto('http://localhost:8765/#plan=kaputt!!'); await B.waitForTimeout(800); ok(/beschädigt/.test(await B.locator('#toastt').innerText()), 'Kaputter Link: verständliche Meldung');
 ok(errs.length===0,'Keine Skriptfehler '+errs.join('|')); await b.close();

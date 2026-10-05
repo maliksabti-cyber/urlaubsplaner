@@ -3,7 +3,7 @@ const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).ca
 const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m); const errs=[];
 async function ctx(dark){ const c=await b.newContext({...devices['Pixel 7'],colorScheme:dark?'dark':'light'}); const p=await c.newPage(); p.on('pageerror',e=>errs.push(e.message)); return p; }
 // 1) Neuer Nutzer
-const p=await ctx(false); await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
+const p=await ctx(false); await p.goto('http://localhost:8765/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 const t=await p.evaluate(()=>S.types.map(x=>x.id+':'+x.name+':'+x.short+':'+x.color).join(' | '));
 ok(/F:Tagschicht:T:#1C6DD0/.test(t) && /N:Nachtschicht:N:#111111/.test(t) && /X:Frei:F:/.test(t), 'Neue Nutzer: '+t);
@@ -17,7 +17,7 @@ const tStyle=await p.evaluate(()=>{ const c=[...document.querySelectorAll('.day 
 ok(/rgb\(28, 109, 208\) \/ rgb\(255, 255, 255\)/.test(tStyle), 'Tagschicht blau: '+tStyle);
 await p.screenshot({path:'/tmp/claude-0/c-light.png'});
 // 2) Vorhandener Nutzer mit alten Werten
-const q=await ctx(true); await q.goto('http://localhost:8765/schicht/'); await q.waitForTimeout(500);
+const q=await ctx(true); await q.goto('http://localhost:8765/'); await q.waitForTimeout(500);
 await q.evaluate(()=>{ const old={v:1,onboarded:true,land:'NW',vacPerYear:30,carry:{},ov:{'2026-10-02':'F'},notes:{},vacs:[],tpls:[],guide:{hide:true,pickhide:true},newsSeen:1,
   types:[{id:'F',name:'Frühschicht',short:'F',color:'#E0A100',start:'06:00',end:'14:00',pause:30,kind:'work'},{id:'S',name:'Spätschicht',short:'S',color:'#E8590C',start:'14:00',end:'22:00',pause:30,kind:'work'},{id:'N',name:'Nachtschicht',short:'N',color:'#4A3FB5',start:'22:00',end:'06:00',pause:30,kind:'work'},{id:'U',name:'Urlaub',short:'U',color:'#2E8B57',kind:'vac'},{id:'K',name:'Krank',short:'K',color:'#C2185B',kind:'sick'},{id:'X',name:'Frei',short:'X',color:'#6B7A85',kind:'free'}],
   rots:[{id:'r',name:'x',start:'2026-09-28',pattern:['F','F','S','S','N','N',null,null,null,null]}]}; localStorage.setItem('su_data_local',JSON.stringify(old)); });

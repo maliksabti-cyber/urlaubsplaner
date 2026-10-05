@@ -3,7 +3,7 @@ import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const c = await b.newContext({...devices['Pixel 7'], timezoneId:'Europe/Berlin'}); const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
 await p.clock.setFixedTime(new Date('2027-03-20T10:00:00+01:00'));
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 await p.evaluate(()=>{ setSel(false); S.rots=[{id:'r',name:'Mo-Fr',start:'2024-01-01',pattern:['F','F','F','F','F',null,null]}]; S.vacs=[]; S.ov={}; S.swaps=[]; S.holFree=true; S.pay={rate:20}; S.soll=40; S.guide={hide:true,pickhide:true}; S.newsSeen=9; save(); kalMode='monat'; curY=2027; curM=2; show('kal'); });
 // 1) Tausch im Tagesfenster
