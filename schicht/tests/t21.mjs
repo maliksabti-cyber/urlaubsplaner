@@ -37,8 +37,8 @@ await p.evaluate(()=>openGoals()); await p.waitForTimeout(100);
 ok(await p.locator('#pan .gprog').count()===8, 'Zielübersicht zeigt Fortschritt je Ziel'); await p.evaluate(()=>closeSheet());
 // roter Rhythmus-Knopf
 await p.evaluate(()=>{ show('kal'); setSel(false); }); await p.waitForTimeout(150);
-const red=await p.evaluate(()=>{ const b=[...document.querySelectorAll('#v-kal button')].find(x=>/Mein Rhythmus bearbeiten/.test(x.textContent)); return b?getComputedStyle(b).backgroundColor:''; });
-ok(red==='rgb(217, 72, 15)', '„Mein Rhythmus bearbeiten“ ist rot: '+red);
+const red=await p.evaluate(()=>{ const b=[...document.querySelectorAll('#v-kal button')].find(x=>/Mein Rhythmus & Schichten/.test(x.textContent)); return b?getComputedStyle(b).backgroundColor:''; });
+ok(red==='rgb(217, 72, 15)', '„Mein Rhythmus & Schichten“ ist rot: '+red);
 await p.screenshot({path:'/tmp/claude-0/r-kal.png'});
 await p.evaluate(()=>{ show('heute'); const d=document.querySelector('.guide details'); if(d) d.open=true; }); await p.waitForTimeout(100); await p.locator('.guide').screenshot({path:'/tmp/claude-0/r-guide.png'});
 ok(errs.length===0,'Keine Skriptfehler '+errs.join('|')); await b.close();

@@ -4,14 +4,14 @@ const c = await b.newContext({...devices['Pixel 7']}); const p=await c.newPage()
 await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(800);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(250); }
 await p.evaluate(()=>{ S.guide={hide:true,pickhide:true}; histMute=true; save(); histMute=false; undoS.length=0; updHist(); }); await p.locator('.tabs button[data-v="heute"]').tap(); await p.waitForTimeout(200); await p.evaluate(()=>document.querySelector('#toast').hidden=true);
-ok(await p.locator('.news').isVisible(), 'Startseite zeigt „Neu in der App“');
+await p.evaluate(()=>show('mehr')); await p.waitForTimeout(150); ok(await p.locator('#v-mehr .news').isVisible(), '„Mehr“ zeigt „Neu in der App“');
 await p.screenshot({path:'/tmp/claude-0/n-news.png'});
 ok(await p.locator('.newsrow').count()===5, 'Neuheiten-Karte zeigt die 5 neuen Funktionen');
 await p.locator('.newsrow',{hasText:'Resturlaub'}).tap(); await p.waitForTimeout(200);
 ok(/Urlaub \d{4} einstellen/i.test(await p.locator('#pan h2').first().innerText()) && await p.locator('#vs_expire').isVisible(), '„Resturlaub & Verfall“ öffnet „Urlaub einstellen“ mit Stichtag');
 await p.evaluate(()=>closeSheet()); await p.locator('.newsrow',{hasText:'Abrechnungszeitraum'}).tap(); await p.waitForTimeout(400);
 ok(await p.isVisible('#v-stat') && await p.locator('#payday').isVisible(), '„Abrechnungszeitraum“ öffnet die Statistik mit Beginn-Tag');
-await p.locator('.tabs button[data-v="heute"]').tap(); await p.waitForTimeout(200);
+await p.evaluate(()=>show('mehr')); await p.waitForTimeout(200);
 await p.getByRole('button',{name:'Verstanden'}).tap(); await p.waitForTimeout(200);
 ok(!(await p.locator('.news').count()) && await p.evaluate(()=>S.newsSeen===2 && document.querySelector('#hundo').disabled), '„Verstanden“ blendet die Karte aus (ohne Rückgängig-Schritt)');
 await p.reload(); await p.waitForTimeout(600); ok(!(await p.locator('.news').count()), 'Bleibt nach Neuladen ausgeblendet');

@@ -36,7 +36,7 @@ ok(/16\.2\. – 15\.3\.2027/.test(await p.locator('#rangetitle').innerText()), '
 // 3) Frei von–bis
 await p.locator('#statmode').getByRole('button',{name:'Von – Bis'}).tap(); await p.waitForTimeout(100);
 await p.fill('#st_from','2027-03-01'); await p.dispatchEvent('#st_from','change'); await p.fill('#st_to','2027-03-07'); await p.dispatchEvent('#st_to','change'); await p.waitForTimeout(150);
-ok(/5 Schichten/.test(await p.locator('#rangestats').innerText()) && /40 h/.test(await p.locator('#v-stat').innerText()), 'Von–Bis 1.–7.3.: 5 Schichten, Soll 40 h');
+ok(/5 Schichten/.test(await p.locator('#rangestats').innerText()) && /40,0 Std\./.test(await p.locator('#v-stat').innerText()), 'Von–Bis 1.–7.3.: 5 Schichten, Soll 40 h');
 await p.evaluate(()=>{ S.soll=38.5; statFrom='2027-01-01'; statTo='2027-12-31'; renderStat(); }); await p.waitForTimeout(100);
 ok(await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth), 'Große Zahlen (ganzes Jahr): nichts ragt seitlich heraus');
 ok(await p.evaluate(()=>S.statMode)==='frei', 'Gewählte Ansicht wird gemerkt');

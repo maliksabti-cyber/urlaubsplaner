@@ -9,7 +9,7 @@ await p.evaluate(()=>{ S.rots=[]; S.vacs=[]; S.ov={}; S.guide={hide:true,pickhid
 const Y=p.locator('#yplan'); const nav=async(name,n)=>{ for(let i=0;i<n;i++){ await Y.getByRole('button',{name}).tap(); await p.waitForTimeout(80); } };
 const cls=s=>p.evaluate(s=>document.querySelector('#yplan .ypc[data-s="'+s+'"]')?.className||'',s);
 // 1) 2025 markieren, mit ✕ schließen → Frage → Ja
-await p.locator('.ypopen').tap(); await p.waitForTimeout(200); await nav('Zurück',3);
+await p.locator('#v-urlaub .ypopen').tap(); await p.waitForTimeout(200); await nav('Zurück',3);
 ok(/2025 · Januar/i.test(await Y.locator('h2').innerText()), '2025 Jan–Jun');
 await Y.locator('.ypc[data-s="2025-03-10"]').tap(); await Y.locator('.ypc[data-s="2025-03-14"]').tap();
 await Y.getByRole('button',{name:'Schließen'}).tap(); await p.waitForTimeout(150);

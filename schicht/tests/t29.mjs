@@ -7,7 +7,7 @@ for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox butt
 // bestehender Nutzer, der die alte Karte (v1) schon weggeklickt hat
 await p.evaluate(()=>{ setSel(false); S.rots=[{id:'r',name:'x',start:'2026-01-05',pattern:['F','F','F','F','F',null,null]}]; S.guide={hide:true,pickhide:true}; S.newsSeen=1; S.swaps=[]; delete S.payDay; save(); show('heute'); document.querySelector('#toast').hidden=true; });
 await p.waitForTimeout(150);
-const nt=await p.locator('.news').innerText().catch(()=>'');
+await p.evaluate(()=>show('mehr')); await p.waitForTimeout(150); const nt=await p.locator('#v-mehr .news').innerText().catch(()=>'');
 ok(/Urlaubsantrag/.test(nt) && /Resturlaub/.test(nt) && /Läuft gerade/.test(nt) && /Schichttausch/.test(nt) && /Abrechnungszeitraum/.test(nt), 'Bestehende Nutzer sehen die Karte „Neu in der App“ mit allen 5 Neuheiten');
 await p.screenshot({path:'/tmp/claude-0/sc/news2.png'});
 await p.locator('.newsrow',{hasText:'Schichttausch'}).tap(); await p.waitForTimeout(250);

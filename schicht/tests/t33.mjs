@@ -7,7 +7,7 @@ await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 await p.evaluate(()=>{ S.land='NW'; S.rots=[{id:'r',name:'x',start:'2026-01-05',pattern:['F','F','N','N',null,null,null]}]; S.vacs=[]; S.guide={hide:true,pickhide:true}; save(); show('urlaub'); });
 await p.waitForTimeout(300);
-await p.locator('.ypopen').tap(); await p.waitForTimeout(300);
+await p.locator('#v-urlaub .ypopen').tap(); await p.waitForTimeout(300);
 ok(await p.isVisible('#yplan'), 'Jahreskalender öffnet aus dem Urlaub-Tab');
 ok(/2026 · Juli – Dezember/i.test(await p.locator('#yplan h2').innerText()), 'Startet im Oktober 2026 mit Juli–Dezember');
 await p.getByRole('button',{name:'Weiter'}).tap(); await p.waitForTimeout(200);

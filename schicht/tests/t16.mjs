@@ -27,7 +27,7 @@ ok(/Uhrzeiten/.test(await p.locator('.guide .gnext b').innerText()) && /2 von 5/
 await p.getByRole('button',{name:'✓ Erledigt'}).tap(); await p.waitForTimeout(150); ok(/Abrechnungszeitraum/.test(await p.locator('.guide .gnext b').innerText()),'dann: Abrechnungszeitraum (optional)'); await p.getByRole('button',{name:'Überspringen'}).tap(); await p.waitForTimeout(150); ok(/Statistik ansehen/.test(await p.locator('.guide .gnext b').innerText()),'dann: Statistik ansehen'); await p.getByRole('button',{name:'✓ Erledigt'}).tap(); await p.waitForTimeout(150);
 ok(/Geschafft/.test(await p.locator('.guide').innerText()), 'Alle erledigt → „Geschafft!“');
 await p.getByRole('button',{name:'Ziel abschließen'}).tap(); await p.waitForTimeout(150);
-ok(/App einrichten|Was möchtest du machen/i.test(await p.locator('.guide h2').innerText()), 'Nach Abschluss: zurück zu Einrichtung bzw. Zielauswahl');
+ok(await p.locator('#v-heute .guide').count()===0, 'Nach Abschluss: Startseite wieder schlicht (Lotse über ? / Mehr)');
 await p.locator('#help').tap(); await p.waitForTimeout(150); await p.getByRole('button',{name:/Was möchtest du machen/}).tap(); await p.waitForTimeout(150);
 ok(await p.locator('#pan .goalbtn').count()===8, 'Auch über ? erreichbar');
 ok(errs.length===0,'Keine Skriptfehler '+errs.join('|')); await b.close();

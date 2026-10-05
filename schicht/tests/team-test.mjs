@@ -8,7 +8,7 @@ async function person(hash=''){ const c=await b.newContext({...devices['Pixel 7'
   const p=await c.newPage(); p.on('pageerror',e=>errs.push(e.message)); await p.goto(URL0+hash); await p.waitForTimeout(600);
   for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(250); }
   await p.evaluate(()=>{ S.rots=[{id:'r1',name:'T',start:'2026-01-05',pattern:['F','F','F','F','F',null,null]}]; save(); render(); }); return p; }
-const tab=(p,v)=>p.locator(`.tabs button[data-v="${v}"]`).tap();
+const tab=(p,v)=>v==='team'?p.evaluate(()=>show('team')):p.locator(`.tabs button[data-v="${v}"]`).tap();
 const txt=async p=>(await p.locator('#v-team').innerText()).replace(/\s+/g,' ');
 async function register(p,name,mail,pw){ await tab(p,'team'); await p.getByRole('button',{name:'Konto erstellen'}).first().tap(); await p.fill('#tname',name); await p.fill('#tmail',mail); await p.fill('#tpw',pw); await p.locator('#v-team button[type=submit]').tap(); await p.waitForTimeout(600); }
 async function refresh(p){ await p.getByRole('button',{name:'↻ Aktualisieren'}).tap(); await p.waitForTimeout(500); }
