@@ -233,6 +233,7 @@ header.bar{z-index:25}
 .news{border-color:var(--accent)}
 .newsrow{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--rule);background:none;padding:10px 0}
 .newsrow small{display:block;color:var(--soft)}
+.newshd{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;min-height:44px}.newshd h2{margin:0}.newsarr{font-size:20px;color:var(--accent);width:32px;text-align:center}
 .newsi{width:36px;height:36px;flex:none;border-radius:9px;background:var(--tint);display:grid;place-items:center;font-size:18px}
 details{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--card)}
 details>summary{cursor:pointer;font-weight:600;color:var(--ink)}
@@ -1642,13 +1643,18 @@ const HELP=[
 function openHelp(){ openSheet(p=>{ sheetTop(p,"So geht's"); const gs=el("button","btn pri","Was möchtest du machen? – Schritt für Schritt"); gs.type="button"; gs.onclick=openGoals; p.append(gs, el("p","hint","Oder tippe ein Thema an. Mit „Ausprobieren“ springst du direkt hin."));
   HELP.forEach(([i,t,txt,fn])=>{ const d=el("details"); const sm=el("summary",null,i+"  "+t); d.append(sm, el("p",null,txt)); const b=el("button","btn","Ausprobieren"); b.type="button"; b.onclick=fn; d.append(b); p.append(d); }); }); }
 const NEWS_V=2;
-function newsCard(box){ if((+S.newsSeen||0)>=NEWS_V) return; const c=el("div","card sec news"); c.append(el("h2",null,"Neu in der App"));
-  [["⏳","Resturlaub & Verfall","Rest aus dem Vorjahr übernehmen. Die App warnt, bevor er am 31.3. verfällt (Stichtag einstellbar).",()=>openVacSettings(new Date().getFullYear())],
-   ["⏱","Läuft gerade …","Oben bei „Heute“: wann deine Schicht beginnt und wann Feierabend ist – auch nach der Nachtschicht.",()=>{ window.scrollTo(0,0); toast("Steht ganz oben unter deiner heutigen Schicht"); }],
-   ["⇄","Schichttausch merken","Tag antippen → „Getauscht mit …“. Offene Gegendienste siehst du im Schichtplan.",()=>{ swaps().length?openSwaps():(goKal(), toast("Tippe auf einen Tag → „Getauscht mit …“")); }],
-   ["📊","Abrechnungszeitraum","Statistik z. B. vom 16. bis 15. – passend zu deinem Abrechnungszeitraum.",()=>{ goAbr(); }]].forEach(([i,t,s,fn])=>{
-    const r=el("button","newsrow"); r.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t),el("small",null,s)); r.append(el("span","newsi",i),tx,el("span","muted","›")); r.onclick=fn; c.append(r); });
-  const ok=el("button","btn ghost","Verstanden"); ok.type="button"; ok.onclick=()=>{ S.newsSeen=NEWS_V; histMute=true; save(); histMute=false; render(); }; c.append(ok); box.append(c); }
+/* „Neu in der App“: immer unter „Mehr“, mit Pfeil auf- und zuklappen */
+function newsCard(box){ const c=el("div","card sec news"); const open=!!S.newsOpen;
+  const hd=el("button","newshd"); hd.type="button"; hd.setAttribute("aria-expanded",String(open)); hd.append(el("h2","grow","Neu in der App"), el("span","newsarr",open?"▲":"▼"));
+  hd.onclick=()=>{ S.newsOpen=!open; histMute=true; save(); histMute=false; render(); }; c.append(hd);
+  if(open){ [["📅","Jahreskalender","Urlaub und Schichten mit dem Finger eintragen – Linie ziehen oder ersten und letzten Tag antippen.",()=>openYearPlanner()],
+    ["🧮","Urlaubskontingent","Du kannst nur so viele Urlaubstage verplanen, wie dein Anspruch hergibt. Feiertage und freie Tage zählen nicht.",()=>show("urlaub")],
+    ["✎","Urlaub bearbeiten & entfernen","Im Tab „Urlaub“: Liste aufklappen, Urlaub ändern oder löschen – oder von–bis entfernen.",()=>show("urlaub")],
+    ["📄","Urlaub als PDF teilen","Urlaub von–bis als Tabelle plus Jahreskalender mit allen Schichten – als PDF-Datei.",()=>openShare()],
+    ["⏱","Schichten & Zeiten","Auf „Home“: Uhrzeiten aller Schichten, Wert für Urlaub/Krank/Frei in Minuten, Std.+Min. oder dezimal.",()=>{ show("heute"); S.stOpen=true; render(); }],
+    ["⏳","Resturlaub & Verfall","Rest aus dem Vorjahr übernehmen. Die App warnt, bevor er verfällt.",()=>openVacSettings(new Date().getFullYear())]].forEach(([i,t,s2,fn])=>{
+      const r=el("button","newsrow"); r.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t),el("small",null,s2)); r.append(el("span","newsi",i),tx,el("span","muted","›")); r.onclick=fn; c.append(r); }); }
+  box.append(c); }
 /* ===================== Teilen: erst Vorschau, dann „Wie teilen?“ ===================== */
 const SHARE_ICON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 const dShort=s=>{ const d=parse(s); return DOW[d.getDay()]+" "+pad(d.getDate())+"."+pad(d.getMonth()+1)+"."; };
@@ -2526,7 +2532,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-36";
+const APP_VERSION="2026.10.05-37";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
