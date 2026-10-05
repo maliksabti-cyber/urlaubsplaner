@@ -11,7 +11,7 @@ const info=(await p.locator('#pan .card').first().innerText()).replace(/\s+/g,' 
 ok(/8 Urlaubstage/.test(info) && /11 Kalendertage, davon 3 ohnehin frei/.test(info), 'Vorschau: '+info.slice(0,80));
 await p.locator('#pan button.pri').last().tap(); await p.waitForTimeout(400);
 await p.evaluate(()=>{ const a=document.querySelector('#ask'); if(a) a.hidden=true; });
-const r=await p.evaluate(()=>{ const out={}; for(let s='2026-11-09';s<='2026-11-19';s=addD(s,1)){ out[s.slice(8)]=(shiftOf(s)||{short:'–'}).short+'/'+(dayKind(s)||'-'); } return {days:out, used:vacUsed(2026)}; });
+const r=await p.evaluate(()=>{ const out={}; for(let s='2026-11-09';s<='2026-11-19';s=addD(s,1)){ out[s.slice(8)]=(shiftOf(s)||S.types.find(x=>x.kind==='free')||{short:'F'}).short+'/'+(dayKind(s)||'-'); } return {days:out, used:vacUsed(2026)}; });
 ok(r.used===8, 'Gezählt: '+r.used+' Urlaubstage (Mo–Do ×2), nicht 11');
 ok(r.days['13']==='F/f' && r.days['14']==='F/f' && r.days['15']==='F/f', 'Fr 13., Sa 14., So 15. bleiben frei (F): '+[r.days['13'],r.days['14'],r.days['15']].join(' '));
 ok(r.days['12']==='U/v' && r.days['16']==='U/v', 'Do 12. und Mo 16. sind Urlaub (U)');
