@@ -2417,8 +2417,8 @@ function renderUrlaub(){
     else { cc.append(yearGrid(uY,m=>{ uM=m; uView="monat"; renderUrlaub(); })); cc.append(el("p","hint","Monat antippen für die Monatsansicht. Urlaub ist grün.")); }
     const r=el("div","row"); const ed=el("button","btn pri grow","✎ Urlaub bearbeiten"); ed.type="button"; ed.onclick=()=>openYearPlanner(uY);
     const sh=el("button","btn grow","⇪ Teilen (PDF)"); sh.type="button"; sh.onclick=()=>openSharePreview("list",uY); r.append(ed,sh); cc.append(r);
-    box.insertBefore(cc,box.children[1]||null);
-    const big=el("button","btn pri ypopen bigvac","☀ Urlaub eintragen"); big.type="button"; big.onclick=()=>openYearPlanner(uY); box.insertBefore(big,cc); }
+    const big=el("button","btn pri ypopen bigvac","☀ Urlaub eintragen"); big.type="button"; big.onclick=()=>openYearPlanner(uY); box.insertBefore(big,box.children[1]||null);
+    box.append(cc); }
 }
 function openVacBlock(b){ const v0=vacList().find(x=>x.id===b.id); if(!v0){ toast("Diesen Urlaub gibt es nicht mehr."); return; }
   openSheet(p=>{ sheetTop(p,"Urlaub bearbeiten"); p.dataset.sheet="vacedit";
@@ -2492,7 +2492,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-24";
+const APP_VERSION="2026.10.05-25";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
