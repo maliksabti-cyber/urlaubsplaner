@@ -1236,7 +1236,7 @@ function tplStats(weeks){ const all=weeks.flat(), w=all.filter(id=>{ const t=id&
 /* „Mehr“: alles, was nicht jeden Tag gebraucht wird */
 function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; const c=el("div","card sec"); c.append(el("h2",null,"Mehr"));
   [["👥","Team","Urlaub mit Kollegen abgleichen",()=>show("team")],["📊","Statistik & Verdienst","Stunden, Überstunden, Zuschläge",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
-   ["📄","Urlaubsantrag","PDF für den Chef",()=>openAntragPick()],["❓","Hilfe","So funktioniert die App",()=>openHelp()],["⚙","Einstellungen","Schichtarten, Bundesland, Sicherung",()=>show("set")]].forEach(([i,t,d,fn])=>{
+   ["📄","Urlaubsantrag","PDF für den Chef",()=>openAntragPick()],["❓","Hilfe","So funktioniert die App",()=>openHelp()],["⚙","Einstellungen","Schichtarten, Bundesland, Sicherung",()=>show("set")],["🏢","Team-Urlaubsplaner ZFP","Zur bestehenden Team-App",()=>{ location.href="../"; }]].forEach(([i,t,d,fn])=>{
     const b=el("button","vrow mrow"); b.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t), el("small",null,d)); b.append(el("span","qi",i), tx, el("span","muted","›")); b.onclick=fn; c.append(b); });
   box.append(c); newsCard(box); }
 /* Rhythmus und einzelne Schichten an einem Ort */

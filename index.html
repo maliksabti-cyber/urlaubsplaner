@@ -294,6 +294,8 @@ body.tab-start .fab{display:none}
 .awayrow small{color:var(--muted)}
 .namechips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .namechips button{padding:12px 16px;font-size:16px;border-radius:12px}
+.schichtlink{margin-left:auto;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:99px;background:var(--brand);color:var(--brand-ink);font-size:14px;font-weight:700;text-decoration:none;flex:none;min-height:40px}.schichtlink svg{width:18px;height:18px}
+@media (max-width:380px){.schichtlink span{display:none}}
 .agentbtn{margin-left:auto;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:99px;background:linear-gradient(135deg,var(--one),#7B4FC4);color:#fff;border:0;font-size:14px;font-weight:700;flex:none}
 .agentbtn svg{width:18px;height:18px}
 body.ro .agentbtn{display:none}
@@ -496,6 +498,7 @@ body.ro .ro-badge{display:inline-block}
 <header class="appbar"><div class="top-in">
   <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M8 14h3M8 17.5h6"/></svg></span>
   <div class="brand-t"><h1>Urlaubsplaner</h1><p class="team"><b>TEAM ZFP</b><span class="ro-badge">Nur Ansicht</span><span class="status" id="status">Verbinde …</span></p></div>
+  <a class="schichtlink" href="schicht/" aria-label="Mein Schichtplan öffnen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7 14h2M11 14h2M15 14h2M7 17.5h2M11 17.5h2"/></svg><span>Mein Schichtplan</span></a>
   <button type="button" class="agentbtn" id="agentbtn" aria-label="Urlaubs-Assistent öffnen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span>Assistent</span></button>
 </div></header>
 <div class="wrap">
