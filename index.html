@@ -766,8 +766,6 @@ function renderHeute(){
   let ns=null; for(let i=sh&&sh.kind==="work"?1:0;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(x&&x.kind==="work"){ ns=[s,x]; break; } }
   if(ns) c.append(el("div","nextline",(sh&&sh.kind==="work"?"Nächste Schicht danach: ":"Nächste Schicht: ")+(ns[0]===t?"heute":ns[0]===addD(t,1)?"morgen":fmt(ns[0]))+" · "+ns[1].name+(ns[1].start?" ab "+ns[1].start+" Uhr":"")));
   box.append(c);
-  // 2) Schnellknöpfe
-  const qa=el("div","quick"); [["☀","Urlaub eintragen",()=>openYearPlanner()],["✎","Schichten eintragen",()=>openYearPlanner(null,"shift")],["↻","Mein Rhythmus",()=>openRhythm()],["⇪","Teilen (PDF)",()=>openShare()]].forEach(([i,l,fn])=>{ const b=el("button","qbtn"); b.type="button"; b.append(el("span","qi",i),el("span",null,l)); b.onclick=fn; qa.append(b); }); box.append(qa);
   // 3) Lotse / Neuigkeiten / Sicherung (immer nur eins)
   const gOn=activeGoal()?lotseCard(box):false;
   if(!activeGoal() && backupDue() && dlNs){ const b=el("div","banner"); const tx=el("span","grow"); tx.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(tx,go); box.append(b); }
@@ -2509,7 +2507,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-18";
+const APP_VERSION="2026.10.05-19";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
