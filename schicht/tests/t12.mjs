@@ -1,0 +1,33 @@
+import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
+const c = await b.newContext({...devices['Pixel 7']}); await c.addInitScript(()=>{ navigator.canShare=undefined; }); const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
+await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(800);
+for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(250); }
+await p.evaluate(()=>{ S.rots=[]; S.tpls=[]; save(); });
+ok(await p.locator('.tabs button').count()===4, '4 Tabs unten');
+ok(!(await p.isVisible('#fab')) && !(await p.locator('#hredo').count()), 'Kein schwebender Knopf, kein Wiederholen-Knopf');
+await p.locator('.tabs button[data-v="heute"]').tap(); await p.waitForTimeout(200);
+await p.getByRole('button',{name:'Mein Rhythmus'}).first().tap(); await p.waitForTimeout(300);
+ok(/Rhythmus anlegen/i.test(await p.locator('#pan h2').first().innerText()) && !(await p.locator('#tplname').count()) && !(await p.getByText('Oder aus dem Kalender').count()), 'Rhythmus-Editor: kein Namensfeld, keine Kalender-Übernahme');
+// Woche 1: Mo-Fr Früh ; Woche 2: Mo-Fr Spät
+await p.locator('#pan .pick button').nth(0).tap(); await p.getByRole('button',{name:'Mo–Fr füllen'}).tap();
+await p.getByRole('button',{name:'+ Woche'}).tap(); await p.locator('#pan .pick button').nth(1).tap(); await p.getByRole('button',{name:'Mo–Fr füllen'}).tap();
+await p.getByRole('button',{name:'Weiter'}).tap(); await p.waitForTimeout(300);
+ok(/Eintragen/i.test(await p.locator('#pan h2').first().innerText()), '„Weiter“ führt direkt zum Eintragen');
+await p.getByRole('button',{name:'In den Kalender eintragen'}).tap(); await p.waitForTimeout(400);
+const r=await p.evaluate(()=>({rots:S.rots.length,end:S.rots[0]&&S.rots[0].end, mon:shiftOf(addD(mondayOnOrBefore(TODAY()),7)), tpl:S.tpls[0]&&S.tpls[0].name}));
+ok(r.rots===1 && r.end===null && r.tpl==='Mein Rhythmus', 'Rhythmus „Mein Rhythmus“ eingetragen, läuft ohne Ende');
+ok(await p.isVisible('#v-kal'), 'Danach wird der Schichtplan gezeigt');
+await p.getByRole('button',{name:'Statistik ansehen ›'}).tap(); await p.waitForTimeout(200);
+ok(await p.isVisible('#v-stat'), 'Statistik über den Schichtplan erreichbar');
+await p.locator('#gear').tap(); await p.waitForTimeout(200);
+const st=(await p.locator('#v-set').innerText()).replace(/\s+/g,' ');
+ok(/Mein Rhythmus/i.test(st) && /Eingetragen: Mein Rhythmus/.test(st) && !/ROTATIONEN/.test(st), 'Einstellungen: kurzer Bereich „Mein Rhythmus“');
+ok(await p.getByRole('button',{name:'Sicherung teilen'}).isVisible() && !(await p.getByRole('button',{name:'Sicherung als Text kopieren'}).isVisible()), 'Sichern: Text-Optionen eingeklappt');
+await p.evaluate(()=>{ agState.year=2027; openAgent(); }); await p.waitForTimeout(200);
+ok(await p.locator('#pan [data-opt]').count()===12 && !(await p.locator('#aguse').isVisible()), 'Urlaubsrechner: 12 Optionen, Extras unter „Mehr Optionen“');
+for(const l of ['Weihnachten','Sommerferien','Jedes Quartal','Brückentage']) await p.locator('#pan [data-opt]',{hasText:new RegExp('^'+l+'$')}).tap();
+ok(/Urlaubstage →/.test(await p.locator('#agout .agbig').innerText()), 'Kombination liefert sofort einen Plan');
+await p.locator('summary',{hasText:'Mehr Optionen'}).tap(); ok(await p.locator('#aguse').isVisible(), '„Mehr Optionen“ klappt auf');
+console.log('Fehler:',errs); await b.close();
