@@ -16,9 +16,9 @@ Leitfaden nach dem 6-Schritte-Plan zur App-Entwicklung. Jede Änderung wird gege
 |---|---|---|
 | Schichtart | `types` (T Tag, S Spät, N Nacht, U Urlaub, K Krank, F Frei) | wird von Rhythmus, Tagen und Urlaub benutzt |
 | Rhythmus | `rots` (Muster ab Startdatum), Vorlagen `tpls` | 1 Nutzer → n Rhythmen |
-| Einzelner Tag | `ov` (Datum → Schichtart), Notizen `notes` | überschreibt den Rhythmus |
+| Einzelner Tag | `ov` (Datum → Schichtart), Notizen `notes`, Schichttausch `swaps` (Tag, Name, Gegentag, erledigt) | überschreibt den Rhythmus |
 | Urlaub | `vacs` (Von–Bis); zählt nur Tage, an denen laut Plan gearbeitet wird | 1 Nutzer → n Urlaube |
-| Einstellungen | `land`, `localHol`, `holFree`, `weekendFree`, `vacPerYear`, `carry` (Resturlaub; `carryAuto` = Rest aus dem Vorjahr automatisch übernehmen), `expire` (Verfall des Resturlaubs: an/aus + Stichtag, Standard 31.3.), `pay`, `soll`, `holCredit`, `remind` | |
+| Einstellungen | `land`, `localHol`, `holFree`, `payDay` (Abrechnung ab Tag X), `statMode`, `weekendFree`, `vacPerYear`, `carry` (Resturlaub; `carryAuto` = Rest aus dem Vorjahr automatisch übernehmen), `expire` (Verfall des Resturlaubs: an/aus + Stichtag, Standard 31.3.), `pay`, `soll`, `holCredit`, `remind` | |
 | Partner-Pläne | `partners` (per Link erhalten) | für „Gemeinsam frei“ |
 | Lotse | `goal`, `gman`, `gopen` | Fortschritt der Schritte |
 
