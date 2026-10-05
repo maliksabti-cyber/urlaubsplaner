@@ -169,6 +169,7 @@ body.ypon .toast,body:has(#yplan:not([hidden])) .toast{bottom:auto!important;top
 .ypstep{font-weight:700;font-size:14px;line-height:1.3}.ypflash{animation:ypfl .9s}@keyframes ypfl{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 4px var(--accent)}}
 .instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
 .applink{font:600 15px/1.4 var(--f-body);word-break:break-all;background:var(--tint);border-radius:8px;padding:10px 12px;margin:4px 0 10px;user-select:all}
+.stimes summary{font-weight:800;font-size:16px;cursor:pointer;min-height:32px}.strow{display:flex;align-items:center;gap:12px;width:100%;border:0;border-top:1px solid var(--rule);background:none;padding:10px 2px;text-align:left;font:inherit;color:inherit;min-height:52px}.strow small{display:block;color:var(--soft);font-size:13px}.stimes .btn{margin-top:8px}
 .mrow{width:100%;min-height:56px}.mrow .qi{font-size:22px;width:32px;text-align:center}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
@@ -758,6 +759,13 @@ function renderHeute(){
   let ns=null; for(let i=sh&&sh.kind==="work"?1:0;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(x&&x.kind==="work"){ ns=[s,x]; break; } }
   if(ns) c.append(el("div","nextline",(sh&&sh.kind==="work"?"Nächste Schicht danach: ":"Nächste Schicht: ")+(ns[0]===t?"heute":ns[0]===addD(t,1)?"morgen":fmt(ns[0]))+" · "+ns[1].name+(ns[1].start?" ab "+ns[1].start+" Uhr":"")));
   box.append(c);
+  // 2) Schichten & Zeiten: alle Schichtarten mit Uhrzeit – antippen zum Bearbeiten
+  { const sc=el("details","card sec stimes"); if(S.stOpen) sc.open=true; sc.ontoggle=()=>{ S.stOpen=sc.open; histMute=true; save(); histMute=false; };
+    sc.append(el("summary",null,"⏱ Schichten bearbeiten & Zeiten eintragen"));
+    S.types.forEach(tp=>{ const r=el("button","strow"); r.type="button"; const m=spanMin(tp.start,tp.end,+tp.pause||0); const tx=el("div","grow");
+      tx.append(el("b",null,tp.name), el("small",null,m!=null?tp.start+" – "+tp.end+" Uhr"+(+tp.pause?" · "+tp.pause+" Min. Pause":"")+" · "+hStr(m):"keine Uhrzeit – antippen zum Eintragen"));
+      r.append(chip(tp), tx, el("span","muted","›")); r.onclick=()=>openType(tp); sc.append(r); });
+    const nb=el("button","btn","+ Neue Schichtart"); nb.type="button"; nb.onclick=()=>openType(null); sc.append(nb); box.append(sc); }
   // 3) Lotse / Neuigkeiten / Sicherung (immer nur eins)
   const gOn=activeGoal()?lotseCard(box):false;
   if(!activeGoal() && backupDue() && dlNs){ const b=el("div","banner"); const tx=el("span","grow"); tx.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(tx,go); box.append(b); }
@@ -1390,6 +1398,8 @@ function openApply(o){
       vacCheck(vb,vo,()=>toast("„"+st.name+"“ eingetragen","Rückgängig",()=>{ S.rots=oldR; S.ov=oldOv; S.vacs=vo; save(); render(); })); };
     row.append(ok); p.append(row); }); }
 
+/* Dauer zwischen zwei Uhrzeiten in Minuten (über Mitternacht möglich), minus Pause */
+function spanMin(a,b,pause){ if(!a||!b) return null; const [h1,m1]=a.split(":").map(Number), [h2,m2]=b.split(":").map(Number); let m=(h2*60+m2)-(h1*60+m1); if(m<=0) m+=1440; return Math.max(0,m-(pause||0)); }
 function openType(t){
   const isNew=!t; const d=t?{...t}:{id:"t"+uid(),name:"",short:"",color:PALETTE[S.types.length%PALETTE.length],start:"07:00",end:"15:30",pause:30,kind:"work"};
   openSheet(p=>{
@@ -1400,7 +1410,9 @@ function openType(t){
     const tm=el("div","three"); const la=el("label","f","Beginn"), ia=el("input"); ia.type="time"; ia.id="tstart"; ia.value=d.start||""; la.append(ia);
     const lb=el("label","f","Ende"), ib=el("input"); ib.type="time"; ib.id="tend"; ib.value=d.end||""; lb.append(ib);
     const lc=el("label","f","Pause (Min.)"), ic=el("input"); ic.type="number"; ic.id="tpause"; ic.min=0; ic.max=240; ic.value=d.pause||0; lc.append(ic); tm.append(la,lb,lc); p.append(tm);
-    const syncK=()=>{ tm.hidden=s3.value!=="work"; }; s3.onchange=syncK; syncK();
+    const du=el("p","hint tdur"); p.append(du);
+    const syncD=()=>{ const m=spanMin(ia.value,ib.value,+ic.value||0); du.textContent=m!=null?"Dauer: "+hStr(m)+(s3.value==="work"?"":" – zählt nicht als Arbeitszeit"):(s3.value==="work"?"Bitte Beginn und Ende eingeben.":"Zeit ist hier freiwillig (z. B. Arzttermin, Bereitschaft)."); };
+    [ia,ib,ic].forEach(x=>x.oninput=syncD); s3.onchange=syncD; syncD();
     p.append(el("h3",null,"Farbe")); const pal=el("div","pal"); const prevChip=()=>{ pal.querySelectorAll("button").forEach(b=>b.style.outline=b.dataset.c===d.color?"3px solid var(--ink)":"none"); };
     PALETTE.forEach(c=>{ const b=el("button"); b.type="button"; b.dataset.c=c; b.setAttribute("aria-label","Farbe "+c); const ch=el("span","chip"); ch.style.setProperty("--c",c); ch.textContent=" "; b.append(ch); b.onclick=()=>{ d.color=c; prevChip(); }; pal.append(b); }); p.append(pal); prevChip();
     const row=el("div","row");
@@ -1409,7 +1421,7 @@ function openType(t){
       if(!name){ toast("Bitte einen Namen eingeben."); i1.focus(); return; } if(!short){ toast("Bitte ein Kürzel eingeben."); i2.focus(); return; }
       if(S.types.some(x=>x.id!==d.id && x.short.toUpperCase()===short)){ toast("Das Kürzel gibt es schon."); return; }
       if(s3.value==="work" && (!ia.value||!ib.value)){ toast("Bitte Beginn und Ende eingeben."); return; }
-      Object.assign(d,{name:name.slice(0,40),short,kind:s3.value,start:s3.value==="work"?ia.value:"",end:s3.value==="work"?ib.value:"",pause:s3.value==="work"?Math.max(0,Math.min(240,+ic.value||0)):0});
+      const hasT=!!(ia.value&&ib.value); Object.assign(d,{name:name.slice(0,40),short,kind:s3.value,start:hasT?ia.value:"",end:hasT?ib.value:"",pause:hasT?Math.max(0,Math.min(240,+ic.value||0)):0});
       const i=S.types.findIndex(x=>x.id===d.id); if(i>=0) S.types[i]=d; else S.types.push(d); save(); if(typeBack){ const f=typeBack; typeBack=null; f(); } else closeSheet(); toast("Schichtart gespeichert"); };
     row.append(ok); p.append(row);
   });
@@ -2471,7 +2483,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-31";
+const APP_VERSION="2026.10.05-32";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
