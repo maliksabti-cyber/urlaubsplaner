@@ -760,6 +760,7 @@ function renderHeute(){
   const y=+t.slice(0,4), used=vacUsed(y), tot=vacTotal(y), rest=tot-used;
   const vk=el("div","card sec vcard"); const vh=el("div","vhead"); const vn=el("div"); vn.append(el("b","num vbig",String(rest)), el("span",null,rest===1?" Urlaubstag übrig":" Urlaubstage übrig")); vh.append(el("h3",null,"Urlaub "+y), vn); vk.append(vh);
   const m=el("div","meter"), mi=el("i"); mi.style.width=Math.min(100,tot?used/tot*100:0)+"%"; if(used>tot) mi.style.background="var(--bad)"; m.append(mi); vk.append(m, el("div","muted small",used+" von "+tot+" verplant"));
+  { const eb2=el("button","btn ghost","✎ Urlaubstage bearbeiten ("+tot+" Tage im Jahr)"); eb2.type="button"; eb2.onclick=()=>openVacSettings(y); vk.append(eb2); }
   { const eb=expBanner(y,"expheute"); if(eb) vk.append(eb); }
   const ab=el("div","row"); { const yb=el("button","btn pri grow","📅 Urlaub im Jahreskalender eintragen"); yb.type="button"; yb.onclick=()=>openYearPlanner(y); ab.append(yb); vk.append(ab); }
   const vl=el("div","vlist"); vl.append(el("h3",null,"Deine Urlaube "+y)); const all=vacBlocks(y), up=all.filter(b=>b.e>=t);
@@ -2718,7 +2719,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-13";
+const APP_VERSION="2026.10.05-14";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
