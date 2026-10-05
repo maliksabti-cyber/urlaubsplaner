@@ -606,7 +606,9 @@ function ownShift(s){ if(Object.prototype.hasOwnProperty.call(S.ov,s)){ const o=
 /* Urlaub = Zeiträume; gezählt wird an Tagen, an denen man laut Schichtplan arbeiten würde */
 function vacList(){ if(!Array.isArray(S.vacs)) S.vacs=[]; return S.vacs; }
 function vacAt(s){ return vacList().find(v=>v.a<=s && s<=v.e)||null; }
-function vacOnDay(v,s){ const own=ownShift(s); if(own && own.kind==="sick") return false; return v.fixed ? v.fixed.includes(s) : !!(own && own.kind==="work"); }
+function vacOnDay(v,s){ const own=ownShift(s); if(own && own.kind==="sick") return false; if(v.fixed) return v.fixed.includes(s); if(own) return own.kind==="work";
+  /* Ohne Schichtplan an diesem Tag: Mo–Fr (ohne Feiertag) zählt – so verschwindet eingetragener Urlaub nie */
+  return !rotAt(s) && !Object.prototype.hasOwnProperty.call(S.ov,s) && ![0,6].includes(parse(s).getDay()) && !holName(s); }
 function vacDaysOf(v){ const out=[]; for(let s=v.a;s<=v.e;s=addD(s,1)) if(vacOnDay(v,s)) out.push(s); return out; }
 function shiftOf(s){ const v=vacAt(s); if(v && vacOnDay(v,s)) return vacType()||ownShift(s); return ownShift(s); }
 function normVacs(){ const L=vacList().filter(v=>v.a<=v.e).sort((x,y)=>x.a<y.a?-1:1), out=[];
@@ -1639,9 +1641,16 @@ let yp={y:null,h:0,a:null,e:null,mode:"vac",brush:null};
 function openYearPlanner(y,mode){ yp.mode=mode||"vac"; if(y) yp.y=y; if(!yp.y) yp.y=planYear(); yp.h=(yp.y===new Date().getFullYear() && new Date().getMonth()>=6)?1:0; yp.tapped=false; yp.a=yp.e=null;
   let ov=$("#yplan"); if(!ov){ ov=el("div","yplan"); ov.id="yplan"; ov.setAttribute("role","dialog"); ov.setAttribute("aria-modal","true"); document.body.append(ov); }
   ov.hidden=false; try{ history.pushState({yp:1},""); }catch(e){} drawYP(); }
-function closeYP(){ const ov=$("#yplan"); if(ov) ov.hidden=true; render(); }
+function ypPending(){ const r=ypRange(); if(!r) return false; return yp.mode==="shift" || vacCount(r[0],r[1]).n>0; }
+function closeYP(force){ const ov=$("#yplan"); if(!ov || ov.hidden) return;
+  if(force!==true && ypPending()){ const sh=yp.mode==="shift";
+    ask(sh?"Schichten eintragen?":"Urlaub speichern?","Du hast im Jahreskalender etwas markiert, aber noch nicht eingetragen.",[
+      {label:sh?"Ja, eintragen":"Ja, Urlaub speichern",pri:true,fn:()=>{ const b=[...document.querySelectorAll("#ypbar button")].find(x=>x.textContent==="Eintragen"); if(b) b.click(); closeYP(true); }},
+      {label:"Nein, verwerfen",fn:()=>{ yp.a=yp.e=null; yp.tapped=false; closeYP(true); }},
+      {label:"Weiter bearbeiten"}]); return; }
+  ov.hidden=true; render(); }
 function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*6;
-  const top=el("div","yptop"); const x=el("button","icon-btn","✕"); x.type="button"; x.setAttribute("aria-label","Schließen"); x.onclick=closeYP;
+  const top=el("div","yptop"); const x=el("button","icon-btn","✕"); x.type="button"; x.setAttribute("aria-label","Schließen"); x.onclick=()=>closeYP();
   const pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Zurück"); nx.setAttribute("aria-label","Weiter");
   pv.onclick=()=>{ if(yp.h===1) yp.h=0; else { yp.y--; yp.h=1; } drawYP(); }; nx.onclick=()=>{ if(yp.h===0) yp.h=1; else { yp.y++; yp.h=0; } drawYP(); };
   top.append(pv, el("h2","grow",y+" · "+(yp.h?"Juli – Dezember":"Januar – Juni")), nx, x); ov.append(top);
@@ -1677,11 +1686,12 @@ function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*
 function ypRange(){ if(!yp.a) return null; const a=yp.a<yp.e?yp.a:yp.e, e=yp.a<yp.e?yp.e:yp.a; return [a,e]; }
 function markYP(){ const r=ypRange(); document.querySelectorAll("#yplan .ypc[data-s]").forEach(c=>c.classList.toggle("sel",!!r&&c.dataset.s>=r[0]&&c.dataset.s<=r[1])); }
 function drawYPBar(){ const bar=$("#ypbar"); if(!bar) return; bar.innerHTML=""; const r=ypRange();
-  if(!r){ bar.append(el("span","muted","Noch nichts ausgewählt.")); const cl=el("button","btn","Fertig"); cl.type="button"; cl.onclick=closeYP; bar.append(cl); return; }
-  const [a,e]=r; if(yp.mode==="shift") return drawYPShiftBar(bar,a,e); const ex=vacList().find(v=>!(v.e<a||v.a>e)); const n=vacCount(a,e); const y=+a.slice(0,4), rest=vacTotal(y)-vacUsed(y)-n.n;
-  const tx=el("div","grow"); tx.append(el("b",null,(a===e?fmtS(a):fmtS(a)+" – "+fmtS(e))+" · "+n.n+(n.n===1?" Urlaubstag":" Urlaubstage")), el("small",null,(diffD(a,e)+1)+" Kalendertage, davon "+n.free+" frei · danach "+rest+" übrig"+(n.as?" · ohne Plan: Mo–Fr gerechnet":"")));
+  if(!r){ bar.append(el("span","muted","Noch nichts ausgewählt.")); const cl=el("button","btn","Fertig"); cl.type="button"; cl.onclick=()=>closeYP(); bar.append(cl); return; }
+  const [a,e]=r; if(yp.mode==="shift") return drawYPShiftBar(bar,a,e); const ex=vacList().find(v=>!(v.e<a||v.a>e)); const n=vacCount(a,e); const ys=[]; for(let y=+a.slice(0,4); y<=+e.slice(0,4); y++) ys.push(y);
+  const restTx=ys.length===1?String(vacTotal(ys[0])-vacUsed(ys[0])-n.n):ys.map(y=>y+": "+(vacTotal(y)-vacUsed(y)-n.days.filter(d=>+d.slice(0,4)===y).length)).join(" · ");
+  const tx=el("div","grow"); tx.append(el("b",null,(a===e?fmtS(a):fmtS(a)+" – "+fmtS(e))+" · "+n.n+(n.n===1?" Urlaubstag":" Urlaubstage")), el("small",null,(diffD(a,e)+1)+" Kalendertage, davon "+n.free+" frei · danach "+restTx+" übrig"+(n.as?" · ohne Plan: Mo–Fr gerechnet":"")));
   bar.append(tx);
-  if(ex && a===e && yp.tapped){ const ed=el("button","btn","Bearbeiten"); ed.type="button"; ed.onclick=()=>{ closeYP(); openVacBlock({id:ex.id,a:ex.a,e:ex.e}); }; bar.append(ed); }
+  if(ex && a===e && yp.tapped){ const ed=el("button","btn","Bearbeiten"); ed.type="button"; ed.onclick=()=>{ closeYP(true); openVacBlock({id:ex.id,a:ex.a,e:ex.e}); }; bar.append(ed); }
   const no=el("button","btn ghost","✕"); no.type="button"; no.setAttribute("aria-label","Auswahl löschen"); no.onclick=()=>{ yp.a=yp.e=null; yp.tapped=false; markYP(); drawYPBar(); };
   const ok=el("button","btn pri","Eintragen"); ok.type="button"; ok.disabled=!n.n; ok.onclick=()=>{ vacSave(a,e,n.days); yp.a=yp.e=null; yp.tapped=false; drawYP(); };
   bar.append(no,ok); }
