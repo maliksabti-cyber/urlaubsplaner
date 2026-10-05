@@ -158,6 +158,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypbar{display:flex;align-items:center;gap:8px;height:76px;overflow:hidden;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:8px 10px;min-height:56px}
 .ypbar small{display:block;color:var(--soft);font-size:12px;line-height:1.25}.ypbar b{font-size:15px}.ypbar .btn{min-height:44px}
 .ypopen{width:100%;min-height:48px}
+.yimg img{width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;display:block;cursor:zoom-in;background:#fff}
 .ypstep{font-weight:700;font-size:14px;line-height:1.3}.ypflash{animation:ypfl .9s}@keyframes ypfl{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 4px var(--accent)}}
 .instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
 .applink{font:600 15px/1.4 var(--f-body);word-break:break-all;background:var(--tint);border-radius:8px;padding:10px 12px;margin:4px 0 10px;user-select:all}
@@ -1700,6 +1701,19 @@ async function yearPNG(y){ const C=12, cw=118, rh=24, M=24, top=96, hh=30, W=M*2
     g.fillStyle=t.kind==="free"?"#DDF1E3":t.color; g.fillRect(lx,ly-12,14,14); g.fillStyle="#16222B"; g.fillText(lab,lx+20,ly); lx+=Math.round(W/3)-10; });
   return await new Promise(r=>cv.toBlob(b=>b.arrayBuffer().then(a=>r(new Uint8Array(a))),"image/png")); }
 async function shareYearImage(y){ try{ const b=await yearPNG(y); await shareFile(b,"Jahreskalender_"+y+".png","image/png","Jahreskalender "+y); }catch(e){ toast("Bild konnte nicht erstellt werden."); } }
+/* Bild des Jahreskalenders in eine Karte setzen (antippen = groß) */
+function yearImg(box,y){ const w=el("div","yimg"); w.append(el("p","muted","Bild wird erstellt …")); box.append(w);
+  yearPNG(y).then(b=>{ const u=URL.createObjectURL(new Blob([b],{type:"image/png"})), im=el("img"); im.src=u; im.alt="Jahreskalender "+y; im.onclick=()=>window.open(u,"_blank"); w.innerHTML=""; w.append(im); }).catch(()=>{ w.innerHTML=""; w.append(el("p","muted","Vorschau nicht möglich.")); }); }
+/* Nach dem Eintragen: erst Vorschau im Jahreskalender zeigen, dann fragen, ob gesendet werden soll */
+function vacPreview(y,a,e){ const st={kind:"list",y};
+  openSheet(p=>{ sheetTop(p,"Dein Urlaub "+y); p.dataset.sheet="vacprev";
+    p.append(el("p",null,"✅ Eingetragen: "+(a===e?fmt(a):fmt(a)+" – "+fmt(e))+". So sieht dein Jahreskalender jetzt aus:"));
+    yearImg(p,y);
+    p.append(el("h3",null,"Möchtest du das senden?"));
+    const yes=el("button","btn pri","Ja, senden …"); yes.type="button"; yes.onclick=()=>shareMenu(st);
+    const no=el("button","btn","Nein, fertig"); no.type="button"; no.onclick=()=>closeSheet();
+    const more=el("button","btn ghost","Weiteren Urlaub eintragen"); more.type="button"; more.onclick=()=>{ closeSheet(); openYearPlanner(y); };
+    p.append(yes,no,more); }); }
 /* E-Mail mit Jahreskalender: Bild (und Text) über das Teilen-Menü; am Computer Bild speichern + E-Mail öffnen */
 async function mailYear(st){ const txt=shareText(st), title=shareTitle(st); try{ const b=await yearPNG(st.y), f=new File([b],"Jahreskalender_"+st.y+".png",{type:"image/png"});
     if(navigator.canShare && navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title,text:txt}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
@@ -1717,8 +1731,7 @@ function openSharePreview(kind,y){ const st={kind:"list",y:y||planYear()};
     const c1=el("div","card prev"); c1.append(el("h3",null,"Urlaub "+st.y)); const bl=vacBlocks(st.y); if(!bl.length) c1.append(el("p","muted","Für "+st.y+" ist noch kein Urlaub eingetragen."));
     bl.forEach(b=>{ const r=el("div","trow"); r.append(el("b","grow",b.a===b.e?fmt(b.a):fmt(b.a)+" – "+fmt(b.e)), el("span","num",b.n+(b.n===1?" Tag":" Tage"))); c1.append(r); });
     c1.append(el("p","hint",vacUsed(st.y)+" von "+vacTotal(st.y)+" Urlaubstagen verplant · "+(vacTotal(st.y)-vacUsed(st.y))+" übrig")); p.append(c1);
-    const c2=el("div","card prev"); c2.append(el("h3",null,"Jahreskalender "+st.y)); const w=el("div","years sm"); for(let m=0;m<12;m++){ const c=el("div","mini"); c.append(el("h4",null,MONS[m])); const g=el("div","g"); const f=st.y+"-"+pad(m+1)+"-01"; for(let i=0;i<(parse(f).getDay()+6)%7;i++) g.append(el("i","e"));
-      for(let s=f; +s.slice(5,7)===m+1; s=addD(s,1)){ const x=shiftOf(s), i=el("i"); i.style.background=x&&x.kind!=="free"?x.color:"var(--free-bg)"; g.append(i); } c.append(g); w.append(c); } c2.append(w);
+    const c2=el("div","card prev"); c2.append(el("h3",null,"Jahreskalender "+st.y)); yearImg(c2,st.y);
     const yb=el("button","btn ghost","📅 Im großen Jahreskalender ansehen"); yb.type="button"; yb.onclick=()=>{ closeSheet(); openYearPlanner(st.y); }; c2.append(yb); p.append(c2);
     const c3=el("div","card prev"); c3.append(el("h3",null,"Legende – Schichten")); shiftLegend(c3); p.append(c3);
     const go=el("button","btn pri","📄 PDF teilen"); go.type="button"; go.onclick=()=>{ if(dlNs) pdfYear(st.y); else shareMenu(st); }; p.append(go);
@@ -1815,7 +1828,7 @@ function drawYPBar(){ const bar=$("#ypbar"); if(!bar) return; bar.innerHTML=""; 
   bar.append(tx);
   if(ex && a===e && yp.tapped){ const ed=el("button","btn","Bearbeiten"); ed.type="button"; ed.onclick=()=>{ closeYP(true); openVacBlock({id:ex.id,a:ex.a,e:ex.e}); }; bar.append(ed); }
   const no=el("button","btn ghost","✕"); no.type="button"; no.setAttribute("aria-label","Auswahl löschen"); no.onclick=()=>{ yp.a=yp.e=null; yp.tapped=false; markYP(); drawYPBar(); };
-  const ok=el("button","btn pri","☀ Urlaub eintragen"); ok.type="button"; ok.dataset.save="1"; ok.disabled=!n.n; ok.onclick=()=>{ vacSave(a,e,n.days); yp.a=yp.e=null; yp.tapped=false; drawYP(); };
+  const ok=el("button","btn pri","☀ Urlaub eintragen"); ok.type="button"; ok.dataset.save="1"; ok.disabled=!n.n; ok.onclick=()=>{ vacSave(a,e,n.days); yp.a=yp.e=null; yp.tapped=false; closeYP(true); vacPreview(+a.slice(0,4),a,e); };
   bar.append(no,ok); }
 function drawYPShiftBar(bar,a,e){ const t=yp.brush==="reset"?null:typeOf(yp.brush), n=diffD(a,e)+1; let nv=0; for(let d=a;d<=e;d=addD(d,1)) if(dayKind(d)==="v") nv++;
   const tx=el("div","grow"); tx.append(el("b",null,(a===e?fmtS(a):fmtS(a)+" – "+fmtS(e))+" · "+n+(n===1?" Tag":" Tage")), el("small",null,"→ "+(t?t.name:"wie im Rhythmus")+(nv?" · Urlaub ("+nv+(nv===1?" Tag":" Tage")+") bleibt":""))); bar.append(tx);
@@ -2705,7 +2718,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-12";
+const APP_VERSION="2026.10.05-13";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
