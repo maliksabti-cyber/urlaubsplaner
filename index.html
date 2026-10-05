@@ -763,7 +763,8 @@ function renderHeute(){
   { const sc=el("details","card sec stimes"); if(S.stOpen) sc.open=true; sc.ontoggle=()=>{ S.stOpen=sc.open; histMute=true; save(); histMute=false; };
     sc.append(el("summary",null,"⏱ Schichten bearbeiten & Zeiten eintragen"));
     S.types.forEach(tp=>{ const r=el("button","strow"); r.type="button"; const m=spanMin(tp.start,tp.end,+tp.pause||0); const tx=el("div","grow");
-      tx.append(el("b",null,tp.name), el("small",null,m!=null?tp.start+" – "+tp.end+" Uhr"+(+tp.pause?" · "+tp.pause+" Min. Pause":"")+" · "+hStr(m):"keine Uhrzeit – antippen zum Eintragen"));
+      const wt=tp.kind!=="work"&&+tp.credit>0?"Wert: "+hStr(+tp.credit)+" pro Tag":"";
+      tx.append(el("b",null,tp.name), el("small",null,[m!=null?tp.start+" – "+tp.end+" Uhr"+(+tp.pause?" · "+tp.pause+" Min. Pause":"")+(tp.kind==="work"?" · "+hStr(m):""):"", wt].filter(Boolean).join(" · ")||(tp.kind==="work"?"keine Uhrzeit – antippen zum Eintragen":"kein Wert – antippen zum Eintragen")));
       r.append(chip(tp), tx, el("span","muted","›")); r.onclick=()=>openType(tp); sc.append(r); });
     const nb=el("button","btn","+ Neue Schichtart"); nb.type="button"; nb.onclick=()=>openType(null); sc.append(nb); box.append(sc); }
   // 3) Lotse / Neuigkeiten / Sicherung (immer nur eins)
@@ -1410,9 +1411,12 @@ function openType(t){
     const tm=el("div","three"); const la=el("label","f","Beginn"), ia=el("input"); ia.type="time"; ia.id="tstart"; ia.value=d.start||""; la.append(ia);
     const lb=el("label","f","Ende"), ib=el("input"); ib.type="time"; ib.id="tend"; ib.value=d.end||""; lb.append(ib);
     const lc=el("label","f","Pause (Min.)"), ic=el("input"); ic.type="number"; ic.id="tpause"; ic.min=0; ic.max=240; ic.value=d.pause||0; lc.append(ic); tm.append(la,lb,lc); p.append(tm);
+    const lw=el("label","f","Wert pro Tag in Stunden (zählt für die Statistik, z. B. 7,5)"), iw=el("input"); iw.type="text"; iw.inputMode="decimal"; iw.id="tcredit"; iw.placeholder="z. B. 7,5"; iw.value=+d.credit?String(Math.round(d.credit/60*100)/100).replace(".",","):""; lw.append(iw); p.append(lw);
+    const wv=el("p","hint"); p.append(wv); const rdW=()=>{ const t=iw.value.trim().replace(",","."); if(!t) return null; const v=parseFloat(t); return isFinite(v)&&v>=0?Math.round(Math.min(24,v)*60):null; };
+    const syncW=()=>{ lw.hidden=wv.hidden=s3.value==="work"; const m=rdW(); wv.textContent=m!=null?"= "+hStr(m)+" pro "+(KINDS[s3.value]||"")+"-Tag":(s3.value==="free"?"Leer lassen = freie Tage zählen 0 Stunden.":"Leer lassen = Soll-Stunden ÷ 5 (oder Schnitt deiner Schichten)."); }; iw.oninput=syncW;
     const du=el("p","hint tdur"); p.append(du);
     const syncD=()=>{ const m=spanMin(ia.value,ib.value,+ic.value||0); du.textContent=m!=null?"Dauer: "+hStr(m)+(s3.value==="work"?"":" – zählt nicht als Arbeitszeit"):(s3.value==="work"?"Bitte Beginn und Ende eingeben.":"Zeit ist hier freiwillig (z. B. Arzttermin, Bereitschaft)."); };
-    [ia,ib,ic].forEach(x=>x.oninput=syncD); s3.onchange=syncD; syncD();
+    [ia,ib,ic].forEach(x=>x.oninput=syncD); s3.onchange=()=>{ syncD(); syncW(); }; syncD(); syncW();
     p.append(el("h3",null,"Farbe")); const pal=el("div","pal"); const prevChip=()=>{ pal.querySelectorAll("button").forEach(b=>b.style.outline=b.dataset.c===d.color?"3px solid var(--ink)":"none"); };
     PALETTE.forEach(c=>{ const b=el("button"); b.type="button"; b.dataset.c=c; b.setAttribute("aria-label","Farbe "+c); const ch=el("span","chip"); ch.style.setProperty("--c",c); ch.textContent=" "; b.append(ch); b.onclick=()=>{ d.color=c; prevChip(); }; pal.append(b); }); p.append(pal); prevChip();
     const row=el("div","row");
@@ -1421,7 +1425,7 @@ function openType(t){
       if(!name){ toast("Bitte einen Namen eingeben."); i1.focus(); return; } if(!short){ toast("Bitte ein Kürzel eingeben."); i2.focus(); return; }
       if(S.types.some(x=>x.id!==d.id && x.short.toUpperCase()===short)){ toast("Das Kürzel gibt es schon."); return; }
       if(s3.value==="work" && (!ia.value||!ib.value)){ toast("Bitte Beginn und Ende eingeben."); return; }
-      const hasT=!!(ia.value&&ib.value); Object.assign(d,{name:name.slice(0,40),short,kind:s3.value,start:hasT?ia.value:"",end:hasT?ib.value:"",pause:hasT?Math.max(0,Math.min(240,+ic.value||0)):0});
+      const hasT=!!(ia.value&&ib.value), cw=rdW(); d.credit=s3.value==="work"?0:(cw!=null?cw:(hasT?spanMin(ia.value,ib.value,+ic.value||0):0)); Object.assign(d,{name:name.slice(0,40),short,kind:s3.value,start:hasT?ia.value:"",end:hasT?ib.value:"",pause:hasT?Math.max(0,Math.min(240,+ic.value||0)):0});
       const i=S.types.findIndex(x=>x.id===d.id); if(i>=0) S.types[i]=d; else S.types.push(d); save(); if(typeBack){ const f=typeBack; typeBack=null; f(); } else closeSheet(); toast("Schichtart gespeichert"); };
     row.append(ok); p.append(row);
   });
@@ -1462,8 +1466,9 @@ function shiftSplit(s,x){ const r={min:0,hol:0}; if(!x||x.kind!=="work"||!x.star
 const mLast=(y,m)=>y+"-"+pad(m+1)+"-"+pad(new Date(y,m+1,0).getDate());
 function monthWork(y,m){ return rangeWork(y+"-"+pad(m+1)+"-01",mLast(y,m)); }
 /* Arbeitszeit, Urlaub/Krank für einen beliebigen Zeitraum (z. B. Abrechnung 16.–15.) */
-function rangeWork(a,e){ const o={min:0,hol:0,vac:0,sick:0,shifts:0,we:0,hd:0,cnt:new Map()}; for(let s=a; s<=e; s=addD(s,1)){ const x=shiftOf(s); const k=x?x.id:"-"; o.cnt.set(k,(o.cnt.get(k)||0)+1); if(!x) continue;
-    if(x.kind==="vac") o.vac++; else if(x.kind==="sick") o.sick++; else if(x.kind==="work"){ const r=shiftSplit(s,x); o.min+=r.min; o.hol+=r.hol; o.shifts++; if(r.min){ const w=parse(s).getDay(); if(w===0||w===6) o.we++; if(holName(s)) o.hd++; } } } return o; }
+function rangeWork(a,e){ const o={min:0,hol:0,vac:0,sick:0,vacN:0,sickN:0,cr:0,shifts:0,we:0,hd:0,cnt:new Map()}; const ft=S.types.find(t=>t.kind==="free"), fc=ft?+ft.credit||0:0;
+  for(let s=a; s<=e; s=addD(s,1)){ const x=shiftOf(s); const k=x?x.id:"-"; o.cnt.set(k,(o.cnt.get(k)||0)+1); if(!x){ o.cr+=fc; continue; }
+    if(x.kind==="vac"){ o.vac++; if(+x.credit>0) o.cr+=+x.credit; else o.vacN++; } else if(x.kind==="sick"){ o.sick++; if(+x.credit>0) o.cr+=+x.credit; else o.sickN++; } else if(x.kind==="free"){ o.cr+=+x.credit||0; } else if(x.kind==="work"){ const r=shiftSplit(s,x); o.min+=r.min; o.hol+=r.hol; o.shifts++; if(r.min){ const w=parse(s).getDay(); if(w===0||w===6) o.we++; if(holName(s)) o.hd++; } } } return o; }
 /* Stunden, die für einen Urlaubs-/Krankheitstag gutgeschrieben werden */
 /* Gutschrift pro Urlaubs-/Krankheitstag: Soll ÷ 5, sonst Schnitt der Schichten im Zeitraum, sonst Schnitt der Schichten im Rhythmus */
 function creditMin(o){ if(+S.soll>0) return Math.round(+S.soll*60/5); if(o.shifts) return Math.round(o.min/o.shifts);
@@ -1474,8 +1479,9 @@ function rangeSoll(a,e){ const w=+S.soll||0; return Math.max(0,Math.round(w*60/7
 function monthSoll(y,m){ return rangeSoll(y+"-"+pad(m+1)+"-01",mLast(y,m)); }
 /* Überstunden-Konto zählt ab Einrichtung (änderbar unter Einstellungen → Arbeitszeit) */
 function kontoSince(){ if(isDay(S.since)) return S.since; const f=(S.rots||[]).map(r=>r.from||r.start).filter(isDay).sort()[0]; return f||new Date().getFullYear()+"-01-01"; }
-function rangeIst(a,e){ const o=rangeWork(a,e); return o.min+(o.vac+o.sick)*creditMin(o)+Math.round(o.hol*(+S.holCredit||0)/100); }
-function monthIst(y,m){ const o=monthWork(y,m); return o.min+(o.vac+o.sick)*creditMin(o)+Math.round(o.hol*(+S.holCredit||0)/100); }
+/* Ist = Arbeit + eingestellter Wert für Urlaub/Krank/Frei (ohne Wert: Soll ÷ 5 bzw. Schnitt) + Feiertags-Gutschrift */
+function rangeIst(a,e){ const o=rangeWork(a,e); return o.min+o.cr+(o.vacN+o.sickN)*creditMin(o)+Math.round(o.hol*(+S.holCredit||0)/100); }
+function monthIst(y,m){ return rangeIst(y+"-"+pad(m+1)+"-01",mLast(y,m)); }
 const hSigned=m=>(m<0?"− ":"+ ")+hStr(Math.abs(m));
 
 function openWorkSettings(){ openSheet(p=>{ sheetTop(p,"Arbeitszeit");
@@ -2483,7 +2489,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-32";
+const APP_VERSION="2026.10.05-33";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
