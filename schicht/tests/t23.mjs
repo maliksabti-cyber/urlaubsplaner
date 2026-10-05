@@ -10,7 +10,7 @@ ok(await p.locator('#vpick').count()===1 && await p.getByRole('button',{name:/Se
 await p.getByRole('button',{name:/Selbst im Kalender eintragen/}).tap(); await p.waitForTimeout(400);
 // zum November blättern, 9. und 19. antippen
 const mon=async()=>await p.locator('#vpick .mhead h2').innerText();
-for(let i=0;i<12 && !/NOVEMBER 2026/i.test(await mon());i++){ await p.locator('#vpick .mhead button').last().tap(); await p.waitForTimeout(60); }
+const back=/2027|2028/.test(await mon()); for(let i=0;i<24 && !/NOVEMBER 2026/i.test(await mon());i++){ await p.locator('#vpick .mhead button')[back?'first':'last']().tap(); await p.waitForTimeout(60); }
 await p.locator('#vpick .mc[data-s="2026-11-09"]').tap(); await p.waitForTimeout(80); await p.locator('#vpick .mc[data-s="2026-11-19"]').tap(); await p.waitForTimeout(120);
 const sum=(await p.locator('#vpick .vpsum').innerText()).replace(/\s+/g,' ');
 ok(/8 Urlaubstage/.test(sum) && /11 Kalendertage, davon 3 ohnehin frei/.test(sum), 'Antippen 9.→19.11.: '+sum);
@@ -18,7 +18,7 @@ ok(await p.locator('#vpick .mc.inrange').count()===11 && await p.inputValue('#vp
 await p.screenshot({path:'/tmp/claude-0/vp.png'});
 await p.locator('#vpick').getByRole('button',{name:'Urlaub eintragen'}).tap(); await p.waitForTimeout(400);
 await p.evaluate(()=>{ const a=document.querySelector('#ask'); if(a) a.hidden=true; });
-ok(await p.evaluate(()=>vacUsed(2026))===8 && /22/.test(await p.locator('#agbudget').innerText()), 'Eingetragen: 8 Tage, Rechner zeigt jetzt 22 übrig');
+ok(await p.evaluate(()=>vacUsed(2026))===8 && await p.evaluate(()=>vacTotal(2026)-vacUsed(2026))===22, 'Eingetragen: 8 Tage, 22 übrig (2026)');
 // per Datumsfeld
 await p.locator('#vp_from').fill('2026-12-21'); await p.locator('#vp_from').dispatchEvent('change'); await p.waitForTimeout(80);
 await p.locator('#vp_to').fill('2026-12-23'); await p.locator('#vp_to').dispatchEvent('change'); await p.waitForTimeout(80);

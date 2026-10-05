@@ -9,7 +9,7 @@ const t=await p.evaluate(()=>S.types.map(x=>x.id+':'+x.name+':'+x.short+':'+x.co
 ok(/F:Tagschicht:T:#1C6DD0/.test(t) && /N:Nachtschicht:N:#111111/.test(t) && /X:Frei:F:/.test(t), 'Neue Nutzer: '+t);
 await p.evaluate(()=>{ S.rots=[{id:'r',name:'x',start:'2026-09-28',pattern:['F','F','S','S','N','N',null,null,null,null]}]; S.guide={hide:true,pickhide:true}; save(); show('kal'); document.querySelector('#toast').hidden=true; });
 await p.waitForTimeout(200);
-const cells=await p.evaluate(()=>[...document.querySelectorAll('.day[data-s^="2026-10-"] .chip')].slice(0,10).map(c=>c.textContent).join(''));
+const cells=await p.evaluate(()=>[...document.querySelectorAll('.day:not(.out)[data-s^="2026-10-"] .chip')].slice(0,10).map(c=>c.textContent).join(''));
 ok(cells==='SNFFFFFTTS', 'Kalender Okt: '+cells+' (T=Tag, N=Nacht, F=frei)');
 const nStyle=await p.evaluate(()=>{ const c=[...document.querySelectorAll('.day .chip')].find(x=>x.textContent==='N'); const s=getComputedStyle(c); return s.backgroundColor+' / '+s.color; });
 ok(/rgb\(17, 17, 17\) \/ rgb\(255, 255, 255\)/.test(nStyle), 'Nachtschicht schwarz mit weißem N: '+nStyle);

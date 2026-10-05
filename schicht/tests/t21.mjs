@@ -20,7 +20,7 @@ await p.locator('#pan .gstep',{hasText:'Lohn & Zuschläge eintragen'}).locator('
 ok(/Lohn & Zuschläge/i.test(await p.locator('#pan h2').first().innerText()) && await p.isVisible('#hback'), 'Schritt geöffnet: Lohn-Fenster, Pfeil oben links sichtbar');
 await p.locator('#hback').tap(); await p.waitForTimeout(200);
 ok(/Verdienst/i.test(await p.locator('#pan h2').first().innerText()), 'Pfeil ← zurück zur Schrittliste');
-await p.locator('#pan .gstep',{hasText:'Statistik'}).locator('button.btn').tap(); await p.waitForTimeout(200);
+await p.locator('#pan .gstep',{hasText:'Statistik ansehen'}).locator('button.btn').first().tap(); await p.waitForTimeout(200);
 ok(await p.isVisible('#v-stat') && await p.locator('#sheet').isHidden(), 'Schritt „Statistik“ wechselt zur Statistik-Seite');
 await p.locator('#hback').tap(); await p.waitForTimeout(250);
 ok(!(await p.locator('#sheet').isHidden()) && /Verdienst/i.test(await p.locator('#pan h2').first().innerText()), 'Pfeil ← von der Statistik zurück zur Schrittliste');
