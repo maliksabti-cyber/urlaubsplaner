@@ -2407,12 +2407,12 @@ function renderUrlaub(){
   box.append(lc);
   { const cc=el("div","card sec ucal"); const hd=el("div","row"); hd.append(el("h3","grow","Kalender "+uY));
     const seg=el("div","seg"); [["jahr","Jahr"],["monat","Monat"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(uView===k)); b.onclick=()=>{ uView=k; renderUrlaub(); }; seg.append(b); }); hd.append(seg); cc.append(hd);
+    { const r=el("div","row"); const ed=el("button","btn pri grow","✎ Urlaub bearbeiten"); ed.type="button"; ed.onclick=()=>openYearPlanner(uY);
+      const sh=el("button","btn grow","⇪ Urlaub PDF teilen"); sh.type="button"; sh.onclick=()=>openSharePreview("list",uY); r.append(ed,sh); cc.append(r); }
     if(uView==="monat"){ if(uM==null) uM=uY===new Date().getFullYear()?new Date().getMonth():0;
       const go=k=>{ uM+=k; if(uM<0){ uM=11; uY--; } if(uM>11){ uM=0; uY++; } renderUrlaub(); };
       pvHead(cc,MON[uM]+" "+uY,go); const g=monthMini(uY,uM,openDay); swipeMonths(g,go); cc.append(g); }
     else { cc.append(yearGrid(uY,m=>{ uM=m; uView="monat"; renderUrlaub(); })); cc.append(el("p","hint","Monat antippen für die Monatsansicht. Urlaub ist grün.")); }
-    const r=el("div","row"); const ed=el("button","btn pri grow","✎ Urlaub bearbeiten"); ed.type="button"; ed.onclick=()=>openYearPlanner(uY);
-    const sh=el("button","btn grow","⇪ Teilen (PDF)"); sh.type="button"; sh.onclick=()=>openSharePreview("list",uY); r.append(ed,sh); cc.append(r);
     const big=el("button","btn pri ypopen bigvac","☀ Urlaub eintragen"); big.type="button"; big.onclick=()=>openYearPlanner(uY); box.insertBefore(big,box.children[1]||null);
     box.append(cc); }
 }
@@ -2488,7 +2488,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-26";
+const APP_VERSION="2026.10.05-27";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
