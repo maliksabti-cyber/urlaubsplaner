@@ -82,7 +82,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .today .big.dark{color:#16222B}
 .today .t1{font:700 30px/1 var(--f-display);text-transform:uppercase}
 .today .live{font-weight:700;font-size:14px;margin-top:4px;color:var(--soft)}.today .live.run{color:var(--ok)}
-.stat b{white-space:nowrap}.stats3 .stat b{font-size:clamp(22px,7vw,30px)}
+.stat b{white-space:nowrap}.stats3 .stat{min-width:0}.stats3 .stat b{font-size:clamp(17px,5.2vw,30px)}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .week button{border:1px solid var(--rule);background:var(--card);border-radius:8px;padding:6px 2px;display:grid;justify-items:center;gap:4px;font-size:12px;color:var(--soft)}
 .week button.now{border-color:var(--ink)}
@@ -120,6 +120,8 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .day .ovr{position:absolute;top:3px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--ink)}
 .day .both{position:absolute;top:1px;right:3px;font-style:normal;font-size:11px;line-height:1;color:var(--bad)}
 .day .nt{position:absolute;top:3px;left:4px;width:6px;height:6px;border-radius:1px;background:var(--focus)}
+.day .swp{position:absolute;top:1px;left:3px;font-style:normal;font-size:11px;line-height:1;font-weight:800;color:var(--focus)}.day.vday .swp{color:#fff}
+.day .nt+.swp{left:12px}
 .day .hn{font-size:9px;line-height:1.1;color:var(--hol);font-weight:700;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px;color:var(--soft)}
 .legend span{display:inline-flex;gap:6px;align-items:center}
@@ -700,13 +702,13 @@ function monthSummary(){ const first=curY+"-"+pad(curM+1)+"-01";
   const lg=el("div","legend"); for(const [k,n] of used){ const sp=el("span"); sp.append(chip(k==="-"?null:typeOf(k)), document.createTextNode((k==="-"?"Frei":typeOf(k).name)+" "+n+"×")); lg.append(sp); }
   const fm=[...new Set(FERIEN.filter(f=>S.land==="NW"&&S.showFerien!==false&&f[0]<=first.slice(0,7)+"-31"&&f[1]>=first).map(f=>f[2]+" "+fmtS(f[0])+"–"+fmtS(f[1])))];
   if(fm.length){ const sp=el("span"); sp.append(el("i","lfer"),document.createTextNode("Schulferien NRW: "+fm.join(", "))); lg.append(sp); }
-  const sum=el("div","card"); sum.id="ksum"; const sb=el("button","btn ghost","Statistik ansehen ›"); sb.type="button"; sb.onclick=()=>{ statY=curY; statM=curM; show("stat"); }; const pb=el("button","btn ghost","♥ Gemeinsam frei"+(partners().length?" ("+partners().map(x=>x.name).join(", ")+")":"")); pb.type="button"; pb.onclick=openPartners; const br=el("div","row"); br.append(sb,pb); sum.append(el("h3",null,"Dieser Monat · "+hStr(mins)+" Arbeitszeit"), lg, br); return sum; }
+  const sum=el("div","card"); sum.id="ksum"; const sb=el("button","btn ghost","Statistik ansehen ›"); sb.type="button"; sb.onclick=()=>{ statY=curY; statM=curM; show("stat"); }; const pb=el("button","btn ghost","♥ Gemeinsam frei"+(partners().length?" ("+partners().map(x=>x.name).join(", ")+")":"")); pb.type="button"; pb.onclick=openPartners; const br=el("div","row"); br.append(sb,pb); { const open=swaps().filter(x=>!x.done).length; if(swaps().length){ const sw=el("button","btn ghost","⇄ Tausch"+(open?" ("+open+" offen)":"")); sw.type="button"; sw.id="swaplist"; sw.onclick=openSwaps; br.append(sw); } } sum.append(el("h3",null,"Dieser Monat · "+hStr(mins)+" Arbeitszeit"), lg, br); return sum; }
 function dayKind(s){ const x=shiftOf(s); if(x&&x.kind==="vac") return "v"; if(!x||x.kind==="free") return "f"; return null; }
 const vacColor=()=>(vacType()||{color:"#2E8B57"}).color;
 function markDay(c,s){ c.classList.remove("vday","fday"); const k=dayKind(s); if(k==="v"){ c.classList.add("vday"); c.style.setProperty("--vbg",vacColor()); } else if(k==="f") c.classList.add("fday"); }
 function fillCell(c,s){ markDay(c,s); c.innerHTML=""; const d=parse(s), x=shiftOf(s), hn=holName(s);
   c.append(el("span","dn",String(d.getDate()))); c.append(chip(x)); if(x && x.kind==="work" && x.start) c.append(el("span","tm",x.start)); else if(hn) c.append(el("span","hn",hn));
-  if(Object.prototype.hasOwnProperty.call(S.ov,s) && (S.rots||[]).length) c.append(el("i","ovr")); if(S.notes[s]) c.append(el("i","nt")); const fr=ferien(s); if(fr){ c.append(el("i","fer")); c.title=fr[2]; } if(bothFree(s)) c.append(el("i","both","♥"));
+  if(Object.prototype.hasOwnProperty.call(S.ov,s) && (S.rots||[]).length) c.append(el("i","ovr")); if(S.notes[s]) c.append(el("i","nt")); if(S.swaps&&S.swaps.length&&swapsAt(s).length){ const sw=el("i","swp","⇄"); c.append(sw); } const fr=ferien(s); if(fr){ c.append(el("i","fer")); c.title=fr[2]; } if(bothFree(s)) c.append(el("i","both","♥"));
   c.setAttribute("aria-label",fmt(s)+": "+(x?x.name:"frei")+(hn?", "+hn:"")); }
 let brush=null; const undoStack=[];
 function wireGrid(g){
@@ -791,11 +793,32 @@ function openDay(s){
     if(isOv){ const r=el("button","btn","Zurück auf Rhythmus"); r.type="button"; r.onclick=()=>{ delete S.ov[s]; save(); openDay(s); }; p.append(r); }
     const lb=el("label","f","Notiz"); const ta=el("textarea"); ta.id="note-"+s; ta.style.fontFamily="var(--f-body)"; ta.style.fontSize="15px"; ta.value=S.notes[s]||""; ta.placeholder="z. B. getauscht mit Jonas, Arzttermin …";
     ta.oninput=()=>{ const v=ta.value.trim(); if(v) S.notes[s]=v; else delete S.notes[s]; save(); }; lb.append(ta); p.append(lb);
+    p.append(swapBox(s));
     const row=el("div","row"); const pv=el("button","btn","‹ Vortag"), nx=el("button","btn","Nächster Tag ›"); pv.type=nx.type="button"; pv.onclick=()=>openDay(addD(s,-1)); nx.onclick=()=>openDay(addD(s,1));
     const ok=el("button","btn pri grow","Fertig"); ok.type="button"; ok.onclick=closeSheet; row.append(pv,nx,ok); p.append(row);
   });
 }
 
+/* ---------- Schichttausch vermerken ---------- */
+function swaps(){ if(!Array.isArray(S.swaps)) S.swaps=[]; return S.swaps; }
+const swapsAt=s=>swaps().filter(x=>x.d===s||x.o===s);
+function swapLine(x,s){ return "Getauscht mit "+x.w+(x.o?(s===x.o?" · Gegentag für "+fmtS(x.d):" · Gegentag "+fmtS(x.o)):"")+(x.done?" · erledigt":" · offen"); }
+function swapBox(s){ const box=el("div","card sec swapbox"); box.id="swapbox"; box.append(el("h3",null,"⇄ Schichttausch"));
+  const L=swapsAt(s);
+  L.forEach(x=>{ const r=el("div","trow"); r.append(el("span","grow",swapLine(x,s))); const d=el("button","btn",x.done?"Wieder offen":"✓ Erledigt"); d.type="button"; d.onclick=()=>{ x.done=!x.done; save(); openDay(s); };
+    const del=el("button","icon-btn","🗑"); del.type="button"; del.setAttribute("aria-label","Tausch löschen"); del.onclick=()=>{ const old=swaps().slice(); S.swaps=swaps().filter(y=>y!==x); save(); openDay(s); toast("Tausch gelöscht","Rückgängig",()=>{ S.swaps=old; save(); openDay(s); }); }; r.append(d,del); box.append(r); });
+  if(L.some(x=>x.d===s)) return box;
+  const add=el("button","btn","⇄ Getauscht mit …"); add.type="button"; add.id="swapadd"; box.append(add, el("p","hint","Trag oben die neue Schicht ein und merk dir hier, mit wem du getauscht hast – so vergisst du keinen Gegendienst."));
+  add.onclick=()=>{ add.remove(); const f=el("div","sec"); const ln=el("label","f","Name des Kollegen"), iw=el("input"); iw.type="text"; iw.id="swapwho"; iw.maxLength=40; iw.placeholder="z. B. Jonas";
+    const names=[...new Set(swaps().map(x=>x.w))]; if(names.length){ const dl=el("datalist"); dl.id="swapnames"; names.forEach(n=>{ const o=el("option"); o.value=n; dl.append(o); }); iw.setAttribute("list","swapnames"); ln.append(dl); } ln.append(iw);
+    const lo=el("label","f","Gegentag (optional) – an dem Tag übernimmst du / er"), io=el("input"); io.type="date"; io.id="swapother"; lo.append(io);
+    const ok=el("button","btn pri","Tausch speichern"); ok.type="button"; ok.id="swapsave"; ok.onclick=()=>{ const w=iw.value.trim().slice(0,40); if(!w){ iw.focus(); toast("Bitte einen Namen eintragen."); return; } swaps().push({id:uid(),d:s,w,o:io.value&&io.value!==s?io.value:null,done:false}); save(); openDay(s); toast("Tausch mit "+w+" vermerkt"); };
+    f.append(ln,lo,ok); box.append(f); iw.focus(); };
+  return box; }
+function openSwaps(){ openSheet(p=>{ sheetTop(p,"⇄ Schichttausch"); p.dataset.sheet="swaps"; const L=swaps().slice().sort((x,y)=>x.d<y.d?-1:1);
+  p.append(el("p","hint","Alle Tausche, die du vermerkt hast. Tippe einen an, um den Tag zu öffnen. Neuer Tausch: im Schichtplan auf den Tag tippen → „Getauscht mit …“."));
+  const sec=(t,arr)=>{ p.append(el("h3",null,t+" ("+arr.length+")")); if(!arr.length) p.append(el("p","muted","Keine.")); arr.forEach(x=>{ const r=el("button","vrow"); r.type="button"; const tx=el("div","grow"); tx.append(el("b",null,dShort(x.d)+x.d.slice(0,4)+" · "+x.w), el("small",null,(x.o?"Gegentag "+dShort(x.o)+x.o.slice(0,4):"ohne Gegentag")+((S.notes[x.d])?" · "+S.notes[x.d]:""))); r.append(el("span","nxi","⇄"),tx,el("span","muted",x.done?"✓":"offen")); r.onclick=()=>openDay(x.d); p.append(r); }); };
+  sec("Offen",L.filter(x=>!x.done)); sec("Erledigt",L.filter(x=>x.done)); }); }
 /* ---------- Urlaub eintragen ---------- */
 $("#fab").onclick=()=>openVac();
 function openVac(){
@@ -822,8 +845,15 @@ function openVac(){
 }
 
 /* ---------- Statistik ---------- */
+/* Zeitraum für die Statistik: Kalendermonat, Abrechnungszeitraum (z. B. 16.–15.) oder frei von–bis */
+let statMode=null, statA=null, statFrom=null, statTo=null;
+const payDay=()=>Math.max(1,Math.min(28,+S.payDay||1));
+function payPeriod(anchor){ const d=parse(anchor), pd=payDay(); let y=d.getFullYear(), m=d.getMonth(); if(d.getDate()<pd){ if(--m<0){ m=11; y--; } } const a=y+"-"+pad(m+1)+"-"+pad(pd); let m2=m+1, y2=y; if(m2>11){ m2=0; y2++; } return [a,addD(y2+"-"+pad(m2+1)+"-"+pad(pd),-1)]; }
 function renderStat(){
   const box=$("#v-stat"); box.innerHTML="";
+  if(statMode==null) statMode=["monat","abr","frei"].includes(S.statMode)?S.statMode:"monat";
+  const seg=el("div","seg full3"); seg.id="statmode"; [["monat","Monat"],["abr","Abrechnung"],["frei","Von – Bis"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(statMode===k)); b.onclick=()=>{ statMode=k; S.statMode=k; histMute=true; save(); histMute=false; renderStat(); }; seg.append(b); }); box.append(seg);
+  if(statMode!=="monat") return renderRange(box);
   const h=el("div","mhead"); const p=el("button","icon-btn","‹"), n=el("button","icon-btn","›"); p.type=n.type="button"; p.setAttribute("aria-label","Vorheriger Monat"); n.setAttribute("aria-label","Nächster Monat");
   p.onclick=()=>{ if(--statM<0){statM=11;statY--;} renderStat(); }; n.onclick=()=>{ if(++statM>11){statM=0;statY++;} renderStat(); };
   h.append(p,el("h2",null,MON[statM]+" "+statY),n); box.append(h);
@@ -858,6 +888,28 @@ function renderStat(){
   const vc=el("div","card stats3"); [[String(used)+" / "+tot,"Urlaub verplant"],[String(tot-used),"Urlaub übrig"],[String(sick),"Krankheitstage"]].forEach(([a,b])=>{ const d=el("div","stat"); d.append(el("b","num",a),el("span",null,b+" "+statY)); vc.append(d); }); box.append(vc);
 }
 
+function renderRange(box){ let a,e;
+  if(statMode==="abr"){ if(!statA) statA=payPeriod(TODAY())[0]; [a,e]=payPeriod(statA);
+    const h=el("div","mhead"); const p=el("button","icon-btn","‹"), n=el("button","icon-btn","›"); p.type=n.type="button"; p.setAttribute("aria-label","Vorheriger Zeitraum"); n.setAttribute("aria-label","Nächster Zeitraum");
+    p.onclick=()=>{ statA=payPeriod(addD(a,-1))[0]; renderStat(); }; n.onclick=()=>{ statA=addD(e,1); renderStat(); }; const t=el("h2",null,fmtS(a)+" – "+fmtS(e)+e.slice(0,4)); t.id="rangetitle"; h.append(p,t,n); box.append(h);
+    const l=el("label","f","Abrechnung beginnt am … des Monats"), i=el("input"); i.type="number"; i.id="payday"; i.min="1"; i.max="28"; i.inputMode="numeric"; i.value=payDay(); i.onchange=()=>{ S.payDay=Math.max(1,Math.min(28,Math.round(+i.value)||1)); save(); statA=payPeriod(TODAY())[0]; renderStat(); }; l.append(i); box.append(l, el("p","hint","Viele Firmen rechnen z. B. vom 16. bis zum 15. des Folgemonats ab. Steht hier 1, ist es der normale Kalendermonat.")); }
+  else { if(!statFrom){ statFrom=TODAY().slice(0,8)+"01"; statTo=TODAY(); } a=statFrom; e=statTo<statFrom?statFrom:statTo;
+    const two=el("div","two"); const la=el("label","f","Von"), lb=el("label","f","Bis"), ia=el("input"), ib=el("input"); ia.type=ib.type="date"; ia.id="st_from"; ib.id="st_to"; ia.value=a; ib.value=e;
+    ia.onchange=()=>{ if(ia.value){ statFrom=ia.value; if(statTo<statFrom) statTo=statFrom; } renderStat(); }; ib.onchange=()=>{ if(ib.value) statTo=ib.value; if(statTo<statFrom){ const t=statFrom; statFrom=statTo; statTo=t; } renderStat(); };
+    la.append(ia); lb.append(ib); two.append(la,lb); box.append(two); if(diffD(a,e)>800){ box.append(el("p","muted","Bitte höchstens etwa 2 Jahre wählen.")); return; } }
+  const o=rangeWork(a,e), days=diffD(a,e)+1;
+  const s3=el("div","card stats3"); s3.id="rangestats"; [[hStr(o.min),"Arbeitszeit ("+o.shifts+" Schichten)"],[String(o.we),"Wochenend-Dienste"],[String(o.hd),"Feiertags-Dienste"]].forEach(([x,y])=>{ const d=el("div","stat"); d.append(el("b","num",x),el("span",null,y)); s3.append(d); }); box.append(s3);
+  const tc=el("div","card"); tc.append(el("h3",null,"Schichten "+fmtS(a)+" – "+fmtS(e)+" ("+days+" Tage)")); const tb=el("table","tbl"); tb.innerHTML="<thead><tr><th>Schicht</th><th class='r'>Tage</th><th class='r'>Stunden</th></tr></thead>"; const bd=el("tbody");
+  [...S.types.map(t=>t.id),"-"].forEach(k=>{ const c=o.cnt.get(k); if(!c) return; const t=k==="-"?null:typeOf(k); const tr=el("tr"); const td=el("td"); const r=el("span","row"); r.append(chip(t),document.createTextNode(t?t.name:"Frei")); td.append(r); tr.append(td,el("td","r",String(c)),el("td","r",t&&t.kind==="work"?hStr(minutes(t)*c):"–")); bd.append(tr); });
+  tb.append(bd); tc.append(tb); box.append(tc);
+  const pc=el("div","card sec"); pc.id="rangepay"; pc.append(el("h3",null,"Verdienst im Zeitraum (brutto, geschätzt)"));
+  if(payCfg().rate>0){ const P=rangePay(a,e), t2=el("table","tbl"), tb2=el("tbody"); const row=(x,y)=>{ const tr=el("tr"); tr.append(el("td",null,x),el("td","r",y)); tb2.append(tr); };
+    row("Grundlohn ("+hStr(P.o.min)+")",eur(P.base)); if(P.o.vac+P.o.sick) row("Urlaub/Krank ("+(P.o.vac+P.o.sick)+" Tage)",eur(P.absent)); if(P.night) row("Nachtzuschlag ("+hStr(P.o.night)+")",eur(P.night)); if(P.sun) row("Sonntagszuschlag ("+hStr(P.o.sun)+")",eur(P.sun)); if(P.hol) row("Feiertagszuschlag ("+hStr(P.o.hol)+")",eur(P.hol));
+    const tf=el("tr"); tf.append(el("th",null,"Summe"),el("th","r",eur(P.sum))); tb2.append(tf); t2.append(tb2); pc.append(t2, el("p","hint","Nachtschichten zählen zu dem Tag, an dem sie beginnen. Ohne Steuern und Abzüge.")); }
+  else pc.append(el("p","muted","Trag deinen Stundenlohn ein, dann siehst du hier den Verdienst für genau diesen Zeitraum."));
+  const pe=el("button","btn","Lohn & Zuschläge einstellen"); pe.type="button"; pe.onclick=()=>openPaySettings(); pc.append(pe); box.append(pc);
+  if(+S.soll>0){ const so=rangeSoll(a,e), is=rangeIst(a,e), ac=el("div","card stats3"); [[hStr(so),"Soll im Zeitraum"],[hStr(is),"Ist (mit Urlaub/Krank)"],[hSigned(is-so),is>=so?"Überstunden":"Minusstunden"]].forEach(([x,y])=>{ const d=el("div","stat"); d.append(el("b","num",x),el("span",null,y)); ac.append(d); }); box.append(ac); }
+}
 /* ---------- Einstellungen ---------- */
 const PRESETS=[
   ["2-2-2 + 4 frei",["F","F","S","S","N","N",null,null,null,null]],
@@ -1185,14 +1237,20 @@ function shiftSplit(s,x){ const r={min:0,night:0,sun:0,hol:0}; if(!x||x.kind!=="
   let n=0,su=0,ho=0; const s2=addD(s,1), sunA=parse(s).getDay()===0, sunB=parse(s2).getDay()===0, holA=!!holName(s), holB=!!holName(s2);
   for(let m=a*60+b, i=0; i<len; i++, m++){ const nextDay=m>=1440, mm=m%1440, h=Math.floor(mm/60); if(h>=20||h<6) n++; const isH=nextDay?holB:holA; if(isH) ho++; else if(nextDay?sunB:sunA) su++; }
   r.min=paid; r.night=Math.round(n*f); r.sun=Math.round(su*f); r.hol=Math.round(ho*f); return r; }
-function monthWork(y,m){ const o={min:0,night:0,sun:0,hol:0,vac:0,sick:0,shifts:0}; for(let s=y+"-"+pad(m+1)+"-01"; +s.slice(5,7)===m+1; s=addD(s,1)){ const x=shiftOf(s); if(!x) continue;
-    if(x.kind==="vac") o.vac++; else if(x.kind==="sick") o.sick++; else if(x.kind==="work"){ const r=shiftSplit(s,x); o.min+=r.min; o.night+=r.night; o.sun+=r.sun; o.hol+=r.hol; o.shifts++; } } return o; }
+const mLast=(y,m)=>y+"-"+pad(m+1)+"-"+pad(new Date(y,m+1,0).getDate());
+function monthWork(y,m){ return rangeWork(y+"-"+pad(m+1)+"-01",mLast(y,m)); }
+/* Arbeitszeit, Zuschläge, Urlaub/Krank für einen beliebigen Zeitraum (z. B. Abrechnung 16.–15.) */
+function rangeWork(a,e){ const o={min:0,night:0,sun:0,hol:0,vac:0,sick:0,shifts:0,we:0,hd:0,cnt:new Map()}; for(let s=a; s<=e; s=addD(s,1)){ const x=shiftOf(s); const k=x?x.id:"-"; o.cnt.set(k,(o.cnt.get(k)||0)+1); if(!x) continue;
+    if(x.kind==="vac") o.vac++; else if(x.kind==="sick") o.sick++; else if(x.kind==="work"){ const r=shiftSplit(s,x); o.min+=r.min; o.night+=r.night; o.sun+=r.sun; o.hol+=r.hol; o.shifts++; if(r.min){ const w=parse(s).getDay(); if(w===0||w===6) o.we++; if(holName(s)) o.hd++; } } } return o; }
 /* Stunden, die für einen Urlaubs-/Krankheitstag gutgeschrieben werden */
 function creditMin(o){ if(+S.soll>0) return Math.round(+S.soll*60/5); return o.shifts?Math.round(o.min/o.shifts):0; }
-function monthPay(y,m){ const c=payCfg(), o=monthWork(y,m), cr=creditMin(o), h=v=>v/60;
+function monthPay(y,m){ return rangePay(y+"-"+pad(m+1)+"-01",mLast(y,m)); }
+function rangePay(a,e){ const c=payCfg(), o=rangeWork(a,e), cr=creditMin(o), h=v=>v/60;
   const base=h(o.min)*c.rate, absent=h((o.vac+o.sick)*cr)*c.rate, night=h(o.night)*c.rate*c.night/100, hol=h(o.hol)*c.rate*c.hol/100, sun=h(o.sun)*c.rate*c.sun/100;
   return {o,base,absent,night,sun,hol,sum:base+absent+night+sun+hol}; }
 function monthSoll(y,m){ const days=new Date(y,m+1,0).getDate(); return Math.round((+S.soll||0)*60/7*days); }
+function rangeSoll(a,e){ return Math.round((+S.soll||0)*60/7*(diffD(a,e)+1)); }
+function rangeIst(a,e){ const o=rangeWork(a,e); return o.min+(o.vac+o.sick)*creditMin(o)+Math.round(o.hol*(+S.holCredit||0)/100); }
 function monthIst(y,m){ const o=monthWork(y,m); return o.min+(o.vac+o.sick)*creditMin(o)+Math.round(o.hol*(+S.holCredit||0)/100); }
 const eur=v=>v.toLocaleString("de-DE",{style:"currency",currency:"EUR"});
 const hSigned=m=>(m<0?"− ":"+ ")+hStr(Math.abs(m));
