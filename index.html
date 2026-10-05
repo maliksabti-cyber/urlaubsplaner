@@ -473,7 +473,8 @@ button,a,.day,.mc,.ypc{touch-action:manipulation}
 /* iPhone zoomt bei Feldern unter 16px automatisch hinein – deshalb 16px */
 input,select,textarea{font-size:16px!important}
 input[type=date]{min-height:44px;-webkit-appearance:none;appearance:none;background:var(--card)}
-.quick{grid-template-columns:repeat(3,minmax(0,1fr))}
+.quick{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ypmode{align-self:center;font:800 16px/1.2 var(--f-body);padding:6px 14px;border-radius:99px;color:#fff}.ypmode.va{background:#2E9E5B}.ypmode.sh{background:#1C6DD0}
 .qbtn{min-height:88px;font-size:13px}
 .bar .icon-btn,.bar .hb{width:44px;height:44px}
 .btn{min-height:44px}
@@ -750,7 +751,7 @@ function renderHeute(){
   if(ns) c.append(el("div","nextline",(sh&&sh.kind==="work"?"Nächste Schicht danach: ":"Nächste Schicht: ")+(ns[0]===t?"heute":ns[0]===addD(t,1)?"morgen":fmt(ns[0]))+" · "+ns[1].name+(ns[1].start?" ab "+ns[1].start+" Uhr":"")));
   box.append(c);
   // 2) Schnellknöpfe
-  const qa=el("div","quick"); [["📅","Urlaub eintragen",()=>openYearPlanner()],["↻","Rhythmus & Schichten",()=>openRhythm()],["⇪","Teilen (PDF)",()=>openShare()]].forEach(([i,l,fn])=>{ const b=el("button","qbtn"); b.type="button"; b.append(el("span","qi",i),el("span",null,l)); b.onclick=fn; qa.append(b); }); box.append(qa);
+  const qa=el("div","quick"); [["☀","Urlaub eintragen",()=>openYearPlanner()],["✎","Schichten eintragen",()=>openYearPlanner(null,"shift")],["↻","Mein Rhythmus",()=>openRhythm()],["⇪","Teilen (PDF)",()=>openShare()]].forEach(([i,l,fn])=>{ const b=el("button","qbtn"); b.type="button"; b.append(el("span","qi",i),el("span",null,l)); b.onclick=fn; qa.append(b); }); box.append(qa);
   // 3) Lotse / Neuigkeiten / Sicherung (immer nur eins)
   const gOn=activeGoal()?lotseCard(box):false;
   if(!activeGoal() && backupDue() && dlNs){ const b=el("div","banner"); const tx=el("span","grow"); tx.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(tx,go); box.append(b); }
@@ -784,7 +785,7 @@ function renderKal(){
   top.append(seg, el("span","grow"));
   box.append(top); const rb=el("button","btn red","↻ Mein Rhythmus & Schichten"); rb.type="button"; rb.id="rhythmbtn"; rb.onclick=()=>{ setSel(false); openRhythm(); }; box.append(rb);
   if(selMode){ const ms=el("button","btn","Fertig"); ms.id="paintbtn"; ms.type="button"; ms.onclick=()=>setSel(false); top.append(ms); }
-  const yb=el("button","btn pri ypopen","📅 Jahreskalender – mit dem Finger eintragen"); yb.type="button"; yb.onclick=()=>openYearPlanner(curY,"shift"); box.append(yb);
+  const yb=el("button","btn pri ypopen","✎ Schichten im Jahreskalender eintragen"); yb.type="button"; yb.onclick=()=>openYearPlanner(curY,"shift"); box.append(yb);
   if(kalMode==="jahr") return renderYear(box);
   renderMonths(box);
 }
@@ -1769,7 +1770,8 @@ function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*
   const pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Zurück"); nx.setAttribute("aria-label","Weiter");
   pv.onclick=()=>{ if(yp.h===1) yp.h=0; else { yp.y--; yp.h=1; } drawYP(); }; nx.onclick=()=>{ if(yp.h===0) yp.h=1; else { yp.y++; yp.h=0; } drawYP(); };
   top.append(pv, el("h2","grow",y+" · "+(yp.h?"Juli – Dezember":"Januar – Juni")), nx, x); ov.append(top);
-  const ms=el("div","seg ypseg"); [["vac","☀ Urlaub"],["shift","✎ Schicht"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.dataset.k=k; b.setAttribute("aria-pressed",String(yp.mode===k)); b.onclick=()=>{ yp.mode=k; yp.a=yp.e=null; yp.tapped=false; drawYP(); }; ms.append(b); }); ov.append(ms);
+  /* Urlaub und Schichten getrennt: oben steht deutlich, was man gerade einträgt */
+  ov.append(el("div","ypmode "+(yp.mode==="shift"?"sh":"va"),yp.mode==="shift"?"✎ Schichten eintragen":"☀ Urlaub eintragen"));
   if(yp.mode==="shift"){ const bt=S.types.filter(t=>t.kind!=="vac"); if(yp.brush==null || !(yp.brush==="reset"||bt.some(t=>t.id===yp.brush))) yp.brush=(bt.find(t=>t.kind==="work")||{}).id||"reset";
     const br=el("div","ypbrush"); bt.concat([{id:"reset"}]).forEach(t=>{ const b=el("button","ypb"); b.type="button"; b.dataset.id=t.id; b.setAttribute("aria-pressed",String(yp.brush===t.id));
       if(t.id==="reset"){ b.append(el("span","chip free","↻"), el("small",null,"Rhythmus")); } else b.append(chip(t), el("small",null,t.name)); b.onclick=()=>{ yp.brush=t.id; drawYP(); }; br.append(b); }); ov.append(br);
@@ -2703,7 +2705,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-11";
+const APP_VERSION="2026.10.05-12";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
