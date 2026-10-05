@@ -326,7 +326,16 @@ body:not(.painting) #selchips .bl{display:none}
 .onbtag{justify-self:start;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);border-radius:4px;padding:1px 6px}
 .onbopt.small{padding:8px 12px}
 /* Stift-Modus */
-.grid.paint{touch-action:none}
+.grid.paint{touch-action:pan-y}
+.day.blank{visibility:hidden;border:0}
+.kalnav{position:relative}.grid.dows{margin-bottom:-6px}
+.mscroll{position:relative;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding-bottom:8px}
+.mblock{padding-bottom:6px}.mblock .grid{gap:4px}
+.mlab{position:sticky;top:0;z-index:3;background:var(--paper);box-shadow:0 -6px 0 var(--paper);margin:0;padding:8px 2px 6px;font:700 17px/1.1 var(--f-display);letter-spacing:.04em;color:var(--ink)}
+.vmonth{display:grid;gap:6px;margin-top:6px}.vmlab{margin:6px 0 0;font:700 17px/1.1 var(--f-display);text-transform:uppercase;letter-spacing:.04em}
+.vmonths .mc{border:0;font:inherit;color:inherit;cursor:pointer}.vmonths .mc.vd{background:var(--free-bg);box-shadow:inset 0 0 0 2px var(--ok)}
+.kaltodayw{display:flex;justify-content:center}.kaltodayw:empty{display:none}.kaltodayw .btn{padding:5px 12px}
+#rhythmbtn{justify-self:start}body.painting #rhythmbtn{display:none}#v-kal{gap:10px}
 .grid.paint .day{cursor:crosshair}
 .day.painted{transform:scale(.93)}
 @media (prefers-reduced-motion:no-preference){ .day{transition:transform .12s} }
@@ -675,28 +684,55 @@ function renderKal(){
   const top=el("div","row"); const seg=el("div","seg");
   [["monat","Monat"],["jahr","Jahr"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(kalMode===k)); b.onclick=()=>{ kalMode=k; setSel(false); renderKal(); }; seg.append(b); });
   top.append(seg, el("span","grow"));
-  if(kalMode==="monat"){ const ms=el("button","btn"+(selMode?"":" pri"),selMode?"Fertig":"✎ Schichten eintragen"); ms.id="paintbtn"; ms.type="button"; ms.onclick=()=>setSel(!selMode); const rb=el("button","btn red","↻ Mein Rhythmus bearbeiten"); rb.type="button"; rb.onclick=()=>{ setSel(false); tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }; top.append(rb,ms); }
-  box.append(top);
+  if(kalMode==="monat"){ const ms=el("button","btn"+(selMode?"":" pri"),selMode?"Fertig":"✎ Schichten eintragen"); ms.id="paintbtn"; ms.type="button"; ms.onclick=()=>setSel(!selMode); const rb=el("button","btn red","↻ Mein Rhythmus bearbeiten"); rb.type="button"; rb.id="rhythmbtn"; rb.onclick=()=>{ setSel(false); tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }; top.append(ms); box.append(top); top.after(rb); }
+  else box.append(top);
   if(kalMode==="jahr") return renderYear(box);
-  const h=el("div","mhead"); const p=el("button","icon-btn","‹"), n=el("button","icon-btn","›"); p.type=n.type="button"; p.setAttribute("aria-label","Vorheriger Monat"); n.setAttribute("aria-label","Nächster Monat");
-  p.onclick=()=>{ if(--curM<0){curM=11;curY--;} renderKal(); }; n.onclick=()=>{ if(++curM>11){curM=0;curY++;} renderKal(); };
-  const tt=el("h2",null,MON[curM]+" "+curY); tt.onclick=()=>{ curY=new Date().getFullYear(); curM=new Date().getMonth(); renderKal(); };
-  h.append(p,tt,n); box.append(h);
-  if(curY!==new Date().getFullYear()||curM!==new Date().getMonth()){ const tb=el("button","btn ghost small","↩ Zurück zu heute"); tb.type="button"; tb.id="kaltoday"; tb.style.justifySelf="center"; tb.onclick=()=>{ curY=new Date().getFullYear(); curM=new Date().getMonth(); renderKal(); }; box.append(tb); }
-  const g=el("div","grid"); ["Mo","Di","Mi","Do","Fr","Sa","So"].forEach(d=>g.append(el("div","dow",d)));
-  const first=curY+"-"+pad(curM+1)+"-01"; let s=first; while(parse(s).getDay()!==1) s=addD(s,-1);
-  const t=TODAY();
-  for(let i=0;i<42;i++){
-    const d=parse(s); if(i===35 && d.getMonth()!==curM) break;
-    const c=el("button","day"); c.type="button"; c.dataset.s=s;
-    if(d.getMonth()!==curM) c.classList.add("out"); if(d.getDay()===0||d.getDay()===6) c.classList.add("we"); if(s===t) c.classList.add("now");
-    if(holName(s)) c.classList.add("hol"); fillCell(c,s);
-    g.append(c); s=addD(s,1);
-  }
-  if(selMode) g.classList.add("paint"); box.append(g); wireGrid(g);
-  box.append(monthSummary());
-  box.append(el("p","hint", selMode ? "Wähle rechts eine Schicht und tippe oder wische über die Tage. Nochmal auf dieselbe Schicht tippen macht den Tag wieder frei." : "Tag antippen = Details & Notiz. Mit „✎ Schichten eintragen“ malst du deinen Plan selbst – wie im Dienstplan."));
+  renderMonths(box);
 }
+/* ---------- Monate untereinander (durchgehend scrollbar wie ein Handy-Kalender) ----------
+   Die Monate liegen in einem eigenen Scroll-Bereich (#mscroll). Oben steht immer der Monat, der gerade sichtbar ist.
+   Am Anfang/Ende werden je 3 Monate nachgeladen; höchstens KAL_MAX Monate gleichzeitig (für Tempo). */
+const KAL_MAX=15, KAL_STEP=3; const KAL={a:null,e:null,top:null,off:0,busy:false};
+const ymOf=(y,m)=>y*12+m, ymY=v=>Math.floor(v/12), ymM=v=>((v%12)+12)%12;
+function monthBlock(v){ const y=ymY(v), m=ymM(v), blk=el("section","mblock"); blk.dataset.ym=String(v); blk.id="mb-"+y+"-"+pad(m+1);
+  blk.append(el("h3","mlab",MON[m]+" "+y)); const g=el("div","grid"); if(selMode) g.classList.add("paint");
+  const first=y+"-"+pad(m+1)+"-01", t=TODAY(); for(let i=0;i<(parse(first).getDay()+6)%7;i++) g.append(el("div","day blank"));
+  for(let s=first; +s.slice(5,7)===m+1; s=addD(s,1)){ const d=parse(s), c=el("button","day"); c.type="button"; c.dataset.s=s; if(d.getDay()===0||d.getDay()===6) c.classList.add("we"); if(s===t) c.classList.add("now"); if(holName(s)) c.classList.add("hol"); fillCell(c,s); g.append(c); }
+  blk.append(g); return blk; }
+function kalFit(){ const sc=$("#mscroll"); if(!sc) return; const r=sc.getBoundingClientRect(), tabs=(document.querySelector("nav.tabs")||{offsetHeight:64}).offsetHeight, sb=selMode?($("#selbar").offsetHeight||70):0;
+  sc.style.height=Math.max(260, Math.round(window.innerHeight-(r.top+window.scrollY)-tabs-sb-48))+"px"; }
+function kalTopBlock(sc){ const st=sc.scrollTop+2; let best=null; for(const b of sc.children){ if(!b.dataset.ym) continue; if(b.offsetTop<=st) best=b; else break; } return best||sc.querySelector(".mblock"); }
+function renderMonths(box){
+  const nav=el("div","mhead kalnav"); const p=el("button","icon-btn","‹"), n=el("button","icon-btn","›"); p.type=n.type="button"; p.setAttribute("aria-label","Vorheriger Monat"); n.setAttribute("aria-label","Nächster Monat");
+  const tt=el("h2",null,MON[curM]+" "+curY); tt.id="kaltitle"; tt.onclick=()=>kalJump(ymOf(new Date().getFullYear(),new Date().getMonth()));
+  p.onclick=()=>kalJump(ymOf(curY,curM)-1); n.onclick=()=>kalJump(ymOf(curY,curM)+1); nav.append(p,tt,n);
+  const wk=el("div","grid dows"); ["Mo","Di","Mi","Do","Fr","Sa","So"].forEach(d=>wk.append(el("div","dow",d)));
+  const tw=el("div","kaltodayw"); tw.id="kaltodayw"; box.append(nav,tw,wk);
+  const sc=el("div","mscroll"); sc.id="mscroll"; box.append(sc);
+  const want=ymOf(curY,curM); const restore=KAL.top===want && KAL.a!=null && want>=KAL.a && want<=KAL.e;
+  if(!restore){ KAL.a=want-KAL_STEP; KAL.e=want+KAL_STEP; KAL.off=0; }
+  for(let v=KAL.a; v<=KAL.e; v++) sc.append(monthBlock(v));
+  wireGrid(sc);
+  box.append(monthSummary());
+  box.append(el("p","hint", selMode ? "Schicht rechts wählen, dann Tage antippen oder seitlich darüberwischen (danach auch schräg in die nächste Reihe). Hoch und runter wischen blättert durch die Monate. Nochmal dieselbe Schicht macht den Tag wieder frei." : "Tag antippen = Details & Notiz. Hoch und runter wischen zeigt weitere Monate. Mit „✎ Schichten eintragen“ malst du deinen Plan selbst – wie im Dienstplan."));
+  kalFit(); const blk=sc.querySelector('[data-ym="'+want+'"]'); if(blk) sc.scrollTop=blk.offsetTop+(restore?KAL.off:0);
+  KAL.top=want; kalNavUpd(sc,true);
+  sc.addEventListener("scroll",()=>kalOnScroll(sc),{passive:true}); }
+function kalNavUpd(sc,force){ const b=kalTopBlock(sc); if(!b) return; const v=+b.dataset.ym; KAL.off=sc.scrollTop-b.offsetTop; if(!force && v===KAL.top) return;
+  KAL.top=v; curY=ymY(v); curM=ymM(v); const tt=$("#kaltitle"); if(tt) tt.textContent=MON[curM]+" "+curY;
+  const w=$("#kaltodayw"); if(w){ w.innerHTML=""; if(v!==ymOf(new Date().getFullYear(),new Date().getMonth())){ const tb=el("button","btn ghost small","↩ Zurück zu heute"); tb.type="button"; tb.id="kaltoday"; tb.onclick=()=>kalJump(ymOf(new Date().getFullYear(),new Date().getMonth())); w.append(tb); } }
+  sumRefresh(); }
+function kalOnScroll(sc){ if(KAL.busy) return; KAL.busy=true;
+  try{ if(sc.scrollTop<300){ const h0=sc.scrollHeight; const frag=document.createDocumentFragment(); for(let v=KAL.a-KAL_STEP; v<KAL.a; v++) frag.append(monthBlock(v)); sc.prepend(frag); KAL.a-=KAL_STEP; sc.scrollTop+=sc.scrollHeight-h0;
+      while(KAL.e-KAL.a+1>KAL_MAX){ const l=sc.querySelector('[data-ym="'+KAL.e+'"]'); if(l) l.remove(); KAL.e--; } }
+    else if(sc.scrollHeight-sc.scrollTop-sc.clientHeight<300){ for(let v=KAL.e+1; v<=KAL.e+KAL_STEP; v++) sc.append(monthBlock(v)); KAL.e+=KAL_STEP;
+      while(KAL.e-KAL.a+1>KAL_MAX){ const f=sc.querySelector('[data-ym="'+KAL.a+'"]'); if(f){ const h=f.offsetHeight; f.remove(); sc.scrollTop-=h; } KAL.a++; } }
+    kalNavUpd(sc,false); } finally { KAL.busy=false; } }
+/* Zu einem Monat springen (‹ ›, „Zurück zu heute“, Wischen zur Seite) */
+function kalJump(v){ const sc=$("#mscroll"); if(!sc){ curY=ymY(v); curM=ymM(v); renderKal(); return; }
+  if(v<KAL.a||v>KAL.e){ curY=ymY(v); curM=ymM(v); KAL.top=null; renderKal(); return; }
+  const b=sc.querySelector('[data-ym="'+v+'"]'); sc.scrollTop=b.offsetTop; kalOnScroll(sc); const b2=sc.querySelector('[data-ym="'+v+'"]'); if(b2) sc.scrollTop=b2.offsetTop; kalNavUpd(sc,true); }
+window.addEventListener("resize",()=>{ if(view==="kal"&&kalMode==="monat") kalFit(); });
 function monthSummary(){ const first=curY+"-"+pad(curM+1)+"-01";
   const used=new Map(); let mins=0; for(let s2=first; s2.slice(0,7)===first.slice(0,7); s2=addD(s2,1)){ const x=shiftOf(s2); const k=x?x.id:"-"; used.set(k,(used.get(k)||0)+1); mins+=minutes(x); }
   const lg=el("div","legend"); for(const [k,n] of used){ const sp=el("span"); sp.append(chip(k==="-"?null:typeOf(k)), document.createTextNode((k==="-"?"Frei":typeOf(k).name)+" "+n+"×")); lg.append(sp); }
@@ -721,9 +757,15 @@ function wireGrid(g){
     else if(brush==="reset") delete S.ov[s];
     else { const target=erase?"":brush; if(baseId===target) delete S.ov[s]; else S.ov[s]=target; if(bt && bt.kind==="work" && vacAt(s)) conf.push(s); }
     fillCell(c,s); c.classList.add("painted"); setTimeout(()=>c.classList.remove("painted"),250); };
-  g.addEventListener("pointerdown",e=>{ const c=e.target.closest(".day"); if(!c) return; startX=e.clientX; startY=e.clientY; x0=e.clientX;
-    if(selMode && brush!=null){ e.preventDefault(); painting=true; snap={}; lastS=null; conf=[]; vb=vacSnap(); vOld=JSON.parse(JSON.stringify(vacList())); const cur=shiftOf(c.dataset.s); erase=brush!=="reset" && brush!=="" && !!cur && cur.id===brush; try{ g.setPointerCapture(e.pointerId); }catch(_){} paint(c); } });
-  g.addEventListener("pointermove",e=>{ if(painting){ e.preventDefault(); paint(cellAt(e.clientX,e.clientY)); } });
+  /* Malen und Scrollen vertragen sich (touch-action:pan-y): Antippen malt einen Tag. Seitlich wischen malt – danach auch
+     schräg weiter über mehrere Reihen. Senkrecht wischen scrollt die Monate. Mit der Maus wird sofort gemalt. */
+  let pend=null; const start=(c,e)=>{ painting=true; snap={}; lastS=null; conf=[]; vb=vacSnap(); vOld=JSON.parse(JSON.stringify(vacList())); const cur=shiftOf(c.dataset.s); erase=brush!=="reset" && brush!=="" && !!cur && cur.id===brush; try{ g.setPointerCapture(e.pointerId); }catch(_){} paint(c); };
+  const unpend=()=>{ pend=null; };
+  g.addEventListener("pointerdown",e=>{ const c=e.target.closest(".day"); if(!c||!c.dataset.s) return; startX=e.clientX; startY=e.clientY; x0=e.clientX;
+    if(selMode && brush!=null){ if(e.pointerType==="mouse"){ e.preventDefault(); start(c,e); return; }
+      unpend(); pend={c,x:e.clientX,y:e.clientY,t:0}; } });
+  g.addEventListener("pointermove",e=>{ if(painting){ e.preventDefault(); paint(cellAt(e.clientX,e.clientY)); return; }
+    if(pend){ const dx=e.clientX-pend.x, dy=e.clientY-pend.y; if(Math.abs(dx)>8 && Math.abs(dx)>=Math.abs(dy)){ const c=pend.c; unpend(); start(c,e); paint(cellAt(e.clientX,e.clientY)); } else if(Math.abs(dy)>8) unpend(); } });
   g.addEventListener("touchmove",e=>{ if(painting) e.preventDefault(); },{passive:false});
   const end=e=>{ if(painting){ painting=false; const sn=snap, cf=conf.slice(), before=vb, old=vOld; snap=null;
       if(sn && Object.keys(sn).length){ undoStack.push({ov:sn,vacs:old}); if(undoStack.length>50) undoStack.shift(); save(); updSel(); sumRefresh();
@@ -733,14 +775,15 @@ function wireGrid(g){
           {label:"Nein, Urlaub behalten",fn:()=>{ cf.forEach(k=>{ if(sn[k]===undefined) delete S.ov[k]; else S.ov[k]=sn[k]; }); save(); fin(); }}]);
         else if(Object.keys(before).length) fin(); }
       g.dataset.skip="1"; setTimeout(()=>delete g.dataset.skip,50); return; }
-    if(x0!=null && Math.abs(e.clientX-x0)>60 && Math.abs(e.clientY-startY)<40){ if(e.clientX<x0){ if(++curM>11){curM=0;curY++;} } else { if(--curM<0){curM=11;curY--;} } g.dataset.skip="1"; renderKal(); } x0=null; };
-  g.addEventListener("pointerup",end); g.addEventListener("pointercancel",e=>{ if(painting) end(e); });
+    if(pend){ const c=pend.c; unpend(); if(Math.abs(e.clientY-startY)<10 && Math.abs(e.clientX-startX)<10){ start(c,e); end(e); } return; }
+    if(!selMode && x0!=null && Math.abs(e.clientX-x0)>60 && Math.abs(e.clientY-startY)<40){ g.dataset.skip="1"; setTimeout(()=>delete g.dataset.skip,50); kalJump(ymOf(curY,curM)+(e.clientX<x0?1:-1)); } x0=null; };
+  g.addEventListener("pointerup",end); g.addEventListener("pointercancel",e=>{ unpend(); if(painting) end(e); });
   g.addEventListener("click",e=>{ const c=e.target.closest(".day"); if(!c || g.dataset.skip || selMode) return; openDay(c.dataset.s); });
   g.addEventListener("contextmenu",e=>e.preventDefault());
 }
 function sumRefresh(){ const box=$("#ksum"); if(box) box.replaceWith(monthSummary()); }
 function setSel(on){ selMode=on; $("#selbar").hidden=!on; $("#fab").hidden=on||!(view==="heute"||view==="kal"); document.body.classList.toggle("painting",on);
-  const g=document.querySelector("#v-kal .grid"); if(g) g.classList.toggle("paint",on);
+  document.querySelectorAll("#v-kal .mscroll .grid").forEach(g=>g.classList.toggle("paint",on)); setTimeout(kalFit,0);
   if(on){ if(brush==null){ const w=S.types.find(t=>t.kind==="work"); brush=w?w.id:""; } drawBrushes(); updSel(); }
   const btn=$("#paintbtn"); if(btn){ btn.textContent=on?"Fertig":"✎ Schichten eintragen"; btn.classList.toggle("pri",!on); } }
 function drawBrushes(){ const ch=$("#selchips"); ch.innerHTML="";
@@ -2176,6 +2219,11 @@ function renderUrlaub(){
   bl.forEach(b=>{ const it=el("button","vrow"); it.type="button"; const t=el("div","grow"); t.append(el("b",null,fmtS(b.a)+" – "+fmtS(b.e)+b.e.slice(0,4)), el("small",null,(diffD(b.a,b.e)+1)+" Kalendertage"+(ferien(b.a)?" · "+ferien(b.a)[2]:""))); const g=el("div","gain"); g.append(el("b","num",String(b.n)),el("small",null,b.n===1?"Urlaubstag":"Urlaubstage")); it.append(chip(vacType()),t,g); it.onclick=()=>openVacBlock(b); lc.append(it); });
   if(dlNs && vacList().some(v=>v.e>=TODAY())){ const ab=el("button","btn","📄 Urlaubsantrag für den Chef"); ab.type="button"; ab.id="antragmulti"; ab.style.marginTop="8px"; ab.onclick=openAntragPick; lc.append(ab); }
   box.append(lc);
+  { const ms=[]; for(let m=0;m<12;m++){ let has=false; for(let d=uY+"-"+pad(m+1)+"-01"; +d.slice(5,7)===m+1; d=addD(d,1)){ const x=shiftOf(d); if(x&&x.kind==="vac"){ has=true; break; } } if(has) ms.push(m); }
+    if(ms.length){ const vc=el("div","card sec vmonths"); vc.id="vmonths"; vc.append(el("h3",null,"Urlaub im Kalender "+uY), el("p","hint","Alle Monate mit Urlaub untereinander – einfach weiterscrollen. Tag antippen für Details."));
+      ms.forEach(m=>{ const b=el("div","vmonth"); b.dataset.m=String(m); b.append(el("h4","vmlab",MON[m]+" "+uY)); const g=el("div","mcal"); WDS.forEach(d=>g.append(el("span","dw",d))); const f=uY+"-"+pad(m+1)+"-01"; for(let i=0;i<(parse(f).getDay()+6)%7;i++) g.append(el("span"));
+        for(let d=f; +d.slice(5,7)===m+1; d=addD(d,1)){ const c=el("button","mc"), k=dayKind(d); c.type="button"; c.dataset.s=d; c.append(el("i",null,String(parse(d).getDate()))); c.append(chip(shiftOf(d))); if(k==="v") c.classList.add("vd"); if(holName(d)) c.classList.add("hol"); if(d===TODAY()) c.classList.add("first"); const sd=d; c.onclick=()=>openDay(sd); c.setAttribute("aria-label",fmt(d)); g.append(c); }
+        b.append(g); vc.append(b); }); box.append(vc); } }
   const sc=el("div","card"); sc.append(el("h3",null,"Teilen – mit Familie & Freunden"), el("p","hint","Tippe an, was du teilen willst – du siehst erst eine Vorschau."));
   const sr=el("div","sharegrid"); [["Monatsplan",()=>openSharePreview("month",curY,curM),MON[curM]+" "+curY],["Jahresplan",()=>openSharePreview("year",uY),"Schichten + Urlaub "+uY],["Urlaubsliste",()=>openSharePreview("list",uY),"alle Urlaube "+uY]].forEach(([t,fn,s])=>{ const b=el("button","sharebtn"); b.type="button"; b.append(el("b",null,t),el("small",null,s)); b.onclick=fn; sr.append(b); }); sc.append(sr); box.append(sc);
 }
