@@ -28,6 +28,8 @@ Leitfaden nach dem 6-Schritte-Plan zur App-Entwicklung. Jede Änderung wird gege
 - Unten 4 Tabs: **Heute · Schichtplan · Urlaub · Team**. Oben: ‹ Zurück, ↶ Rückgängig, ? Hilfe, ⚙ Einstellungen.
 - Hilfe „So geht's“ und Karte „Neu in der App“ (`NEWS_V`) werden bei neuen Funktionen ergänzt.
 - Startseite: Heute (mit Live-Zeile: läuft gerade / beginnt in / Feierabend) + 7 Tage → Schnellknöpfe → Lotse (Ziel → Schritte) → Urlaub → Als Nächstes.
+- Schichtplan „Monat“: Monate untereinander in einem eigenen Scroll-Bereich (wie ein Handy-Kalender). Beim Öffnen steht der aktuelle Monat oben, am Anfang/Ende werden je 3 Monate nachgeladen (höchstens 15 gleichzeitig). ‹ › und „↩ Zurück zu heute“ scrollen zum Monat; die Monatskarte darunter gilt für den oben sichtbaren Monat. Malen: Antippen oder seitlich wischen malt, senkrecht wischen scrollt (`touch-action:pan-y`).
+- Urlaub-Tab: Monate mit Urlaub untereinander als Kalender.
 - Jeder Knopf führt direkt zur Funktion; der Pfeil oben links führt zum vorherigen Fenster bzw. Schritt zurück.
 - Regeln: große, fette Überschriften; nur eine Hinweis-Karte zur Zeit; Wichtiges in Rot oder Orange.
 
