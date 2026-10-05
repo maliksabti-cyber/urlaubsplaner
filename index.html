@@ -1503,11 +1503,11 @@ const S_={ /* wiederverwendbare Schritte */
   fixed:{t:"Feste Termine eintragen",w:"Urlaub, der schon feststeht (gebucht, Hochzeit, Kita zu) – zuerst eintragen, dann wird drumherum geplant.",b:"Urlaub eintragen",opt:true,done:futVac,go:()=>openVac()},
   calc:{get t(){ return "Urlaub "+planYear()+" berechnen"; },w:"Tippe an, was dir wichtig ist (z. B. Sommerferien + Brückentage). Die App zeigt, wie du mit wenig Urlaubstagen am meisten frei hast.",b:"Urlaub berechnen",go:()=>{ agState.year=planYear(); openAgent(); }},
   enter:{t:"Vorschlag eintragen",w:"Im Urlaubsrechner unten auf „Eintragen“ tippen – oder Urlaub selbst eintragen.",b:"Urlaubsrechner öffnen",done:()=>{ const y=planYear(); return vacList().some(v=>v.a.slice(0,4)===String(y)||v.e.slice(0,4)===String(y)); },go:()=>{ agState.year=planYear(); openAgent(); }},
-  teamlogin:{t:"Im Team anmelden",w:"Mit deinem Konto vom Team-Urlaubsplaner – oder neues Konto erstellen.",b:"Zum Team",done:()=>!!ts,go:()=>{ closeSheet(); show("team"); }},
+  teamlogin:{t:"Im Team anmelden",w:"Mit deinem Team-Konto anmelden – oder neues Konto erstellen.",b:"Zum Team",done:()=>!!ts,go:()=>{ closeSheet(); show("team"); }},
   approved:{t:"Freigabe abwarten",w:"Dein Chef gibt dich frei. Danach siehst du den Urlaub der Kollegen. Ab und zu auf „Aktualisieren“ tippen.",b:"Team ansehen",done:()=>teamOn(),go:()=>{ closeSheet(); show("team"); if(ts) teamLoad(); }},
   teamlook:{t:"Wer ist wann weg?",w:"Schau unter „Demnächst im Urlaub“ und „Überschneidungen“, wann im Team schon viele fehlen.",b:"Team ansehen",go:()=>{ closeSheet(); show("team"); }},
   myvac:{t:"Deinen Urlaub eintragen",w:"Von–Bis wählen. Die App warnt, wenn dann zu viele gleichzeitig fehlen.",b:"Urlaub eintragen",done:futVac,go:()=>openVac()},
-  push:{t:"Ans Team senden",w:"Damit dein Urlaub auch im Team (und im Team-Urlaubsplaner) erscheint.",b:"Zum Team",done:()=>teamOn()&&futVac()&&!teamDiff().missing.length,go:()=>{ closeSheet(); show("team"); }},
+  push:{t:"Ans Team senden",w:"Damit dein Urlaub auch im Team erscheint.",b:"Zum Team",done:()=>teamOn()&&futVac()&&!teamDiff().missing.length,go:()=>{ closeSheet(); show("team"); }},
   request:{t:"Beim Chef beantragen",w:"Falls nötig: fertigen Urlaubsantrag als PDF erstellen – auch für mehrere Urlaube auf einmal – und ausdrucken oder schicken.",b:"Urlaubsantrag erstellen",opt:true,go:()=>openAntragPick()},
   paint:{t:"Einzelne Tage ändern",w:"Schicht getauscht oder Dienst geändert? Schicht wählen und auf den Tag tippen. Zum Löschen dieselbe Schicht nochmal antippen.",b:"Schichten eintragen",go:()=>{ closeSheet(); show("kal"); setSel(true); }},
   sick:{t:"Krank oder Sondertag eintragen",w:"Im Kalender auf den Tag tippen und „Krank“ (oder eine andere Schicht) wählen.",b:"Zum Kalender",opt:true,go:()=>{ closeSheet(); show("kal"); }},
@@ -1584,7 +1584,7 @@ const HELP=[
   ["⏱","Überstunden","Im selben Fenster deine Soll-Stunden pro Woche eintragen (z. B. 37,5). Die Statistik zeigt dann Über- oder Minusstunden.",()=>openPaySettings()],
   ["🔔","Erinnerung vor der Schicht","Zahnrad → „Sichern & Übertragen“: bei „Erinnerung“ z. B. „1 Stunde vorher“ wählen, dann „In den Handy-Kalender“ tippen und die Datei mit deinem Kalender öffnen. Der Kalender erinnert dich dann vor jeder Schicht.",()=>goSettings("remind")],
   ["♥","Gemeinsam frei","Schichtplan → „Gemeinsam frei“ → „Meinen Plan als Link schicken“, z. B. per WhatsApp an Partner oder Freunde. Wer den Link öffnet, sieht ♥ an den Tagen, an denen ihr beide frei habt.",()=>openPartners()],
-  ["👥","Team","Team-Tab: mit deinem Konto vom Team-Urlaubsplaner anmelden. Dort siehst du, wer wann Urlaub hat und ob zu viele gleichzeitig fehlen.",()=>{ closeSheet(); show("team"); }],
+  ["👥","Team","Team (unter „Mehr“): mit deinem Team-Konto anmelden. Dort siehst du, wer wann Urlaub hat und ob zu viele gleichzeitig fehlen.",()=>{ closeSheet(); show("team"); }],
   ["📄","Urlaubsantrag","Nach dem Eintragen in der Meldung auf „📄 Antrag“ tippen – oder im Urlaub-Tab „Urlaubsantrag für den Chef“ und die Urlaube auswählen. Du bekommst ein PDF zum Ausdrucken oder Schicken.",()=>openAntragPick()],
   ["⏳","Resturlaub & Verfall","Urlaub-Tab → „Urlaubstage einstellen“: Resturlaub übernehmen und einstellen, wann er verfällt (meist 31.3.). Urlaub im neuen Jahr wird zuerst vom Rest abgezogen; die App warnt rechtzeitig.",()=>openVacSettings(new Date().getFullYear())],
   ["⇄","Schichttausch","Im Schichtplan auf den Tag tippen, oben die neue Schicht wählen und unten „Getauscht mit …“ ausfüllen (Name, Gegentag). Unter Schichtplan → „⇄ Tausch“ siehst du offene und erledigte Tausche.",()=>{ swaps().length?openSwaps():goKal(); }],
@@ -2233,7 +2233,7 @@ function logout(){ clearTimeout(pushT); const done=()=>{ lsSet("su_sess",null); 
 async function deleteAccount(){ try{ const t=await token(); await cloudDelete(); await authCall("delete",{idToken:t}); lsSet(dataKey(),null); lsSet(dataKey()+"_dirty",null); lsSet("su_sess",null); sess=null; S=null; location.reload(); }
   catch(e){ toast(authMsg(e)); } }
 
-/* ===================== Team (gemeinsam mit dem Team-Urlaubsplaner, gleiche Firebase-Daten) ===================== */
+/* ===================== Team (Firebase) ===================== */
 const FSB=()=>"https://firestore.googleapis.com/v1/projects/"+CFG.projectId+"/databases/(default)/documents";
 const tKey=n=>String(n||"").trim().toLowerCase();
 function tSynthMail(name){ const s=tKey(name.replace(/\s+/g," ")).replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,".").replace(/^\.+|\.+$/g,"").slice(0,50); return (s||"nutzer")+"@ohne-mail.example.com"; }
@@ -2301,7 +2301,7 @@ function openInvite(){ const url=location.origin+location.pathname+"#team";
     const ta=el("textarea"); ta.id="invtext"; ta.readOnly=true; ta.value=txt; ta.hidden=true; p.append(g,ta); }); }
 function renderTeam(){
   const box=$("#v-team"); box.innerHTML="";
-  if(!ts){ const c=el("div","card sec"); c.append(el("h2",null,"Team"), el("p","hint","Seht gemeinsam, wer wann Urlaub hat, und vermeidet, dass zu viele gleichzeitig fehlen. Es ist dasselbe Team wie im Team-Urlaubsplaner: Wer dort schon ein Konto hat, meldet sich einfach an."));
+  if(!ts){ const c=el("div","card sec"); c.append(el("h2",null,"Team"), el("p","hint","Seht gemeinsam, wer wann Urlaub hat, und vermeidet, dass zu viele gleichzeitig fehlen. Wer schon ein Team-Konto hat, meldet sich einfach an."));
     const seg=el("div","seg full"); [["login","Anmelden"],["new","Konto erstellen"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-selected",String(team.mode===k)); b.onclick=()=>{ team.mode=k; team.msg=""; renderTeam(); }; seg.append(b); });
     const f=el("form"); f.style.display="grid"; f.style.gap="10px"; f.autocomplete="on";
     const fl=(lab,id,type,ph,ac)=>{ const l=el("label","f",lab), i=el("input"); i.type=type; i.id=id; i.placeholder=ph||""; if(ac) i.autocomplete=ac; l.append(i); f.append(l); return i; };
@@ -2589,7 +2589,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-2";
+const APP_VERSION="2026.10.05-3";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */

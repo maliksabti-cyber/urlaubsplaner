@@ -6,7 +6,7 @@ window.APP_CONFIG = {
   // false = Anmeldung mit E-Mail, Daten werden in Firebase gesichert
   //         (vorher die Regel „nutzer“ aus firestore.rules in Firebase veröffentlichen).
   localMode: true,
-  // Gleiches Firebase-Projekt wie der Team-Urlaubsplaner
+  // Firebase-Projekt für die Team-Funktion
   apiKey: "AIzaSyCbn7aw2BBkkL0kD9keFjeCvlBflVaKzPc",
   projectId: "urlaubsplanung-team-zfp",
   // Admin des Teams (gibt Kollegen frei, legt fest, wie viele gleichzeitig Urlaub haben dürfen)

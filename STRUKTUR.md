@@ -22,7 +22,7 @@ Leitfaden nach dem 6-Schritte-Plan zur App-Entwicklung. Jede Änderung wird gege
 | Partner-Pläne | `partners` (per Link erhalten) | für „Gemeinsam frei“ |
 | Lotse | `goal`, `gman`, `gopen` | Fortschritt der Schritte |
 
-**Team-Daten** (Firebase): `mitarbeiter` (Name, Freigabe, Grenze `maxWeg`) und `urlaube` (Name, Von, Bis). Diese Daten teilt die App mit dem Team-Urlaubsplaner.
+**Team-Daten** (Firebase): `mitarbeiter` (Name, Freigabe, Grenze `maxWeg`) und `urlaube` (Name, Von, Bis).
 
 ## 2. Oberfläche & Wege (Gesicht)
 - Unten 4 Tabs: **Heute · Schichtplan · Urlaub · Team**. Oben: ‹ Zurück, ↶ Rückgängig, ? Hilfe, ⚙ Einstellungen.
