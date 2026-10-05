@@ -123,6 +123,14 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .legend span{display:inline-flex;gap:6px;align-items:center}
 .legend .chip{height:20px;min-width:26px;font-size:13px}
 .hint{font-size:13px;color:var(--soft)}
+.todaycard{gap:12px}.nextline{font-weight:600;border-top:1px solid var(--rule);padding-top:10px}
+.vhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.vhead h3{margin:0}
+.vbig{font:700 30px/1 var(--f-display)}.small{font-size:13px}
+.vcard .row .btn{min-height:46px}
+.nxrow{display:flex;gap:12px;align-items:center;padding:6px 0;border-top:1px solid var(--rule)}.nxrow:first-of-type{border-top:0}
+.nxrow small{display:block;color:var(--soft);font-size:12px}.nxi{width:32px;height:32px;flex:none;border-radius:8px;background:var(--tint);display:grid;place-items:center}
+.guide h2{font-size:19px}.guide summary{font-size:14px}.guide .gnext small{font-size:13px}
+
 .vpick .mc{border:0;font:inherit;cursor:pointer;color:inherit}
 .vpick .mc.inrange{background:var(--free-bg);box-shadow:inset 0 0 0 2px var(--ok)}
 .vpick .mc.edge{background:var(--ok)}.vpick .mc.edge i{color:#fff;font-weight:800}
@@ -583,44 +591,45 @@ function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("d
 
 /* ---------- Heute ---------- */
 function renderHeute(){
-  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box); const gOn=lotseCard(box); if(!gOn) newsCard(box);
-  if(!gOn && backupDue() && dlNs){ const b=el("div","banner"); const t=el("span","grow"); t.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(t,go); box.append(b); }
+  const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box);
   const t=TODAY(), sh=shiftOf(t), hn=holName(t);
-  const c=el("div","card today");
-  const big=el("div","big"); if(sh){ big.style.background=sh.color; if(isDark(sh.color)) big.classList.add("dark"); big.textContent=sh.short; } else { big.classList.add("free"); big.textContent=(S.types.find(x=>x.kind==="free")||{}).short||"–"; } if(dayKind(t)==="v"&&(!sh||sh.kind!=="vac")){ big.classList.remove("free"); big.style.background=vacColor(); big.style.color="#fff"; big.style.border="0"; } else if(dayKind(t)==="f"){ big.style.background=""; big.classList.add("free"); }
+  // 1) Heute + nächste 7 Tage in einer Karte
+  const c=el("div","card sec todaycard"); const top=el("div","today");
+  const big=el("div","big"); if(sh){ big.style.background=sh.color; if(isDark(sh.color)) big.classList.add("dark"); big.textContent=sh.short; } else { big.classList.add("free"); big.textContent=(S.types.find(x=>x.kind==="free")||{}).short||"–"; } if(dayKind(t)==="f"){ big.style.background=""; big.classList.add("free"); }
   const info=el("div"); info.append(el("div","muted",fmt(t)+(hn?" · "+hn:"")), el("div","t1",sh?sh.name:"Frei"));
   if(sh && sh.kind==="work" && sh.start) info.append(el("div","mono muted",sh.start+" – "+sh.end+" · "+hStr(minutes(sh))));
   const nt=S.notes[t]; if(nt) info.append(el("div",null,"📝 "+nt));
-  c.append(big,info); c.onclick=()=>openDay(t); c.style.cursor="pointer"; box.append(c);
-  // Woche
-  const wk=el("div","card"); wk.append(el("h3",null,"Nächste 7 Tage")); const w=el("div","week");
-  for(let i=0;i<7;i++){ const s=addD(t,i), x=shiftOf(s), b=el("button"); b.type="button"; if(i===0) b.classList.add("now"); markDay(b,s); b.append(el("span",null,DOW[parse(s).getDay()]+" "+parse(s).getDate()), chip(x)); b.onclick=()=>openDay(s); w.append(b); }
-  wk.append(w); box.append(wk);
-  const qa=el("div","quick"); [["✎","Schichten eintragen",()=>{ show("kal"); setSel(true); }],["↻","Mein Rhythmus",()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }],["☀","Urlaub eintragen",()=>openVac()],["⇪","Plan teilen",()=>openShare()]].forEach(([i,t,fn])=>{ const b=el("button","qbtn"); b.type="button"; b.append(el("span","qi",i),el("span",null,t)); b.onclick=fn; qa.append(b); }); box.insertBefore(qa,wk);
-  // Nächste freie Tage & nächster Urlaub
-  const nx=el("div","card"); nx.append(el("h3",null,"Als Nächstes"));
-  let nf=null; for(let i=0;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(!x || x.kind==="free"){ let e=s; for(let k=0;k<60;k++){ const n=addD(e,1), y=shiftOf(n); if(!y || y.kind==="free") e=n; else break; } nf=[s,e]; break; } }
-  let nv=null; for(let i=0;i<400;i++){ const s=addD(t,i), x=shiftOf(s); if(x && x.kind==="vac"){ let e=s; for(let j=1;j<60;j++){ const n=addD(s,j), y=shiftOf(n); if(y&&y.kind==="vac") e=n; else if(!y||y.kind==="free") continue; else break; } nv=[s,e]; break; } }
-  const l=el("div","sec"); l.style.gap="6px";
+  top.append(big,info); top.onclick=()=>openDay(t); top.style.cursor="pointer"; c.append(top);
+  const w=el("div","week"); for(let i=0;i<7;i++){ const s=addD(t,i), x=shiftOf(s), b=el("button"); b.type="button"; if(i===0) b.classList.add("now"); markDay(b,s); b.append(el("span",null,DOW[parse(s).getDay()]+" "+parse(s).getDate()), chip(x)); b.onclick=()=>openDay(s); w.append(b); } c.append(w);
   let ns=null; for(let i=sh&&sh.kind==="work"?1:0;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(x&&x.kind==="work"){ ns=[s,x]; break; } }
-  if(ns) l.append(el("div",null,"Nächste Schicht: "+(ns[0]===t?"heute":ns[0]===addD(t,1)?"morgen":fmt(ns[0]))+" · "+ns[1].name+(ns[1].start?" ab "+ns[1].start+" Uhr":"")));
-  if(partners().length){ const bf=bothFreeNext(1)[0]; l.append(el("div",null,bf?"♥ Gemeinsam frei: "+(bf[0]===bf[1]?fmt(bf[0]):fmtS(bf[0])+" – "+fmtS(bf[1])):"♥ In den nächsten Monaten kein gemeinsamer freier Tag.")); }
-  l.append(el("div",null,nf?("Frei: "+(nf[0]===nf[1]?fmt(nf[0]):fmtS(nf[0])+" – "+fmtS(nf[1])+" ("+(diffD(nf[0],nf[1])+1)+" Tage)")):"Keine freien Tage in den nächsten 60 Tagen."));
-  l.append(el("div",null,nv?("Urlaub: "+fmtS(nv[0])+" – "+fmtS(nv[1])+" · in "+diffD(t,nv[0])+" Tagen"):"Noch kein Urlaub eingetragen."));
-  nx.append(l); box.append(nx);
-  // Urlaubskonto
-  const y=+t.slice(0,4), used=vacUsed(y), tot=vacTotal(y);
-  const vk=el("div","card"); vk.append(el("h3",null,"Urlaub "+y));
-  const s3=el("div","stats3");
-  [[tot,"Anspruch"],[used,"verplant"],[tot-used,"übrig"]].forEach(([n,l])=>{ const d=el("div","stat"); d.append(el("b","num",String(n)),el("span",null,l)); s3.append(d); });
-  const m=el("div","meter"), i=el("i"); i.style.width=Math.min(100,tot?used/tot*100:0)+"%"; if(used>tot) i.style.background="var(--bad)"; m.append(i);
-  const ab=el("div","row"); ab.style.marginTop="12px";
-  if(tot-used>0){ const rp=el("button","btn pri grow","Restliche "+(tot-used)+(tot-used===1?" Tag":" Tage")+" verplanen"); rp.type="button"; rp.style.flexBasis="100%"; rp.onclick=()=>{ agState.year=y; agState.sel=["max"]; agState.plan=[]; agState.meta=null; agState.use=""; openAgent(); }; ab.append(rp); }
-  const a1=el("button","btn ai grow","Urlaub berechnen"); a1.type="button"; a1.style.flexBasis="100%"; a1.onclick=openAgent; ab.append(a1);
-  const vl=el("div","vlist"); vl.append(el("h3",null,"Deine Urlaube "+y)); const bl=vacBlocks(y);
-  if(!bl.length) vl.append(el("p","muted","Noch kein Urlaub eingetragen."));
-  bl.forEach(b=>{ const r=el("button","vrow"); r.type="button"; const t=el("div","grow"); t.append(el("b",null,b.a===b.e?fmt(b.a):dShort(b.a)+" – "+dShort(b.e)), el("small",null,(diffD(b.a,b.e)+1)+(b.a===b.e?" Kalendertag":" Kalendertage"))); r.append(chip(vacType()), t, el("span","num",b.n+(b.n===1?" Urlaubstag":" Urlaubstage"))); r.onclick=()=>show("urlaub"); vl.append(r); });
-  vk.append(s3,m,ab,vl); box.append(vk);
+  if(ns) c.append(el("div","nextline","Nächste Schicht: "+(ns[0]===t?"heute":ns[0]===addD(t,1)?"morgen":fmt(ns[0]))+" · "+ns[1].name+(ns[1].start?" ab "+ns[1].start+" Uhr":"")));
+  box.append(c);
+  // 2) Schnellknöpfe
+  const qa=el("div","quick"); [["✎","Schichten eintragen",()=>{ show("kal"); setSel(true); }],["↻","Mein Rhythmus",()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }],["☀","Urlaub eintragen",()=>openVac()],["⇪","Plan teilen",()=>openShare()]].forEach(([i,l,fn])=>{ const b=el("button","qbtn"); b.type="button"; b.append(el("span","qi",i),el("span",null,l)); b.onclick=fn; qa.append(b); }); box.append(qa);
+  // 3) Lotse / Neuigkeiten / Sicherung (immer nur eins)
+  const gOn=lotseCard(box); if(!gOn) newsCard(box);
+  if(!activeGoal() && backupDue() && dlNs){ const b=el("div","banner"); const tx=el("span","grow"); tx.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(tx,go); box.append(b); }
+  // 4) Urlaub
+  const y=+t.slice(0,4), used=vacUsed(y), tot=vacTotal(y), rest=tot-used;
+  const vk=el("div","card sec vcard"); const vh=el("div","vhead"); const vn=el("div"); vn.append(el("b","num vbig",String(rest)), el("span",null,rest===1?" Urlaubstag übrig":" Urlaubstage übrig")); vh.append(el("h3",null,"Urlaub "+y), vn); vk.append(vh);
+  const m=el("div","meter"), mi=el("i"); mi.style.width=Math.min(100,tot?used/tot*100:0)+"%"; if(used>tot) mi.style.background="var(--bad)"; m.append(mi); vk.append(m, el("div","muted small",used+" von "+tot+" verplant"));
+  const ab=el("div","row");
+  if(rest>0){ const rp=el("button","btn pri grow","Restliche "+rest+(rest===1?" Tag":" Tage")+" verplanen"); rp.type="button"; rp.onclick=()=>{ agState.year=y; agState.sel=["max"]; agState.plan=[]; agState.meta=null; agState.use=""; openAgent(); }; ab.append(rp); }
+  const a1=el("button","btn"+(rest>0?"":" pri grow"),"Urlaub berechnen"); a1.type="button"; a1.onclick=openAgent; ab.append(a1); vk.append(ab);
+  const vl=el("div","vlist"); vl.append(el("h3",null,"Deine Urlaube "+y)); const all=vacBlocks(y), up=all.filter(b=>b.e>=t);
+  if(!all.length) vl.append(el("p","muted","Noch kein Urlaub eingetragen."));
+  else if(!up.length) vl.append(el("p","muted","Alle Urlaube "+y+" liegen schon hinter dir."));
+  up.slice(0,4).forEach(b=>{ const r=el("button","vrow"); r.type="button"; const tx=el("div","grow"); tx.append(el("b",null,b.a===b.e?fmt(b.a):dShort(b.a)+" – "+dShort(b.e)), el("small",null,b.a>t?"in "+diffD(t,b.a)+(diffD(t,b.a)===1?" Tag":" Tagen"):"läuft gerade")); r.append(chip(vacType()), tx, el("span","num",b.n+(b.n===1?" Urlaubstag":" Urlaubstage"))); r.onclick=()=>show("urlaub"); vl.append(r); });
+  if(all.length>Math.min(4,up.length)){ const mo=el("button","linkbtn","Alle Urlaube ansehen ›"); mo.type="button"; mo.onclick=()=>show("urlaub"); vl.append(mo); }
+  vk.append(vl); box.append(vk);
+  // 5) Als Nächstes (kurz)
+  let nf=null; for(let i=1;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(!x || x.kind==="free"){ let e=s; for(let k=0;k<60;k++){ const n=addD(e,1), z=shiftOf(n); if(!z || z.kind==="free") e=n; else break; } nf=[s,e]; break; } }
+  const rows=[];
+  const tFree=!sh||sh.kind==="free"; if(tFree){ let e=t; while(diffD(t,e)<60){ const n=addD(e,1), z=shiftOf(n); if(!z||z.kind==="free") e=n; else break; } rows.push(["🌿","Heute frei",e===t?"nur heute":"frei bis "+fmt(e)+" ("+(diffD(t,e)+1)+" Tage)"]); if(nf && nf[0]<=e) nf=null; }
+  if(nf) rows.push(["🌿","Nächstes Frei",nf[0]===nf[1]?fmt(nf[0]):fmtS(nf[0])+" – "+fmtS(nf[1])+" ("+(diffD(nf[0],nf[1])+1)+" Tage)"]);
+  if(up[0]) rows.push(["☀️","Nächster Urlaub",(up[0].a===up[0].e?fmtS(up[0].a):fmtS(up[0].a)+" – "+fmtS(up[0].e))+(up[0].a>t?" · in "+diffD(t,up[0].a)+" Tagen":"")]);
+  if(partners().length){ const bf=bothFreeNext(1)[0]; rows.push(["♥","Gemeinsam frei",bf?(bf[0]===bf[1]?fmt(bf[0]):fmtS(bf[0])+" – "+fmtS(bf[1])):"in den nächsten Monaten nicht"]); }
+  if(rows.length){ const nx=el("div","card sec"); nx.append(el("h3",null,"Als Nächstes")); rows.forEach(([i,l,v])=>{ const r=el("div","nxrow"); r.append(el("span","nxi",i)); const tx=el("div","grow"); tx.append(el("small",null,l), el("b",null,v)); r.append(tx); nx.append(r); }); box.append(nx); }
 }
 
 /* ---------- Kalender ---------- */
