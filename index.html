@@ -158,7 +158,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypbar{display:flex;align-items:center;gap:8px;height:76px;overflow:hidden;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:8px 10px;min-height:56px}
 .ypbar small{display:block;color:var(--soft);font-size:12px;line-height:1.25}.ypbar b{font-size:15px}.ypbar .btn{min-height:44px}
 .ypopen{width:100%;min-height:48px}
-.bigvac{min-height:60px;font-size:20px;margin:4px 0 8px}.utop{margin-bottom:8px}.rmvac{width:100%;margin-bottom:12px}.morebtn{display:block;margin:8px 0 0 auto;font-weight:700}
+.bigvac{min-height:60px;font-size:20px;margin:4px 0 8px}.utop{margin-bottom:8px}.rmvac{width:100%;margin-bottom:12px}.uerow{display:flex;align-items:center;gap:8px;border-top:1px solid var(--rule);padding:8px 0}.uerow small{display:block;color:var(--soft)}.uerow .btn{min-width:44px;padding-inline:10px}.morebtn{display:block;margin:8px 0 0 auto;font-weight:700}
 .ypquota{margin:0;font-size:14px;white-space:nowrap}.ypquota b{font-size:19px;color:var(--ok)}.ypquota.none b{color:var(--bad)}
 @media (max-width:420px){.ypbar{gap:6px;padding:6px 8px}.ypbar b{font-size:13px}.ypbar small{font-size:11px}.ypbar .btn{padding-inline:10px}}
 .ypwarn{color:var(--bad)!important;font-weight:700}
@@ -2399,7 +2399,7 @@ function finishOnb(){
 /* ---------- Urlaub-Ansicht ---------- */
 let uY=new Date().getFullYear();
 function vacBlocks(y){ const ys=y+"-01-01", ye=y+"-12-31"; return vacList().filter(v=>v.a<=ye && v.e>=ys).sort((x,z)=>x.a<z.a?-1:1).map(v=>({id:v.id,a:v.a,e:v.e,n:vacDaysOf(v).filter(d=>d>=ys&&d<=ye).length,fixed:!!v.fixed})); }
-let uView="jahr", uM=null, uAll=false;
+let uView="jahr", uM=null, uAll=false, uEdit=false;
 function renderUrlaub(){
   const box=$("#v-urlaub"); box.innerHTML="";
   const h=el("div","mhead"); const p=el("button","icon-btn","‹"), n=el("button","icon-btn","›"); p.type=n.type="button"; p.setAttribute("aria-label","Vorheriges Jahr"); n.setAttribute("aria-label","Nächstes Jahr");
@@ -2425,9 +2425,16 @@ function renderUrlaub(){
       pvHead(cc,MON[uM]+" "+uY,go); const g=monthMini(uY,uM,openDay); swipeMonths(g,go); cc.append(g); }
     else { cc.append(yearGrid(uY,m=>{ uM=m; uView="monat"; renderUrlaub(); })); cc.append(el("p","hint","Monat antippen für die Monatsansicht. Urlaub ist grün.")); }
     const big=el("button","btn pri ypopen bigvac","☀ Urlaub eintragen"); big.type="button"; big.onclick=()=>openYearPlanner(uY); box.insertBefore(big,box.children[1]||null);
-    const r=el("div","row utop"); const ed=el("button","btn grow","✎ Urlaub bearbeiten"); ed.type="button"; ed.onclick=()=>openYearPlanner(uY);
+    const r=el("div","row utop"); const ed=el("button","btn grow"+(uEdit?" pri":""),uEdit?"▲ Zuklappen":"✎ Urlaub bearbeiten"); ed.type="button"; ed.setAttribute("aria-expanded",String(uEdit)); ed.onclick=()=>{ uEdit=!uEdit; renderUrlaub(); };
     const sh=el("button","btn grow","⇪ Urlaub PDF teilen"); sh.type="button"; sh.onclick=()=>openSharePreview("list",uY); r.append(ed,sh); big.after(r);
     const rm=el("button","btn bad rmvac","🗑 Urlaub entfernen"); rm.type="button"; rm.onclick=()=>openVacRemove(uY); r.after(rm);
+    if(uEdit){ /* Aufklappbare Liste zum Bearbeiten/Löschen */ const ec=el("div","card sec uedit"); ec.append(el("h3",null,"Urlaub "+uY+" bearbeiten")); const L=vacBlocks(uY);
+      if(!L.length) ec.append(el("p","muted","Für "+uY+" ist kein Urlaub eingetragen."));
+      L.forEach(b=>{ const row=el("div","uerow"); const t=el("div","grow"); t.append(el("b",null,fmtS(b.a)+b.a.slice(0,4)+" – "+fmtS(b.e)+b.e.slice(0,4)), el("small",null,b.n+(b.n===1?" Urlaubstag":" Urlaubstage")));
+        const e1=el("button","btn","✎"); e1.type="button"; e1.setAttribute("aria-label","Ändern"); e1.onclick=()=>openVacBlock(b);
+        const d1=el("button","btn bad","🗑"); d1.type="button"; d1.setAttribute("aria-label","Löschen"); d1.onclick=()=>ask("Urlaub löschen?",fmt(b.a)+" – "+fmt(b.e)+" ("+b.n+(b.n===1?" Tag":" Tage")+")",[{label:"Ja, löschen",pri:true,fn:()=>{ const old=JSON.parse(JSON.stringify(vacList())); S.vacs=vacList().filter(v=>v.id!==b.id); save(); render(); toast("Urlaub gelöscht · noch "+vacRest(uY)+" übrig","Rückgängig",()=>{ S.vacs=old; save(); render(); }); }},{label:"Abbrechen"}]);
+        row.append(t,e1,d1); ec.append(row); });
+      const cl=el("button","btn ghost","▲ Zuklappen"); cl.type="button"; cl.onclick=()=>{ uEdit=false; renderUrlaub(); }; ec.append(cl); rm.after(ec); }
     box.append(cc); }
 }
 /* Urlaub entfernen: Zeitraum von–bis oder ein ganzes Jahr zurücksetzen (mit Rückgängig) */
@@ -2519,7 +2526,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-35";
+const APP_VERSION="2026.10.05-36";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
