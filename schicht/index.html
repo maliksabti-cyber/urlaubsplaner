@@ -750,8 +750,9 @@ function openDay(s){
     const base=baseShift(s), cur=shiftOf(s), isOv=Object.prototype.hasOwnProperty.call(S.ov,s);
     p.append(el("div","muted","Laut Rhythmus: "+(base?base.name:"frei")+(isOv?" · heute abweichend":"")));
     const pk=el("div","pick");
-    [...S.types,null].forEach(t=>{ const b=el("button"); b.type="button"; b.append(chip(t)); b.setAttribute("aria-label",t?t.name:"Frei"); b.setAttribute("aria-pressed",String((cur&&t&&cur.id===t.id)||(!cur&&!t)));
-      b.onclick=()=>{ const id=t?t.id:"";
+    const hasFree=S.types.some(x=>x.kind==="free");
+    [...S.types,...(hasFree?[]:[null])].forEach(t=>{ const b=el("button"); b.type="button"; b.append(chip(t)); b.setAttribute("aria-label",t?t.name:"Frei"); b.setAttribute("aria-pressed",String((cur&&t&&cur.id===t.id)||(!cur&&(!t||t.kind==="free"))));
+      b.onclick=()=>{ const id=t&&!(t.kind==="free"&&!base)?t.id:"";
         if(t && t.kind==="vac"){ if(vacAt(s)&&cur&&cur.kind==="vac") removeVacDay(s); else { delete S.ov[s]; addVac(s,s); } save(); openDay(s); return; }
         const before=vacSnap(), old=JSON.parse(JSON.stringify(vacList())), prevOv=S.ov[s], had=Object.prototype.hasOwnProperty.call(S.ov,s);
         const apply=()=>{ if((base?base.id:"")===id) delete S.ov[s]; else S.ov[s]=id; };
@@ -1020,7 +1021,7 @@ function tplStats(weeks){ const all=weeks.flat(), w=all.filter(id=>{ const t=id&
 function openRotations(){
   openSheet(p=>{ sheetTop(p,"Mein Rhythmus");
     p.append(el("p","hint","Dein Schichtrhythmus wiederholt sich automatisch. Einmal anlegen, dann ab einem Datum in den Kalender eintragen."));
-    const T=tplList(); if(!T.length) p.append(el("div","muted","Noch kein Rhythmus angelegt."));
+    const T=tplList(); if(!T.length) p.append(el("div","muted",(S.rots||[]).length?"Noch keine Vorlage gespeichert. Dein Rhythmus im Kalender steht unten – dort kannst du ihn ändern.":"Noch kein Rhythmus angelegt."));
     T.forEach(t=>{ const c=el("div","card tplcard"); const h=el("div","row"); h.append(el("b","grow",t.name)); const ed=el("button","btn","Bearbeiten"); ed.type="button"; ed.onclick=()=>openTpl(t); h.append(ed);
       c.append(h, weekGrid(t.weeks,true), el("div","hint",tplStats(t.weeks)));
       const go=el("button","btn pri","In den Kalender eintragen"); go.type="button"; go.style.width="100%"; go.onclick=()=>openApply({tpl:t}); c.append(go); p.append(c); });
@@ -2079,6 +2080,7 @@ function renderUrlaub(){
 }
 function openVacBlock(b){ openSheet(p=>{ sheetTop(p,"Urlaub"); p.append(el("div",null,fmt(b.a)+" bis "+fmt(b.e)), el("div","muted",b.n+(b.n===1?" Urlaubstag":" Urlaubstage")+(b.fixed?" · feste Tage":" · passt sich deinem Schichtplan an")));
   const del=el("button","btn bad","Diesen Urlaub löschen"); del.type="button"; del.onclick=()=>{ const old=JSON.parse(JSON.stringify(vacList())); S.vacs=vacList().filter(v=>v.id!==b.id); save(); closeSheet(); toast("Urlaub gelöscht","Rückgängig",()=>{ S.vacs=old; save(); render(); }); };
+  if(dlNs){ const ap=el("button","btn pri","📄 Urlaubsantrag für den Chef (PDF)"); ap.type="button"; ap.id="antrag"; ap.onclick=()=>{ const v=vacList().find(x=>x.id===b.id)||b; pdfAntrag(v); }; p.append(ap); }
   const cal=el("button","btn","Im Kalender zeigen"); cal.type="button"; cal.onclick=()=>{ curY=+b.a.slice(0,4); curM=+b.a.slice(5,7)-1; kalMode="monat"; closeSheet(); show("kal"); };
   const r=el("div","row"); r.append(cal,del); p.append(r);
   if(b.fixed){ const un=el("button","btn ghost","Wieder automatisch an den Schichtplan anpassen"); un.type="button"; un.onclick=()=>{ const v=vacList().find(x=>x.id===b.id); if(v){ delete v.fixed; save(); } closeSheet(); render(); }; p.append(un); } }); }
@@ -2114,6 +2116,33 @@ async function pdfMonth(y,m){
   let lx=M; S.types.filter(t=>t.kind!=="free").forEach(t=>{ const lab=t.short+" = "+t.name; const w=tw(lab,8,false)+22; if(lx+w>P.W-M) return; P.rect(lx,ly+10,10,9,hexRGB(t.color)); P.text(lx+14,ly+18,lab,8,false,INK); lx+=w; }); P.rect(lx,ly+10,10,9,[0.80,0.92,0.83]); P.text(lx+14,ly+18,"frei",8,false,INK);
   P.text(M,P.H-22,"Schicht & Urlaub",7.5,false,GREY);
   await pdfSave(P.build(),"Schichtplan_"+MON[m]+"_"+y+".pdf"); }
+/* Urlaubsantrag als PDF – zum Ausdrucken oder Schicken an den Chef */
+async function pdfAntrag(v){
+  const P=makePDF(), M=48; P.page(); P.rect(0,0,P.W,6,ACC); const days=vacDaysOf(v), n=days.length;
+  P.text(M,58,"Urlaubsantrag",24,true,INK); P.text(P.W-M,58,"erstellt am "+fmtS(TODAY())+TODAY().slice(0,4),9,false,GREY,"right");
+  let y=96; const field=(lab,val,x,w)=>{ P.text(x,y,lab.toUpperCase(),7.5,true,GREY); P.text(x,y+18,val,12,true,INK); P.line(x,y+24,x+w,y+24,RULE); };
+  field("Name",S.name||"",M,P.W-2*M); y+=46;
+  field("Urlaub von",fmt(v.a),M,230); field("bis einschließlich",fmt(v.e),M+260,P.W-2*M-260); y+=46;
+  let back=addD(v.e,1); for(let i=0;i<60;i++){ const x=shiftOf(back); if(x&&x.kind==="work") break; back=addD(back,1); } const bx=shiftOf(back);
+  field("Urlaubstage",n+(n===1?" Tag":" Tage")+" ("+(diffD(v.a,v.e)+1)+" Kalendertage)",M,230); field("Wieder im Dienst",bx&&bx.kind==="work"?fmt(back)+" · "+bx.name+(bx.start?" "+bx.start:""):"",M+260,P.W-2*M-260); y+=52;
+  P.text(M,y,"Gezählt sind nur Tage, an denen ich laut Schichtplan arbeiten würde. Freie Tage und Feiertage zählen nicht.",8.5,false,GREY); y+=22;
+  // Urlaubskonto je Jahr
+  const yrs={}; days.forEach(d=>{ const k=+d.slice(0,4); yrs[k]=(yrs[k]||0)+1; });
+  P.text(M,y,"URLAUBSKONTO",7.5,true,GREY); y+=8; const cols=["Jahr","Anspruch","schon verplant","dieser Antrag","Rest danach"], cw=(P.W-2*M)/5;
+  P.rect(M,y,P.W-2*M,20,[0.94,0.95,0.95]); cols.forEach((c,i)=>P.text(M+8+i*cw,y+14,c,8.5,true,INK)); y+=20;
+  Object.keys(yrs).map(Number).sort().forEach(Y=>{ const tot=vacTotal(Y), used=vacUsed(Y), mine=yrs[Y]; [String(Y),String(tot),String(used-mine),String(mine),String(tot-used)].forEach((c,i)=>P.text(M+8+i*cw,y+15,c,10,i===4,INK)); y+=22; P.line(M,y,P.W-M,y,RULE,0.5); });
+  y+=22;
+  // betroffene Schichten
+  P.text(M,y,"BETROFFENE SCHICHTEN",7.5,true,GREY); y+=16; const per=Math.ceil(n/3)||1, colW=(P.W-2*M)/3, rows=Math.min(per,14);
+  days.slice(0,rows*3).forEach((d,i)=>{ const col=Math.floor(i/rows), row=i%rows; if(col>2) return; const x=ownShift(d); P.text(M+col*colW,y+row*14,dShort(d)+"  "+(x&&x.kind==="work"?x.name:"Arbeitstag"),9,false,INK); });
+  if(n>rows*3) P.text(M,y+rows*14+4,"… und "+(n-rows*3)+" weitere Tage",9,false,GREY); y+=Math.min(rows,Math.max(1,n))*14+30;
+  y=Math.max(y,P.H-230);
+  P.text(M,y,"Ort, Datum",7.5,true,GREY); P.text(M+260,y,"Unterschrift Mitarbeiter/in",7.5,true,GREY); P.line(M,y+34,M+220,y+34,INK,0.6); P.line(M+260,y+34,P.W-M,y+34,INK,0.6); y+=70;
+  P.text(M,y,"VOM VORGESETZTEN AUSZUFÜLLEN",7.5,true,GREY); y+=18;
+  P.rect(M,y,11,11,null,INK,0.8); P.text(M+18,y+10,"genehmigt",10,false,INK); P.rect(M+110,y,11,11,null,INK,0.8); P.text(M+128,y+10,"abgelehnt",10,false,INK); y+=40;
+  P.text(M,y,"Datum",7.5,true,GREY); P.text(M+260,y,"Unterschrift Vorgesetzte/r",7.5,true,GREY); P.line(M,y+34,M+220,y+34,INK,0.6); P.line(M+260,y+34,P.W-M,y+34,INK,0.6);
+  P.text(M,P.H-22,"Erstellt mit Schicht & Urlaub",7.5,false,GREY);
+  await pdfSave(P.build(),"Urlaubsantrag_"+v.a+"_bis_"+v.e+".pdf"); }
 /* Urlaubsliste als PDF */
 async function pdfVac(y){
   const P=makePDF(), M=40; P.page(); P.rect(0,0,P.W,6,ACC); const bl=vacBlocks(y), used=vacUsed(y), tot=vacTotal(y);
