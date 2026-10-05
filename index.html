@@ -158,7 +158,8 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypbar{display:flex;align-items:center;gap:8px;height:76px;overflow:hidden;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:8px 10px;min-height:56px}
 .ypbar small{display:block;color:var(--soft);font-size:12px;line-height:1.25}.ypbar b{font-size:15px}.ypbar .btn{min-height:44px}
 .ypopen{width:100%;min-height:48px}
-.ypquota{margin:0;text-align:center;font-size:15px}.ypquota b{font-size:20px;color:var(--ok)}.ypquota.none b{color:var(--bad)}
+.ypquota{margin:0;font-size:14px;white-space:nowrap}.ypquota b{font-size:19px;color:var(--ok)}.ypquota.none b{color:var(--bad)}
+@media (max-width:420px){.ypbar{gap:6px;padding:6px 8px}.ypbar b{font-size:13px}.ypbar small{font-size:11px}.ypbar .btn{padding-inline:10px}}
 .ypwarn{color:var(--bad)!important;font-weight:700}
 .banner.bad{border-color:var(--bad);color:var(--bad);font-weight:600}
 /* Im Jahreskalender erscheinen Meldungen oben, damit unten kein Knopf verdeckt wird */
@@ -479,14 +480,17 @@ button,a,.day,.mc,.ypc{touch-action:manipulation}
 input,select,textarea{font-size:16px!important}
 input[type=date]{min-height:44px;-webkit-appearance:none;appearance:none;background:var(--card)}
 .quick{grid-template-columns:repeat(2,minmax(0,1fr))}
-.ypmode{align-self:center;font:800 16px/1.2 var(--f-body);padding:6px 14px;border-radius:99px;color:#fff}.ypmode.va{background:#2E9E5B}.ypmode.sh{background:#1C6DD0}
+.yplan>*:not(.ypgrid){flex:none}.ypgrid{min-height:300px}
+@media (max-height:780px){.yplg{display:none}.yptop h2{font-size:15px}.yptop .icon-btn{width:40px;height:40px}}
+.ypinfo{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.ypinfo .yphint{font-size:12px}
+.ypmode{font:800 14px/1.2 var(--f-body);padding:5px 12px;border-radius:99px;color:#fff;white-space:nowrap}.ypmode.va{background:#2E9E5B}.ypmode.sh{background:#1C6DD0}
 .qbtn{min-height:88px;font-size:13px}
 .bar .icon-btn,.bar .hb{width:44px;height:44px}
 .btn{min-height:44px}
 .week button{min-height:56px}
 .today .t1{overflow-wrap:anywhere;font-size:clamp(22px,7vw,30px)}
 .sheet .pan{max-height:calc(100dvh - 40px - env(safe-area-inset-top,0px))}
-.yplan{height:100dvh}
+.yplan{height:100dvh;overflow-y:auto}
 nav.tabs button{min-height:56px}
 @media (max-width:400px){
   .wrap{padding-inline:12px}
@@ -662,7 +666,7 @@ function vacRest(y){ return vacTotal(y)-vacUsed(y); }
 function vacOver(days,exclId){ const keep=S.vacs; if(exclId) S.vacs=keep.filter(v=>v.id!==exclId);
   try{ const by={}; days.forEach(d=>{ if(vacAt(d)) return; const y=+d.slice(0,4); by[y]=(by[y]||0)+1; }); const out=[];
     Object.keys(by).forEach(y=>{ const r=vacRest(+y); if(by[y]>r) out.push({y:+y,need:by[y],rest:Math.max(0,r)}); }); return out; } finally{ S.vacs=keep; } }
-function quotaMsg(o){ return o.map(x=>x.rest?x.y+": nur noch "+x.rest+(x.rest===1?" Urlaubstag":" Urlaubstage")+" übrig (gewählt: "+x.need+")":"Dein Urlaub "+x.y+" ist aufgebraucht").join(" · ")+". Erst Urlaub löschen oder den Anspruch erhöhen."; }
+function quotaMsg(o){ return "Sie überschreiten Ihr Urlaubskontingent. "+o.map(x=>x.rest?x.y+": nur noch "+x.rest+(x.rest===1?" Urlaubstag":" Urlaubstage")+" übrig (gewählt: "+x.need+")":"Dein Urlaub "+x.y+" ist aufgebraucht").join(" · ")+". Erst Urlaub löschen oder den Anspruch erhöhen."; }
 function vacDaysOf(v){ const out=[]; for(let s=v.a;s<=v.e;s=addD(s,1)) if(vacOnDay(v,s)) out.push(s); return out; }
 function shiftOf(s){ const v=vacAt(s); if(v && vacOnDay(v,s)) return vacType()||ownShift(s); return ownShift(s); }
 function normVacs(){ const L=vacList().filter(v=>v.a<=v.e).sort((x,y)=>x.a<y.a?-1:1), out=[];
@@ -1761,13 +1765,12 @@ function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*
   pv.onclick=()=>{ if(yp.h===1) yp.h=0; else { yp.y--; yp.h=1; } drawYP(); }; nx.onclick=()=>{ if(yp.h===0) yp.h=1; else { yp.y++; yp.h=0; } drawYP(); };
   top.append(pv, el("h2","grow",y+" · "+(yp.h?"Juli – Dezember":"Januar – Juni")), nx, x); ov.append(top);
   /* Urlaub und Schichten getrennt: oben steht deutlich, was man gerade einträgt */
-  ov.append(el("div","ypmode "+(yp.mode==="shift"?"sh":"va"),yp.mode==="shift"?"✎ Schichten eintragen":"☀ Urlaub eintragen"));
+  const info=el("div","ypinfo"); info.append(el("span","ypmode "+(yp.mode==="shift"?"sh":"va"),yp.mode==="shift"?"✎ Schichten":"☀ Urlaub")); ov.append(info);
   if(yp.mode==="shift"){ const bt=S.types.filter(t=>t.kind!=="vac"); if(yp.brush==null || !(yp.brush==="reset"||bt.some(t=>t.id===yp.brush))) yp.brush=(bt.find(t=>t.kind==="work")||{}).id||"reset";
     const br=el("div","ypbrush"); bt.concat([{id:"reset"}]).forEach(t=>{ const b=el("button","ypb"); b.type="button"; b.dataset.id=t.id; b.setAttribute("aria-pressed",String(yp.brush===t.id));
       if(t.id==="reset"){ b.append(el("span","chip free","↻"), el("small",null,"Rhythmus")); } else b.append(chip(t), el("small",null,t.name)); b.onclick=()=>{ yp.brush=t.id; drawYP(); }; br.append(b); }); ov.append(br);
-    ov.append(el("p","yphint","Schicht wählen, dann eine Linie über die Tage ziehen.")); }
-  else { const tot=vacTotal(y), used=vacUsed(y), rest=tot-used; const q=el("p","ypquota"+(rest<=0?" none":"")); q.innerHTML="<b>"+rest+"</b> von "+tot+" Urlaubstagen "+y+" übrig"+(rest<=0?" – aufgebraucht":""); ov.append(q);
-    ov.append(el("p","yphint","Ziehe eine Linie über die Tage – oder tippe ersten und letzten Tag an. Freie Tage und Feiertage zählen nicht.")); }
+    info.append(el("span","yphint","Schicht wählen, dann Linie ziehen")); }
+  else { const tot=vacTotal(y), used=vacUsed(y), rest=tot-used; const q=el("span","ypquota"+(rest<=0?" none":"")); q.innerHTML="<b>"+Math.max(0,rest)+"</b> von "+tot+" Tagen "+y+" übrig"; info.append(q); }
   const g=el("div","ypgrid"); g.style.gridTemplateColumns="repeat(6,minmax(0,1fr))"; g.style.gridTemplateRows="auto repeat(31,minmax(0,1fr))";
   for(let m=m0;m<m0+6;m++) g.append(el("div","yph",MONS[m]));
   const t=TODAY();
@@ -1786,12 +1789,17 @@ function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*
   // Ziehen
   let drag=false; const cellAt=(cx,cy)=>{ const e=document.elementFromPoint(cx,cy); const c=e&&e.closest&&e.closest(".ypc[data-s]"); return c&&g.contains(c)?c:null; };
   g.addEventListener("pointerdown",e=>{ const c=cellAt(e.clientX,e.clientY); if(!c) return; e.preventDefault(); const s=c.dataset.s;
-    if(yp.mode!=="shift" && !(yp.a && yp.tapped) && !vacAt(s) && vacDayCounts(s) && vacRest(+s.slice(0,4))<=0){ toast(quotaMsg([{y:+s.slice(0,4),need:1,rest:0}])); return; }
-    if(yp.a && yp.tapped){ yp.e=s; yp.tapped=false; } else { yp.a=s; yp.e=s; yp.tapped=true; }
+    if(yp.mode!=="shift" && !(yp.a && yp.tapped) && !vacAt(s) && vacDayCounts(s) && vacRest(+s.slice(0,4))<=0){ ypWarn(); return; }
+    if(yp.a && yp.tapped){ const k=ypCap(yp.a,s); yp.e=k.e; if(k.cut) ypWarn(); yp.tapped=false; } else { yp.a=s; yp.e=s; yp.tapped=true; }
     drag=true; try{ g.setPointerCapture(e.pointerId); }catch(_){} markYP(); drawYPBar(); });
-  g.addEventListener("pointermove",e=>{ if(!drag) return; const c=cellAt(e.clientX,e.clientY); if(!c) return; if(c.dataset.s!==yp.e){ yp.e=c.dataset.s; yp.tapped=false; markYP(); drawYPBar(); } });
+  g.addEventListener("pointermove",e=>{ if(!drag) return; const c=cellAt(e.clientX,e.clientY); if(!c) return; if(c.dataset.s!==yp.e){ const k=ypCap(yp.a,c.dataset.s); if(k.cut) ypWarn(); if(k.e!==yp.e){ yp.e=k.e; yp.tapped=false; markYP(); drawYPBar(); } } });
   const up=()=>{ if(!drag) return; drag=false; if(yp.a!==yp.e) yp.tapped=false; drawYPBar(); };
   g.addEventListener("pointerup",up); g.addEventListener("pointercancel",up); }
+/* Begrenzt die Auswahl auf das Urlaubskontingent: läuft vom ersten Tag in Richtung Ende und hält an, bevor es zu viele werden */
+function ypCap(a,e){ if(yp.mode==="shift") return {e,cut:false}; const st=e>=a?1:-1, used={}; let last=a;
+  for(let d=a;; d=addD(d,st)){ if(!vacAt(d) && vacDayCounts(d)){ const y=+d.slice(0,4); used[y]=(used[y]||0)+1; if(used[y]>vacRest(y)) return {e:last,cut:true}; } last=d; if(d===e) break; }
+  return {e,cut:false}; }
+let ypWarned=false; function ypWarn(){ if(ypWarned) return; ypWarned=true; toast("Sie überschreiten Ihr Urlaubskontingent."); setTimeout(()=>ypWarned=false,2500); }
 function ypRange(){ if(!yp.a) return null; const a=yp.a<yp.e?yp.a:yp.e, e=yp.a<yp.e?yp.e:yp.a; return [a,e]; }
 function markYP(){ const r=ypRange(); document.querySelectorAll("#yplan .ypc[data-s]").forEach(c=>c.classList.toggle("sel",!!r&&c.dataset.s>=r[0]&&c.dataset.s<=r[1])); }
 function drawYPBar(){ const bar=$("#ypbar"); if(!bar) return; bar.innerHTML=""; const r=ypRange();
@@ -1814,7 +1822,7 @@ function drawYPBar(){ const bar=$("#ypbar"); if(!bar) return; bar.innerHTML=""; 
   if(have){ const rm=el("button","btn bad",n.n?"🗑":"🗑 Entfernen"); rm.type="button"; rm.setAttribute("aria-label","Urlaub in der Auswahl entfernen"); rm.onclick=()=>{ const old=JSON.parse(JSON.stringify(vacList())), y=+a.slice(0,4); let k=0;
       for(let d=a;d<=e;d=addD(d,1)) if(dayKind(d)==="v"){ removeVacDay(d); k++; } S.vacs=vacList().filter(v=>vacDaysOf(v).length||v.e<a||v.a>e); normVacs(); save(); yp.a=yp.e=null; yp.tapped=false; drawYP();
       toast(k+(k===1?" Urlaubstag":" Urlaubstage")+" entfernt · noch "+vacRest(y)+" übrig ("+y+")","Rückgängig",()=>{ S.vacs=old; save(); render(); const yo=$("#yplan"); if(yo&&!yo.hidden) drawYP(); }); }; bar.append(rm); }
-  if(n.n||!have){ const ok=el("button","btn pri",have?"☀ Eintragen":"☀ Urlaub eintragen"); ok.type="button"; ok.dataset.save="1"; ok.disabled=!n.n||ov.length>0; ok.onclick=()=>{ if(vacSave(a,e,n.days)===0 && vacOver(n.days).length) return; yp.a=yp.e=null; yp.tapped=false; drawYP(); }; bar.append(ok); } }
+  if(n.n||!have){ const ok=el("button","btn pri","☀ Eintragen"); ok.type="button"; ok.dataset.save="1"; ok.disabled=!n.n||ov.length>0; ok.onclick=()=>{ if(vacSave(a,e,n.days)===0 && vacOver(n.days).length) return; yp.a=yp.e=null; yp.tapped=false; drawYP(); }; bar.append(ok); } }
 function drawYPShiftBar(bar,a,e){ const t=yp.brush==="reset"?null:typeOf(yp.brush), n=diffD(a,e)+1; let nv=0; for(let d=a;d<=e;d=addD(d,1)) if(dayKind(d)==="v") nv++;
   const tx=el("div","grow"); tx.append(el("b",null,(a===e?fmtS(a):fmtS(a)+" – "+fmtS(e))+" · "+n+(n===1?" Tag":" Tage")), el("small",null,"→ "+(t?t.name:"wie im Rhythmus")+(nv?" · Urlaub ("+nv+(nv===1?" Tag":" Tage")+") bleibt":""))); bar.append(tx);
   const no=el("button","btn ghost","✕"); no.type="button"; no.setAttribute("aria-label","Auswahl löschen"); no.onclick=()=>{ yp.a=yp.e=null; yp.tapped=false; markYP(); drawYPBar(); };
@@ -2501,7 +2509,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-17";
+const APP_VERSION="2026.10.05-18";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
