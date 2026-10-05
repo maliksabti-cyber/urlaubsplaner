@@ -161,6 +161,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypstep{font-weight:700;font-size:14px;line-height:1.3}.ypflash{animation:ypfl .9s}@keyframes ypfl{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 4px var(--accent)}}
 .instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
 .applink{font:600 15px/1.4 var(--f-body);word-break:break-all;background:var(--tint);border-radius:8px;padding:10px 12px;margin:4px 0 10px;user-select:all}
+.pmrow{flex-wrap:wrap;gap:6px}.pmrow .btn{min-height:40px;padding:6px 10px;font-size:13px}
 .mrow{width:100%;min-height:56px}.mrow .qi{font-size:22px;width:32px;text-align:center}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
@@ -2346,7 +2347,10 @@ function fsFields(o){ const f={}; for(const k in o){ const v=o[k]; f[k]=v==null?
 async function fsReq(path,method,body){ let r; try{ r=await fetch(FSB()+path,{method:method||"GET",headers:Object.assign({Authorization:"Bearer "+await tToken()},body?{"Content-Type":"application/json"}:{}),body:body?JSON.stringify(body):undefined}); }catch(e){ if(e.code) throw e; throw Object.assign(new Error("NETWORK"),{code:"NETWORK"}); }
   const j=await r.json().catch(()=>({})); if(!r.ok){ const m=(j.error&&j.error.status)||"HTTP_"+r.status; throw Object.assign(new Error(m),{code:m}); } return j; }
 async function fsList(col){ const out=[]; let pt=""; do{ const j=await fsReq("/"+col+"?pageSize=300"+(pt?"&pageToken="+encodeURIComponent(pt):"")); (j.documents||[]).forEach(d=>out.push(fsDoc(d))); pt=j.nextPageToken||""; }while(pt); return out; }
-const isTeamAdmin=()=>!!(ts && CFG.adminEmail && ts.email===String(CFG.adminEmail).toLowerCase());
+/* Host: der Team-Gründer (adminEmail) und alle, die er zum Host gemacht hat. Hosts laden ein, geben frei, verwalten Personen und Einstellungen. */
+const isTeamOwner=()=>!!(ts && CFG.adminEmail && ts.email===String(CFG.adminEmail).toLowerCase());
+const isHostRec=a=>!!(a && (a.host===true || (CFG.adminEmail && a.emailHash && a.emailHash===team.ownerHash)));
+const isTeamAdmin=()=>isTeamOwner() || !!(ts && team.me && team.me.approved && team.me.host===true);
 const teamOn=()=>!!(ts && team.me && (team.me.approved || isTeamAdmin()));
 function tErr(e){ const c=String((e&&(e.code||e.message))||"");
   if(/NETWORK|Failed to fetch/.test(c)) return "Keine Internetverbindung.";
@@ -2354,7 +2358,7 @@ function tErr(e){ const c=String((e&&(e.code||e.message))||"");
   return authMsg(e); }
 async function teamLoad(){ if(!ts || team.loading) return; team.loading=true; team.err=null; if(view==="team") renderTeam();
   try{ const mem=(await fsList("mitarbeiter")).filter(a=>typeof a.name==="string");
-    team.members=mem; team.me=mem.find(a=>a.id===ts.uid)||mem.find(a=>a.uid===ts.uid)||null;
+    team.members=mem; team.me=mem.find(a=>a.id===ts.uid)||mem.find(a=>a.uid===ts.uid)||null; try{ team.ownerHash=CFG.adminEmail?await tEmailHash(String(CFG.adminEmail)):null; }catch(e){}
     const lim=mem.find(a=>Number.isFinite(a.maxWeg)); team.limit=lim?Math.max(1,Math.min(999,Math.round(lim.maxWeg))):999;
     team.vac= teamOn() ? (await fsList("urlaube")).filter(v=>typeof v.name==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v.start||"")&&/^\d{4}-\d{2}-\d{2}$/.test(v.end||"")&&v.start<=v.end) : [];
     team.loaded=true; lsSet("su_team_cache",JSON.stringify({uid:ts.uid,members:team.members,vac:team.vac,me:team.me,limit:team.limit}));
@@ -2413,7 +2417,7 @@ function renderTeam(){
         try{ const mail=v||tSynthMail(name); const j=await authCall("signUp",{email:mail,password:p,returnSecureToken:true}); tsSet(j,mail);
           const all=(await fsList("mitarbeiter")).filter(a=>typeof a.name==="string");
           if(all.some(a=>a.id!==ts.uid && a.uid && tKey(a.name)===tKey(name))){ try{ await authCall("delete",{idToken:ts.idToken}); }catch(_){} teamLogout(true); team.msg="Den Namen „"+name+"“ gibt es schon mit Konto. Bitte anmelden oder den Namen anders schreiben."; renderTeam(); return; }
-          const admin=isTeamAdmin(); await fsReq("/mitarbeiter/"+ts.uid,"PATCH",fsFields({name,tage:null,emailHash:v?await tEmailHash(v):null,emailMask:v?tEmailMask(v):null,uid:ts.uid,created:Date.now(),approved:admin}));
+          const admin=isTeamOwner(); await fsReq("/mitarbeiter/"+ts.uid,"PATCH",fsFields({name,tage:null,emailHash:v?await tEmailHash(v):null,emailMask:v?tEmailMask(v):null,uid:ts.uid,created:Date.now(),approved:admin}));
           team.msg=""; await teamLoad(); toast(admin?"Team eingerichtet":"Konto erstellt – wartet auf Freigabe"); }
         catch(err){ msg.className="amsg err"; msg.textContent=tErr(err); go.disabled=false; } }
       else { if(!v){ msg.textContent="Bitte E-Mail oder Namen eingeben."; return; } if(!p){ msg.textContent="Bitte dein Passwort eingeben."; return; }
@@ -2427,9 +2431,11 @@ function renderTeam(){
   if(!team.me){ head.append(el("p",null,"Mit diesem Konto ist noch niemand im Team eingetragen."), el("p","hint","Melde dich ab und erstelle unter „Konto erstellen“ einen Eintrag mit deinem Namen.")); }
   else if(!teamOn()){ head.append(el("p",null,"Hallo "+team.me.name.split(" ")[0]+"! Dein Konto wartet auf die Freigabe."), el("p","hint","Sobald du freigegeben bist, siehst du hier den Urlaub deiner Kollegen. Tipp danach auf „Aktualisieren“.")); }
   else { const app=team.members.filter(a=>a.approved); head.append(el("p","muted",team.me.name+" · "+app.length+(app.length===1?" Person":" Personen")+" im Team · "+limTxt()));
-    const iv=el("button","btn pri","Kollegen einladen"); iv.type="button"; iv.onclick=openInvite; head.append(iv); }
+    const hosts=app.filter(isHostRec).map(a=>a.name); if(hosts.length) head.append(el("p","hint","Host: "+hosts.join(", ")));
+    if(isTeamAdmin()){ const iv=el("button","btn pri","Kollegen einladen"); iv.type="button"; iv.onclick=openInvite; head.append(iv); }
+    else head.append(el("p","hint","Einladen, freigeben und Einstellungen macht der Host.")); }
   const lo=el("button","linkbtn","Vom Team abmelden"); lo.type="button"; lo.onclick=()=>teamLogout(); head.append(lo); box.append(head);
-  if(isTeamAdmin()){ const ac=el("div","card sec"); ac.append(el("h2",null,"Verwalten"));
+  if(isTeamAdmin()){ const ac=el("div","card sec"); ac.append(el("h2",null,"Verwalten (Host)"));
     ac.append(el("p","hint","Dein Team kann beliebig viele Mitglieder haben – lade so viele Kollegen ein, wie du willst, und gib sie frei."));
     const l=el("label","f","Wie viele dürfen gleichzeitig im Urlaub sein?"), sel=el("select"); sel.id="tlimit"; { const o=el("option",null,"Keine Grenze"); o.value=999; sel.append(o); } for(let n=1;n<=50;n++){ const o=el("option",null,n===1?"1 Person":n+" Personen"); o.value=n; sel.append(o); } if(team.limit<999&&team.limit>50){ const o=el("option",null,team.limit+" Personen"); o.value=team.limit; sel.append(o); } sel.value=team.limit;
     sel.onchange=async()=>{ const n=+sel.value; try{ await fsReq("/mitarbeiter/"+team.me.id+"?updateMask.fieldPaths=maxWeg","PATCH",fsFields({maxWeg:n})); team.limit=n; toast("Gespeichert: "+limTxt()); teamLoad(); }catch(e){ toast(tErr(e)); sel.value=team.limit; } };
@@ -2439,7 +2445,20 @@ function renderTeam(){
     if(pend.length>1){ const all=el("button","btn pri","Alle "+pend.length+" freigeben"); all.type="button"; all.onclick=async()=>{ all.disabled=true; let n=0; for(const a of pend){ try{ await fsReq("/mitarbeiter/"+a.id+"?updateMask.fieldPaths=approved","PATCH",fsFields({approved:true})); n++; }catch(e){} } toast(n+" Kollegen freigegeben"); teamLoad(); }; ac.append(all); }
     pend.forEach(a=>{ const r=el("div","trow"); r.append(el("b","grow",a.name), el("small","muted",a.emailMask||"ohne E-Mail"));
       const ok=el("button","btn pri","Freigeben"); ok.type="button"; ok.onclick=async()=>{ ok.disabled=true; try{ await fsReq("/mitarbeiter/"+a.id+"?updateMask.fieldPaths=approved","PATCH",fsFields({approved:true})); toast(a.name+" freigegeben"); teamLoad(); }catch(e){ toast(tErr(e)); ok.disabled=false; } };
-      r.append(ok); ac.append(r); });
+      const no=el("button","btn ghost","Ablehnen"); no.type="button"; no.onclick=()=>ask(a.name+" ablehnen?","Die Anfrage wird gelöscht.",[{label:"Ja, ablehnen",pri:true,fn:async()=>{ try{ await fsReq("/mitarbeiter/"+a.id,"DELETE"); toast("Anfrage abgelehnt"); teamLoad(); }catch(e){ toast(tErr(e)); } }},{label:"Abbrechen"}]);
+      r.append(ok,no); ac.append(r); });
+    // Personen verwalten
+    const app2=team.members.filter(a=>a.approved).sort((x,y)=>x.name.localeCompare(y.name,"de"));
+    ac.append(el("h3",null,"Personen im Team ("+app2.length+")"));
+    app2.forEach(a=>{ const r=el("div","trow pmrow"); const me=a.id===team.me.id, owner=!!(team.ownerHash&&a.emailHash===team.ownerHash), host=isHostRec(a);
+      const t=el("div","grow"); t.append(el("b",null,a.name+(me?" (du)":"")), el("small","muted",owner?"Host · Gründer":host?"Host":"Mitglied")); r.append(t);
+      if(!owner){ const hb=el("button","btn",host?"Kein Host mehr":"Zum Host machen"); hb.type="button";
+        hb.onclick=async()=>{ hb.disabled=true; try{ await fsReq("/mitarbeiter/"+a.id+"?updateMask.fieldPaths=host","PATCH",fsFields({host:!host})); toast(host?a.name+" ist kein Host mehr":a.name+" ist jetzt Host"); teamLoad(); }catch(e){ toast(tErr(e)); hb.disabled=false; } }; r.append(hb); }
+      if(!owner && !me){ const rm=el("button","btn bad","Entfernen"); rm.type="button";
+        rm.onclick=()=>ask(a.name+" entfernen?",a.name+" fliegt aus dem Team und sieht danach keinen Urlaub mehr. Seine Urlaube im Team werden gelöscht.",[{label:"Ja, entfernen",pri:true,fn:async()=>{ try{ for(const v of team.vac.filter(v=>v.name===a.name)){ try{ await fsReq("/urlaube/"+v.id,"DELETE"); }catch(e){} } await fsReq("/mitarbeiter/"+a.id,"DELETE"); toast(a.name+" entfernt"); teamLoad(); }catch(e){ toast(tErr(e)); } }},{label:"Abbrechen"}]);
+        r.append(rm); }
+      ac.append(r); });
+    ac.append(el("p","hint","Hosts können einladen, freigeben, Personen verwalten und die Grenze einstellen."));
     box.append(ac); }
   if(!teamOn()) return;
   // Mein Urlaub
@@ -2686,7 +2705,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-9";
+const APP_VERSION="2026.10.05-10";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
