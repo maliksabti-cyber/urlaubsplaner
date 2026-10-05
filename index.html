@@ -170,6 +170,7 @@ body.ypon .toast,body:has(#yplan:not([hidden])) .toast{bottom:auto!important;top
 .instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
 .applink{font:600 15px/1.4 var(--f-body);word-break:break-all;background:var(--tint);border-radius:8px;padding:10px 12px;margin:4px 0 10px;user-select:all}
 .stimes summary{font-weight:800;font-size:16px;cursor:pointer;min-height:32px}.strow{display:flex;align-items:center;gap:12px;width:100%;border:0;border-top:1px solid var(--rule);background:none;padding:10px 2px;text-align:left;font:inherit;color:inherit;min-height:52px}.strow small{display:block;color:var(--soft);font-size:13px}.stimes .btn{margin-top:8px}
+.wbox h3{margin:6px 0}.wor{margin:2px 0;text-align:center}
 .mrow{width:100%;min-height:56px}.mrow .qi{font-size:22px;width:32px;text-align:center}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
@@ -1411,11 +1412,22 @@ function openType(t){
     const tm=el("div","three"); const la=el("label","f","Beginn"), ia=el("input"); ia.type="time"; ia.id="tstart"; ia.value=d.start||""; la.append(ia);
     const lb=el("label","f","Ende"), ib=el("input"); ib.type="time"; ib.id="tend"; ib.value=d.end||""; lb.append(ib);
     const lc=el("label","f","Pause (Min.)"), ic=el("input"); ic.type="number"; ic.id="tpause"; ic.min=0; ic.max=240; ic.value=d.pause||0; lc.append(ic); tm.append(la,lb,lc); p.append(tm);
-    const lw=el("label","f","Wert pro Tag in Stunden (zählt für die Statistik, z. B. 7,5)"), iw=el("input"); iw.type="text"; iw.inputMode="decimal"; iw.id="tcredit"; iw.placeholder="z. B. 7,5"; iw.value=+d.credit?String(Math.round(d.credit/60*100)/100).replace(".",","):""; lw.append(iw); p.append(lw);
-    const wv=el("p","hint"); p.append(wv); const rdW=()=>{ const t=iw.value.trim().replace(",","."); if(!t) return null; const v=parseFloat(t); return isFinite(v)&&v>=0?Math.round(Math.min(24,v)*60):null; };
-    const syncW=()=>{ lw.hidden=wv.hidden=s3.value==="work"; const m=rdW(); wv.textContent=m!=null?"= "+hStr(m)+" pro "+(KINDS[s3.value]||"")+"-Tag":(s3.value==="free"?"Leer lassen = freie Tage zählen 0 Stunden.":"Leer lassen = Soll-Stunden ÷ 5 (oder Schnitt deiner Schichten)."); }; iw.oninput=syncW;
+    /* Urlaub, Krank, Frei: Wert pro Tag – wahlweise Minuten, Stunden+Minuten oder Dezimal; alle Felder bleiben gleich */
+    const wb=el("div","wbox"); wb.append(el("h3",null,"Wert pro Tag (für die Statistik)"));
+    const mk=(lab,id,ph,mode)=>{ const l=el("label","f",lab), i=el("input"); i.type="text"; i.inputMode=mode||"numeric"; i.id=id; i.placeholder=ph; i.autocomplete="off"; l.append(i); return [l,i]; };
+    const [lM,iM]=mk("Minuten gesamt","tcmin","z. B. 450"), [lH,iH]=mk("Stunden","tch","7"), [lN,iN]=mk("Minuten","tcm","30"), [lD,iD]=mk("Dezimal (Stunden)","tcdec","7,5","decimal");
+    const hm2=el("div","two"); hm2.append(lH,lN); wb.append(lM, el("p","hint wor","oder"), hm2, el("p","hint wor","oder"), lD); p.append(wb);
+    let cv=+d.credit>0?Math.round(+d.credit):null; const wv=el("p","hint"); wb.append(wv);
+    const fill=src=>{ if(src!==iM) iM.value=cv==null?"":String(cv); if(src!==iH) iH.value=cv==null?"":String(Math.floor(cv/60)); if(src!==iN) iN.value=cv==null?"":String(cv%60); if(src!==iD) iD.value=cv==null?"":String(Math.round(cv/60*100)/100).replace(".",",");
+      wv.textContent=cv!=null?"= "+hStr(cv)+" pro Tag":(s3.value==="free"?"Leer lassen = freie Tage zählen 0 Stunden.":"Leer lassen = Soll-Stunden ÷ 5 (oder Schnitt deiner Schichten)."); };
+    const num=v=>{ const t=String(v).trim().replace(",","."); if(t==="") return null; const n=parseFloat(t); return isFinite(n)&&n>=0?n:NaN; };
+    iM.oninput=()=>{ const n=num(iM.value); if(Number.isNaN(n)) return; cv=n==null?null:Math.min(1440,Math.round(n)); fill(iM); };
+    const hmIn=src=>{ const h=num(iH.value), m=num(iN.value); if(Number.isNaN(h)||Number.isNaN(m)) return; cv=(h==null&&m==null)?null:Math.min(1440,Math.round((h||0)*60+(m||0))); fill(src); };
+    iH.oninput=()=>hmIn(iH); iN.oninput=()=>hmIn(iN);
+    iD.oninput=()=>{ const n=num(iD.value); if(Number.isNaN(n)) return; cv=n==null?null:Math.min(1440,Math.round(n*60)); fill(iD); };
+    const rdW=()=>cv; const syncW=()=>{ wb.hidden=s3.value==="work"; tm.hidden=s3.value!=="work"; fill(null); };
     const du=el("p","hint tdur"); p.append(du);
-    const syncD=()=>{ const m=spanMin(ia.value,ib.value,+ic.value||0); du.textContent=m!=null?"Dauer: "+hStr(m)+(s3.value==="work"?"":" – zählt nicht als Arbeitszeit"):(s3.value==="work"?"Bitte Beginn und Ende eingeben.":"Zeit ist hier freiwillig (z. B. Arzttermin, Bereitschaft)."); };
+    const syncD=()=>{ du.hidden=s3.value!=="work"; const m=spanMin(ia.value,ib.value,+ic.value||0); du.textContent=m!=null?"Dauer: "+hStr(m):"Bitte Beginn und Ende eingeben."; };
     [ia,ib,ic].forEach(x=>x.oninput=syncD); s3.onchange=()=>{ syncD(); syncW(); }; syncD(); syncW();
     p.append(el("h3",null,"Farbe")); const pal=el("div","pal"); const prevChip=()=>{ pal.querySelectorAll("button").forEach(b=>b.style.outline=b.dataset.c===d.color?"3px solid var(--ink)":"none"); };
     PALETTE.forEach(c=>{ const b=el("button"); b.type="button"; b.dataset.c=c; b.setAttribute("aria-label","Farbe "+c); const ch=el("span","chip"); ch.style.setProperty("--c",c); ch.textContent=" "; b.append(ch); b.onclick=()=>{ d.color=c; prevChip(); }; pal.append(b); }); p.append(pal); prevChip();
@@ -1425,7 +1437,7 @@ function openType(t){
       if(!name){ toast("Bitte einen Namen eingeben."); i1.focus(); return; } if(!short){ toast("Bitte ein Kürzel eingeben."); i2.focus(); return; }
       if(S.types.some(x=>x.id!==d.id && x.short.toUpperCase()===short)){ toast("Das Kürzel gibt es schon."); return; }
       if(s3.value==="work" && (!ia.value||!ib.value)){ toast("Bitte Beginn und Ende eingeben."); return; }
-      const hasT=!!(ia.value&&ib.value), cw=rdW(); d.credit=s3.value==="work"?0:(cw!=null?cw:(hasT?spanMin(ia.value,ib.value,+ic.value||0):0)); Object.assign(d,{name:name.slice(0,40),short,kind:s3.value,start:hasT?ia.value:"",end:hasT?ib.value:"",pause:hasT?Math.max(0,Math.min(240,+ic.value||0)):0});
+      const hasT=s3.value==="work"&&!!(ia.value&&ib.value), cw=rdW(); d.credit=s3.value==="work"?0:(cw||0); Object.assign(d,{name:name.slice(0,40),short,kind:s3.value,start:hasT?ia.value:"",end:hasT?ib.value:"",pause:hasT?Math.max(0,Math.min(240,+ic.value||0)):0});
       const i=S.types.findIndex(x=>x.id===d.id); if(i>=0) S.types[i]=d; else S.types.push(d); save(); if(typeBack){ const f=typeBack; typeBack=null; f(); } else closeSheet(); toast("Schichtart gespeichert"); };
     row.append(ok); p.append(row);
   });
@@ -2489,7 +2501,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-33";
+const APP_VERSION="2026.10.05-34";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
