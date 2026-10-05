@@ -164,7 +164,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .banner.bad{border-color:var(--bad);color:var(--bad);font-weight:600}
 /* Im Jahreskalender erscheinen Meldungen oben, damit unten kein Knopf verdeckt wird */
 body.ypon .toast,body:has(#yplan:not([hidden])) .toast{bottom:auto!important;top:calc(64px + env(safe-area-inset-top,0px))}
-.yimg img{width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;display:block;cursor:zoom-in;background:#fff}
+.yimg img{width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;display:block;background:#fff}
 .ypstep{font-weight:700;font-size:14px;line-height:1.3}.ypflash{animation:ypfl .9s}@keyframes ypfl{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 4px var(--accent)}}
 .instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
 .applink{font:600 15px/1.4 var(--f-body);word-break:break-all;background:var(--tint);border-radius:8px;padding:10px 12px;margin:4px 0 10px;user-select:all}
@@ -1648,15 +1648,8 @@ function shareText(st){ const who=S.name?" – "+S.name:"", L=[];
   else { L.push("Mein Urlaub "+st.y+who); const bl=vacBlocks(st.y); if(!bl.length) L.push("noch keiner eingetragen"); bl.forEach(b=>L.push("• "+fmt(b.a)+(b.a===b.e?"":" bis "+fmt(b.e))+" ("+b.n+(b.n===1?" Urlaubstag)":" Urlaubstage)"))); const u=vacUsed(st.y), t=vacTotal(st.y); L.push(""); L.push(u+" von "+t+" Urlaubstagen verplant."); }
   return L.join("\n"); }
 function shareTitle(st){ return st.kind==="month"?"Monatsplan "+MON[st.m]+" "+st.y:st.kind==="year"?"Jahresplan "+st.y:"Urlaub & Schichtplan "+st.y; }
-function shareMenu(st){ const txt=shareText(st), title=shareTitle(st), pdf=()=>pdfYear(st.y);
-  const btns=[];
-  btns.push({label:"✉️ Per E-Mail – mit Jahreskalender",pri:true,fn:()=>mailYear(st)});
-  btns.push({label:"🖼 Jahreskalender als Bild (WhatsApp, E-Mail …)",fn:()=>shareYearImage(st.y)});
-  if(dlNs) btns.push({label:"📄 Als PDF – Urlaub + Jahreskalender",fn:()=>pdf()});
-  btns.push({label:"💬 Nur Text per WhatsApp",fn:()=>{ window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank","noopener"); }});
-  btns.push({label:"📋 Text kopieren",fn:async()=>{ try{ await navigator.clipboard.writeText(txt); toast("Text kopiert – jetzt einfügen, wo du willst"); }catch(e){ toast("Kopieren hat nicht geklappt."); } }});
-  btns.push({label:"Abbrechen",fn:()=>{}});
-  ask("Wie möchtest du teilen?",title,btns); }
+/* Teilen = immer eine ganz normale PDF-Datei (Urlaub von–bis + Jahreskalender) */
+function shareMenu(st){ pdfYear(st.y); }
 /* Jahreskalender als Bild: Januar … Dezember von links nach rechts, darunter die Tage 1–31 */
 async function yearPNG(y){ const C=12, cw=118, rh=24, M=24, top=96, hh=30, W=M*2+C*cw, lgH=24+Math.ceil(S.types.length/3)*22, H=top+hh+31*rh+16+lgH+M;
   const cv=document.createElement("canvas"), k=2; cv.width=W*k; cv.height=H*k; const g=cv.getContext("2d"); g.scale(k,k);
@@ -1679,26 +1672,9 @@ async function yearPNG(y){ const C=12, cw=118, rh=24, M=24, top=96, hh=30, W=M*2
   S.types.forEach((t,i)=>{ if(i&&i%3===0){ ly+=22; lx=M; } const lab=t.short+" = "+t.name+(t.kind==="work"&&t.start?"  "+t.start+"–"+t.end+" · "+hStr(minutes(t)):"");
     g.fillStyle=t.kind==="free"?"#DDF1E3":t.color; g.fillRect(lx,ly-12,14,14); g.fillStyle="#16222B"; g.fillText(lab,lx+20,ly); lx+=Math.round(W/3)-10; });
   return await new Promise(r=>cv.toBlob(b=>b.arrayBuffer().then(a=>r(new Uint8Array(a))),"image/png")); }
-async function shareYearImage(y){ try{ const b=await yearPNG(y); await shareFile(b,"Jahreskalender_"+y+".png","image/png","Jahreskalender "+y); }catch(e){ toast("Bild konnte nicht erstellt werden."); } }
 /* Bild des Jahreskalenders in eine Karte setzen (antippen = groß) */
 function yearImg(box,y){ const w=el("div","yimg"); w.append(el("p","muted","Bild wird erstellt …")); box.append(w);
-  yearPNG(y).then(b=>{ const u=URL.createObjectURL(new Blob([b],{type:"image/png"})), im=el("img"); im.src=u; im.alt="Jahreskalender "+y; im.onclick=()=>window.open(u,"_blank"); w.innerHTML=""; w.append(im); }).catch(()=>{ w.innerHTML=""; w.append(el("p","muted","Vorschau nicht möglich.")); }); }
-/* Nach dem Eintragen: erst Vorschau im Jahreskalender zeigen, dann fragen, ob gesendet werden soll */
-function vacPreview(y,a,e){ const st={kind:"list",y};
-  openSheet(p=>{ sheetTop(p,"Dein Urlaub "+y); p.dataset.sheet="vacprev";
-    p.append(el("p",null,"✅ Eingetragen: "+(a===e?fmt(a):fmt(a)+" – "+fmt(e))+". So sieht dein Jahreskalender jetzt aus:"));
-    yearImg(p,y);
-    p.append(el("h3",null,"Möchtest du das senden?"));
-    const yes=el("button","btn pri","Ja, senden …"); yes.type="button"; yes.onclick=()=>shareMenu(st);
-    const no=el("button","btn","Nein, fertig"); no.type="button"; no.onclick=()=>closeSheet();
-    const more=el("button","btn ghost","Weiteren Urlaub eintragen"); more.type="button"; more.onclick=()=>{ closeSheet(); openYearPlanner(y); };
-    p.append(yes,no,more); }); }
-/* E-Mail mit Jahreskalender: Bild (und Text) über das Teilen-Menü; am Computer Bild speichern + E-Mail öffnen */
-async function mailYear(st){ const txt=shareText(st), title=shareTitle(st); try{ const b=await yearPNG(st.y), f=new File([b],"Jahreskalender_"+st.y+".png",{type:"image/png"});
-    if(navigator.canShare && navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title,text:txt}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
-    const u=URL.createObjectURL(f), a=document.createElement("a"); a.href=u; a.download=f.name; document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),5000);
-    toast("Jahreskalender als Bild gespeichert – in der E-Mail als Anhang einfügen.");
-    setTimeout(()=>{ location.href="mailto:?subject="+encodeURIComponent(title)+"&body="+encodeURIComponent(txt+"\n\n(Jahreskalender im Anhang)"); },600); }catch(e){ toast("Das hat nicht geklappt."); } }
+  yearPNG(y).then(b=>{ const u=URL.createObjectURL(new Blob([b],{type:"image/png"})), im=el("img"); im.src=u; im.alt="Jahreskalender "+y; w.innerHTML=""; w.append(im); }).catch(()=>{ w.innerHTML=""; w.append(el("p","muted","Vorschau nicht möglich.")); }); }
 /* Teilen – einfach: Urlaub von/bis + Jahreskalender + Legende mit Uhrzeit und Stunden, als ein PDF */
 function shiftLegend(box){ const lg=el("div","slegend"); S.types.filter(t=>t.kind!=="vac").forEach(t=>{ const r=el("div","slrow"); const w=t.kind==="work"&&t.start; r.append(chip(t), el("b","grow",t.name), el("span","muted",w?t.start+" – "+t.end+" · "+hStr(minutes(t)):"")); lg.append(r); }); box.append(lg); return lg; }
 function openSharePreview(kind,y){ const st={kind:"list",y:y||planYear()};
@@ -1713,10 +1689,7 @@ function openSharePreview(kind,y){ const st={kind:"list",y:y||planYear()};
     const c2=el("div","card prev"); c2.append(el("h3",null,"Jahreskalender "+st.y)); yearImg(c2,st.y);
     const yb=el("button","btn ghost","📅 Im großen Jahreskalender ansehen"); yb.type="button"; yb.onclick=()=>{ closeSheet(); openYearPlanner(st.y); }; c2.append(yb); p.append(c2);
     const c3=el("div","card prev"); c3.append(el("h3",null,"Legende – Schichten")); shiftLegend(c3); p.append(c3);
-    const go=el("button","btn pri","📄 PDF teilen"); go.type="button"; go.onclick=()=>{ if(dlNs) pdfYear(st.y); else shareMenu(st); }; p.append(go);
-    const im=el("button","btn","🖼 Jahreskalender als Bild teilen"); im.type="button"; im.onclick=()=>shareYearImage(st.y); p.append(im);
-    const ml=el("button","btn","✉️ Per E-Mail – mit Jahreskalender"); ml.type="button"; ml.onclick=()=>mailYear(st); p.append(ml);
-    const tx=el("button","btn ghost","Weitere Möglichkeiten …"); tx.type="button"; tx.onclick=()=>shareMenu(st); p.append(tx); });
+    const go=el("button","btn pri","📄 PDF teilen"); go.type="button"; go.onclick=()=>pdfYear(st.y); p.append(go); });
   draw(); }
 /* ===================== Urlaub selbst im Kalender wählen ===================== */
 function vacCount(f,t){ const r={n:0,free:0,as:0,days:[]}; for(let s=f;s<=t;s=addD(s,1)){ if(vacAt(s)){ r.free++; continue; }
@@ -2507,7 +2480,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-19";
+const APP_VERSION="2026.10.05-20";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
