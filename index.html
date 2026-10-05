@@ -157,6 +157,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypbar small{display:block;color:var(--soft);font-size:12px;line-height:1.25}.ypbar b{font-size:15px}.ypbar .btn{min-height:44px}
 .ypopen{width:100%;min-height:48px}
 .instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
+.applink{font:600 15px/1.4 var(--f-body);word-break:break-all;background:var(--tint);border-radius:8px;padding:10px 12px;margin:4px 0 10px;user-select:all}
 .mrow{width:100%;min-height:56px}.mrow .qi{font-size:22px;width:32px;text-align:center}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
@@ -1050,7 +1051,7 @@ const PRESETS=[
   ["4 Tage an, 4 frei",["F","F","F","F",null,null,null,null]]];
 let editRot=null;
 function renderSet(){
-  const box=$("#v-set"); box.innerHTML="";
+  const box=$("#v-set"); box.innerHTML=""; appLinkCard(box);
   if(CFG.localMode){ const kc=el("div","card sec"); kc.append(el("h2",null,"Deine Daten"), el("p","hint","Deine Daten sind auf diesem Handy gespeichert, eine Anmeldung brauchst du nicht. Teile ab und zu unten eine Sicherung, z. B. an dich selbst per WhatsApp oder Mail."));
     const l=el("label","f","Vorname"), i=el("input"); i.type="text"; i.id="myname"; i.value=S.name||""; i.onchange=()=>{ S.name=i.value.trim().slice(0,40); save(); $("#who").textContent=S.name||""; }; l.append(i); kc.append(l); box.append(kc); }
   else { const kc=el("div","card sec"); kc.append(el("h2",null,"Konto"));
@@ -1250,6 +1251,16 @@ async function appInstall(){ if(instEv){ instEv.prompt(); try{ await instEv.user
       :["Oben rechts im Browser auf ⋮ (drei Punkte) tippen.","„App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen.","Bestätigen – fertig. Die App liegt jetzt auf deinem Startbildschirm."];
     const ol=el("ol","inststeps"); steps.forEach(t=>ol.append(el("li",null,t))); p.append(ol);
     if(ios) p.append(el("p","hint","Wichtig: Auf dem iPhone geht das nur in Safari.")); }); }
+/* Link zur App teilen – damit Kollegen und Familie sie selbst aufs Handy holen können */
+const APP_URL="https://maliksabti-cyber.github.io/urlaubsplaner/";
+function appLinkCard(box){ const c=el("div","card sec"); c.append(el("h2",null,"App weitergeben"), el("p","hint","Schick diesen Link – damit kann sich jeder die App aufs Handy holen (öffnen → „App installieren“)."));
+  const u=el("div","applink",APP_URL); c.append(u);
+  const txt="Schicht & Urlaub – meine App für Schichtplan und Urlaub. Einfach öffnen und „App installieren“ tippen: "+APP_URL;
+  const r=el("div","row"); const sh=el("button","btn pri grow","⇪ Link teilen"); sh.type="button";
+  sh.onclick=async()=>{ if(navigator.share){ try{ await navigator.share({title:"Schicht & Urlaub",text:txt,url:APP_URL}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
+    ask("Link teilen","Wie möchtest du den Link schicken?",[{label:"💬 WhatsApp",pri:true,fn:()=>window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank","noopener")},{label:"✉️ E-Mail",fn:()=>{ location.href="mailto:?subject="+encodeURIComponent("Schicht & Urlaub")+"&body="+encodeURIComponent(txt); }},{label:"📋 Kopieren",fn:copy},{label:"Abbrechen"}]); };
+  const copy=async()=>{ try{ await navigator.clipboard.writeText(APP_URL); toast("Link kopiert"); }catch(e){ toast("Kopieren hat nicht geklappt."); } };
+  const cp=el("button","btn","📋 Kopieren"); cp.type="button"; cp.onclick=copy; r.append(sh,cp); c.append(r); box.append(c); }
 /* „Mehr“: alles, was nicht jeden Tag gebraucht wird */
 function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; installCard(box); const c=el("div","card sec"); c.append(el("h2",null,"Mehr"));
   [["👥","Team","Urlaub mit Kollegen abgleichen",()=>show("team")],["📊","Statistik & Verdienst","Stunden, Überstunden, Zuschläge",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
@@ -2589,7 +2600,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-3";
+const APP_VERSION="2026.10.05-4";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
