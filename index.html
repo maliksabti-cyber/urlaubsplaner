@@ -744,7 +744,6 @@ function liveLine(t,now){ now=now||new Date(); if(iso(now)!==t) return null; con
   if(cross||nm<e) return ["Läuft gerade – Feierabend um "+sh.end+" Uhr (in "+durTxt((cross?e+1440:e)-nm)+")",true];
   return ["Geschafft – Feierabend seit "+sh.end+" Uhr",false]; }
 setInterval(()=>{ if(!S||view!=="heute") return; const d=$("#live"), lv=liveLine(TODAY()); if(d&&lv){ d.textContent=lv[0]; d.classList.toggle("run",lv[1]); } },60000);
-let hM=null;
 function renderHeute(){
   const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box); installCard(box,true);
   const t=TODAY(), sh=shiftOf(t), hn=holName(t);
@@ -756,15 +755,6 @@ function renderHeute(){
   const lv=liveLine(t); if(lv){ const d=el("div","live"+(lv[1]?" run":""),lv[0]); d.id="live"; info.append(d); }
   const nt=S.notes[t]; if(nt) info.append(el("div",null,"📝 "+nt));
   top.append(big,info); top.onclick=()=>openDay(t); top.style.cursor="pointer"; c.append(top);
-  const w=el("div","week"); for(let i=0;i<7;i++){ const s=addD(t,i), x=shiftOf(s), b=el("button"); b.type="button"; if(i===0) b.classList.add("now"); markDay(b,s); b.append(el("span",null,DOW[parse(s).getDay()]+" "+parse(s).getDate()), vacChip(s,x)); b.onclick=()=>openDay(s); w.append(b); }
-  const hs=el("div","seg hseg"); hs.setAttribute("aria-label","Ansicht"); [["woche","Woche"],["monat","Monat"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.dataset.k=k; b.setAttribute("aria-pressed",String((S.hView||"woche")===k)); b.onclick=()=>{ S.hView=k; hM=null; save(); renderHeute(); }; hs.append(b); }); c.append(hs);
-  if((S.hView||"woche")==="monat"){ if(!hM) hM={y:+t.slice(0,4),m:+t.slice(5,7)-1}; const mb=el("div","hmonth"); mb.id="hmonth";
-    const go=k=>{ hM.m+=k; if(hM.m<0){ hM.m=11; hM.y--; } if(hM.m>11){ hM.m=0; hM.y++; } const o=$("#hmonth"); if(o) o.replaceWith(drawHM()); };
-    const drawHM=()=>{ const b=el("div","hmonth"); b.id="hmonth"; pvHead(b,MON[hM.m]+" "+hM.y,go); const g=monthMini(hM.y,hM.m,openDay); swipeMonths(g,go); b.append(g);
-      const vb=vacList().filter(v=>v.a<=lastOfMonth(hM.y+"-"+pad(hM.m+1)+"-01") && v.e>=hM.y+"-"+pad(hM.m+1)+"-01" && vacDaysOf(v).length);
-      b.append(el("div","muted small",vb.length?"☀ Urlaub: "+vb.map(v=>fmtS(v.a)+" – "+fmtS(v.e)).join(", "):"Kein Urlaub in diesem Monat. Hoch/runter wischen für andere Monate.")); return b; };
-    c.append(drawHM()); }
-  else c.append(w);
   let ns=null; for(let i=sh&&sh.kind==="work"?1:0;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(x&&x.kind==="work"){ ns=[s,x]; break; } }
   if(ns) c.append(el("div","nextline",(sh&&sh.kind==="work"?"Nächste Schicht danach: ":"Nächste Schicht: ")+(ns[0]===t?"heute":ns[0]===addD(t,1)?"morgen":fmt(ns[0]))+" · "+ns[1].name+(ns[1].start?" ab "+ns[1].start+" Uhr":"")));
   box.append(c);
@@ -2480,7 +2470,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-28";
+const APP_VERSION="2026.10.05-29";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
