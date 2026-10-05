@@ -135,6 +135,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .vpick .mc.inrange{background:var(--free-bg);box-shadow:inset 0 0 0 2px var(--ok)}
 .vpick .mc.edge{background:var(--ok)}.vpick .mc.edge i{color:#fff;font-weight:800}
 .vpick .mc.off{opacity:.45}
+.vrest .bad,.vrest .muted{display:block}.vrest .bad{color:var(--bad);font-weight:700}
 .vpsum{display:grid;gap:2px}.vpsum b{font-size:22px}.vpsum .bad{color:var(--bad);font-weight:700}
 .vlist{display:grid;gap:0;margin-top:14px}.vlist h3{margin:0 0 4px}
 .vlist .vrow b{display:block}.vlist .vrow .num{font-weight:700;white-space:nowrap}
@@ -577,8 +578,16 @@ const hStr=m=>{ const h=Math.floor(m/60), mm=m%60; return h+(mm?":"+pad(mm):"")+
 
 /* Urlaub */
 function vacUsed(y){ let n=0; for(let s=y+"-01-01"; s<=y+"-12-31"; s=addD(s,1)){ const t=shiftOf(s); if(t && t.kind==="vac") n++; } return n; }
-function vacTotal(y){ return (+S.vacPerYear||0)+(+(S.carry[y]||0))+((S.vacCorr&&+S.vacCorr[y])||0); }
+function carryOf(y){ if(S.carryAuto&&S.carryAuto[y]) return Math.max(0,Math.min(99,vacTotal(y-1)-vacUsed(y-1))); return +(S.carry[y]||0); }
+function vacTotal(y){ return (+S.vacPerYear||0)+carryOf(y)+((S.vacCorr&&+S.vacCorr[y])||0); }
 function vacType(){ return S.types.find(t=>t.kind==="vac"); }
+/* Urlaub über den Jahreswechsel: Tage je Jahr aufteilen und Rest je Jahr zeigen */
+function vacYears(days){ const m={}; days.forEach(d=>{ const y=+d.slice(0,4); m[y]=(m[y]||0)+1; }); return Object.keys(m).map(Number).sort().map(y=>({y,n:m[y],rest:vacTotal(y)-vacUsed(y)-m[y]})); }
+function vacUsedRange(a,e){ let n=0; for(let y=+a.slice(0,4);y<=+e.slice(0,4);y++) n+=vacUsed(y); return n; }
+function vacRestNode(days,fallbackY){ const L=vacYears(days); if(!L.length){ const r=vacTotal(fallbackY)-vacUsed(fallbackY); return el("span","muted","Danach noch "+r+" Tage übrig ("+fallbackY+")."); }
+  const bad=L.filter(x=>x.rest<0); const box=el("span",bad.length?"bad":"muted");
+  if(L.length===1){ const x=L[0]; box.textContent=x.rest<0?"Achtung: "+(-x.rest)+" Tage mehr als dein Anspruch "+x.y+".":"Danach noch "+x.rest+" Tage übrig ("+x.y+")."; return box; }
+  box.textContent="Über den Jahreswechsel: "+L.map(x=>x.y+": "+x.n+(x.n===1?" Tag":" Tage")+(x.rest<0?" – "+(-x.rest)+" zu viel!":" (danach "+x.rest+" übrig)")).join(" · "); return box; }
 
 /* ===================== Oberfläche ===================== */
 let view="heute", curY=new Date().getFullYear(), curM=new Date().getMonth(), kalMode="monat", statY=curY, statM=curM;
@@ -772,12 +781,12 @@ function openVac(){
     const upd=()=>{ info.innerHTML=""; const f=ia.value, t=ib.value; if(!f||!t||t<f){ info.append(el("div","muted","Bitte Von und Bis wählen.")); go.disabled=true; return; }
       let n=0, free=0, as=0; days=[]; for(let s=f;s<=t;s=addD(s,1)){ if(vacAt(s)){ free++; continue; } const x=ownShift(s);
         if(x && x.kind==="work"){ n++; days.push(s); } else if(!planKnown(s) && ![0,6].includes(parse(s).getDay()) && !holName(s)){ n++; as++; days.push(s); } else free++; }
-      const y=+f.slice(0,4), rest=vacTotal(y)-vacUsed(y)-n;
+      const y=+f.slice(0,4), rv=vacRestNode(days,y);
       const big=el("div","stat"); big.append(el("b","num",n+" Urlaubstage"), el("span",null,(diffD(f,t)+1)+" Kalendertage, davon "+free+" ohnehin frei"));
       if(as) info.append(el("div","banner","Für "+(as===n?"diesen Zeitraum":as+" Tage")+" ist noch kein Schichtplan eingetragen – gerechnet wird mit Montag bis Freitag."));
-      info.append(big, el("div",rest<0?"":"muted",rest<0?("Achtung: "+(-rest)+" Tage mehr als dein Anspruch "+y+"."):("Danach noch "+rest+" Tage übrig ("+y+")."))); go.disabled=n===0; };
+      const rd=el("div"); rd.className="vrest"; rd.append(rv); info.append(big, rd); go.disabled=n===0; };
     const go=el("button","btn pri","Eintragen"); go.type="button";
-    go.onclick=()=>{ const f=ia.value, t=ib.value, old=JSON.parse(JSON.stringify(vacList())), u0=vacUsed(+f.slice(0,4)); if(days.some(d=>!planKnown(d))){ vacList().push({id:uid(),a:f,e:t,fixed:days.slice()}); normVacs(); } else addVac(f,t); const n=vacUsed(+f.slice(0,4))-u0;
+    go.onclick=()=>{ const f=ia.value, t=ib.value, old=JSON.parse(JSON.stringify(vacList())), u0=vacUsedRange(f,t); if(days.some(d=>!planKnown(d))){ vacList().push({id:uid(),a:f,e:t,fixed:days.slice()}); normVacs(); } else addVac(f,t); const n=vacUsedRange(f,t)-u0;
       save(); closeSheet(); curY=+f.slice(0,4); curM=+f.slice(5,7)-1; toast(n+" Urlaubstage eingetragen","Rückgängig",()=>{ S.vacs=old; save(); render(); }); setTimeout(teamOffer,400); };
     ia.oninput=()=>{ if(ib.value<ia.value) ib.value=ia.value; upd(); }; ib.oninput=upd;
     p.append(el("p","hint","Gezählt werden nur Tage, an denen du laut Schichtplan arbeitest. Ändert sich später dein Schichtplan, passe ich den Urlaub an – vorher frage ich dich."), go); upd();
@@ -853,7 +862,7 @@ function renderSet(){
   const uc=el("div","card sec"); uc.append(el("h2",null,"Urlaub & Feiertage"));
   const y=new Date().getFullYear(); const g=el("div","two");
   const l1=el("label","f","Urlaubstage pro Jahr"), i1=el("input"); i1.type="number"; i1.id="vacy"; i1.min=0; i1.max=99; i1.value=S.vacPerYear; i1.oninput=()=>{ S.vacPerYear=Math.max(0,Math.min(99,+i1.value||0)); save(); }; l1.append(i1);
-  const l2=el("label","f","Resturlaub aus "+(y-1)+" (für "+y+")"), i2=el("input"); i2.type="number"; i2.id="carry"; i2.min=0; i2.max=99; i2.value=S.carry[y]||0; i2.oninput=()=>{ S.carry[y]=Math.max(0,Math.min(99,+i2.value||0)); save(); }; l2.append(i2);
+  const l2=el("label","f","Resturlaub aus "+(y-1)+" (für "+y+")"), i2=el("input"); i2.type="number"; i2.id="carry"; i2.min=0; i2.max=99; i2.value=carryOf(y); i2.oninput=()=>{ S.carry[y]=Math.max(0,Math.min(99,+i2.value||0)); if(S.carryAuto) delete S.carryAuto[y]; save(); }; l2.append(i2);
   g.append(l1,l2); uc.append(g); { const vs=el("button","btn","Resturlaub "+y+" einstellen (z. B. „noch 13 Tage“)"); vs.type="button"; vs.onclick=()=>openVacSettings(y); uc.append(vs); }
   const l3=el("label","f","Bundesland (für Feiertage)"), se=el("select"); se.id="land"; LAENDER.forEach(([k,n])=>{ const o=el("option",null,n); o.value=k; se.append(o); }); se.value=S.land; se.onchange=()=>{ S.land=se.value; save(); renderSet(); }; l3.append(se); uc.append(l3);
   (LOCAL_HOL[S.land]||[]).forEach(([k,n,sub,def])=>{ const lb=el("label","sw"); const c=el("input"); c.type="checkbox"; c.id="lh_"+k; c.checked=localOn(k,def); c.onchange=()=>{ if(!S.localHol) S.localHol={}; S.localHol[k]=c.checked; save(); renderSet(); }; const t=el("span"); t.append(document.createTextNode(n+" ist bei mir Feiertag"), el("small","muted"," – "+sub)); lb.append(c,t); uc.append(lb); });
@@ -1362,9 +1371,9 @@ function openSharePreview(kind,y,m){ const st={kind,y:y||new Date().getFullYear(
 /* ===================== Urlaub selbst im Kalender wählen ===================== */
 function vacCount(f,t){ const r={n:0,free:0,as:0,days:[]}; for(let s=f;s<=t;s=addD(s,1)){ if(vacAt(s)){ r.free++; continue; } const x=ownShift(s);
     if(x&&x.kind==="work"){ r.n++; r.days.push(s); } else if(!planKnown(s)&&![0,6].includes(parse(s).getDay())&&!holName(s)){ r.n++; r.as++; r.days.push(s); } else r.free++; } return r; }
-function vacSave(f,t,days){ const old=JSON.parse(JSON.stringify(vacList())), y=+f.slice(0,4), u0=vacUsed(y);
+function vacSave(f,t,days){ const old=JSON.parse(JSON.stringify(vacList())), u0=vacUsedRange(f,t);
   if(days.some(d=>!planKnown(d))){ vacList().push({id:uid(),a:f,e:t,fixed:days.slice()}); normVacs(); } else addVac(f,t); save();
-  const n=vacUsed(y)-u0; toast(n+(n===1?" Urlaubstag":" Urlaubstage")+" eingetragen","Rückgängig",()=>{ S.vacs=old; save(); render(); }); setTimeout(teamOffer,400); return n; }
+  const n=vacUsedRange(f,t)-u0; toast(n+(n===1?" Urlaubstag":" Urlaubstage")+" eingetragen","Rückgängig",()=>{ S.vacs=old; save(); render(); }); setTimeout(teamOffer,400); return n; }
 function vacPicker(year,onSaved){ const st={y:year,m:year===new Date().getFullYear()?new Date().getMonth():0,a:null,e:null}; const box=el("div","card sec vpick"); box.id="vpick";
   const draw=()=>{ box.innerHTML=""; box.append(el("h3",null,"Oder selbst eintragen"), el("p","hint","Tippe im Kalender auf den ersten und dann auf den letzten Urlaubstag – oder gib die Daten unten ein."));
     const nav=el("div","mhead"); const pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Vorheriger Monat"); nx.setAttribute("aria-label","Nächster Monat");
@@ -1378,8 +1387,8 @@ function vacPicker(year,onSaved){ const st={y:year,m:year===new Date().getFullYe
     const two=el("div","two"); const la=el("label","f","Von"), lb=el("label","f","Bis"), ia=el("input"), ib=el("input"); ia.type=ib.type="date"; ia.id="vp_from"; ib.id="vp_to"; ia.value=st.a||""; ib.value=st.e||st.a||"";
     ia.onchange=()=>{ st.a=ia.value||null; if(st.e&&st.a&&st.e<st.a) st.e=null; if(st.a){ st.y=+st.a.slice(0,4); st.m=+st.a.slice(5,7)-1; } draw(); };
     ib.onchange=()=>{ st.e=ib.value||null; if(st.a&&st.e&&st.e<st.a){ const t=st.a; st.a=st.e; st.e=t; } draw(); }; la.append(ia); lb.append(ib); two.append(la,lb); box.append(two);
-    if(st.a){ const t=st.e||st.a, r=vacCount(st.a,t), y=+st.a.slice(0,4), rest=vacTotal(y)-vacUsed(y)-r.n;
-      const sm=el("div","vpsum"); sm.append(el("b","num",r.n+(r.n===1?" Urlaubstag":" Urlaubstage")), el("span",null,(diffD(st.a,t)+1)+" Kalendertage, davon "+r.free+" ohnehin frei"), el("span",rest<0?"bad":"muted",rest<0?"Achtung: "+(-rest)+" mehr als dein Anspruch "+y:"Danach noch "+rest+" Tage übrig ("+y+")")); box.append(sm);
+    if(st.a){ const t=st.e||st.a, r=vacCount(st.a,t), y=+st.a.slice(0,4);
+      const sm=el("div","vpsum"); sm.append(el("b","num",r.n+(r.n===1?" Urlaubstag":" Urlaubstage")), el("span",null,(diffD(st.a,t)+1)+" Kalendertage, davon "+r.free+" ohnehin frei"), vacRestNode(r.days,y)); box.append(sm);
       if(r.as) box.append(el("p","hint","Für "+(r.as===r.n?"diesen Zeitraum":r.as+" Tage")+" ist noch kein Schichtplan eingetragen – gerechnet wird mit Montag bis Freitag."));
       const go=el("button","btn pri","Urlaub eintragen"); go.type="button"; go.disabled=!r.n; go.onclick=()=>{ vacSave(st.a,t,r.days); st.a=st.e=null; if(onSaved) onSaved(); else draw(); }; box.append(go); }
   };
@@ -1740,7 +1749,8 @@ function openVacSettings(y){
   openSheet(p=>{ sheetTop(p,"Urlaub "+y+" einstellen");
     const used=vacUsed(y);
     const g=el("div","two"); const l1=el("label","f","Urlaubstage pro Jahr"), a=el("input"); a.type="number"; a.id="vs_year"; a.min=0; a.max=99; a.value=S.vacPerYear; l1.append(a);
-    const l2=el("label","f","Resturlaub aus "+(y-1)), b=el("input"); b.type="number"; b.id="vs_carry"; b.min=0; b.max=99; b.value=S.carry[y]||0; l2.append(b); g.append(l1,l2); p.append(g);
+    const l2=el("label","f","Resturlaub aus "+(y-1)), b=el("input"); b.type="number"; b.id="vs_carry"; b.min=0; b.max=99; b.value=carryOf(y); l2.append(b); g.append(l1,l2); p.append(g);
+    { const pr=vacTotal(y-1)-vacUsed(y-1); if(pr>0 && vacUsed(y-1)>0 && !(S.carryAuto&&S.carryAuto[y])){ const tk=el("button","btn","Rest aus "+(y-1)+" übernehmen ("+pr+(pr===1?" Tag)":" Tage)")); tk.type="button"; tk.id="vs_take"; tk.onclick=()=>{ b.value=Math.min(99,pr); calc(); }; p.append(tk); } }
     const box=el("div","card vsbox"); p.append(box);
     const l3=el("label","f","So viele Tage hast du "+y+" noch übrig"), c=el("input"); c.type="number"; c.id="vs_rest"; c.min=-99; c.max=99; l3.append(c);
     const qk=el("div","presets"); [-1,+1].forEach(d=>{ const x=el("button","btn",d<0?"− 1":"+ 1"); x.type="button"; x.onclick=()=>{ c.value=(+c.value||0)+d; c.dataset.touched="1"; calc(); }; qk.append(x); });
@@ -1753,8 +1763,8 @@ function openVacSettings(y){
     a.oninput=()=>calc(); b.oninput=()=>calc(); c.oninput=()=>{ c.dataset.touched="1"; calc(); }; calc();
     const row=el("div","row");
     if(vacCorr(y)){ const rs=el("button","btn ghost","Korrektur entfernen"); rs.type="button"; rs.onclick=()=>{ if(S.vacCorr) delete S.vacCorr[y]; save(); closeSheet(); toast("Korrektur entfernt"); }; row.append(rs); }
-    const ok=el("button","btn pri grow","Speichern"); ok.type="button"; ok.onclick=()=>{ S.vacPerYear=Math.max(0,Math.min(99,+a.value||0)); S.carry[y]=Math.max(0,Math.min(99,+b.value||0));
-      if(c.dataset.touched){ const corr=(+c.value||0)-(S.vacPerYear+S.carry[y]-used); S.vacCorr=S.vacCorr||{}; if(corr) S.vacCorr[y]=corr; else delete S.vacCorr[y]; }
+    const ok=el("button","btn pri grow","Speichern"); ok.type="button"; ok.onclick=()=>{ S.vacPerYear=Math.max(0,Math.min(99,+a.value||0)); if(!(S.carryAuto&&S.carryAuto[y]&&+b.value===carryOf(y))){ S.carry[y]=Math.max(0,Math.min(99,+b.value||0)); if(S.carryAuto) delete S.carryAuto[y]; }
+      if(c.dataset.touched){ const corr=(+c.value||0)-(S.vacPerYear+carryOf(y)-used); S.vacCorr=S.vacCorr||{}; if(corr) S.vacCorr[y]=corr; else delete S.vacCorr[y]; }
       save(); closeSheet(); toast("Urlaub "+y+": noch "+(vacTotal(y)-vacUsed(y))+" Tage übrig"); };
     row.append(ok); p.append(row); }); }
 /* ===================== PDF teilen – Auswahl ===================== */
@@ -2055,7 +2065,10 @@ function renderUrlaub(){
   p.onclick=()=>{ uY--; renderUrlaub(); }; n.onclick=()=>{ uY++; renderUrlaub(); }; h.append(p,el("h2",null,"Urlaub "+uY),n); box.append(h);
   const used=vacUsed(uY), tot=vacTotal(uY), rest=tot-used;
   const c=el("div","card"); const s3=el("div","stats3"); [[tot,"Anspruch"],[used,"verplant"],[rest,rest<0?"zu viel":"übrig"]].forEach(([v,l],i)=>{ const d=el("div","stat"); const b=el("b","num",String(Math.abs(v))); if(i===2&&rest<0) b.style.color="var(--bad)"; d.append(b,el("span",null,l)); s3.append(d); });
-  const m=el("div","meter"), i=el("i"); i.style.width=Math.min(100,tot?used/tot*100:0)+"%"; if(used>tot) i.style.background="var(--bad)"; m.append(i); c.append(s3,m); const vsb=el("button","btn ghost","✎ Urlaubstage einstellen"); vsb.style.marginTop="10px"; vsb.onclick=()=>openVacSettings(uY); c.append(vsb);
+  const m=el("div","meter"), i=el("i"); i.style.width=Math.min(100,tot?used/tot*100:0)+"%"; if(used>tot) i.style.background="var(--bad)"; m.append(i); c.append(s3,m);
+  { const pr=vacTotal(uY-1)-vacUsed(uY-1); if(S.carry[uY]==null && !(S.carryAuto&&S.carryAuto[uY]) && pr>0 && vacUsed(uY-1)>0 && uY>=new Date().getFullYear()){ const bn=el("div","banner"); bn.id="carryhint"; const tx=el("span","grow"); tx.innerHTML="<b>Aus "+(uY-1)+" sind noch "+pr+(pr===1?" Tag":" Tage")+" übrig.</b> Als Resturlaub für "+uY+" übernehmen?"; tx.style.flexBasis="100%"; const tk=el("button","btn pri","Übernehmen"); tk.type="button"; tk.onclick=()=>{ S.carryAuto=S.carryAuto||{}; S.carryAuto[uY]=true; save(); renderUrlaub(); toast("Übernommen – nimmst du "+(uY-1)+" noch Urlaub, passt sich der Rest an","Rückgängig",()=>{ delete S.carryAuto[uY]; save(); render(); }); }; const no=el("button","btn ghost","Nein"); no.type="button"; no.onclick=()=>{ S.carry[uY]=0; save(); renderUrlaub(); }; bn.append(tx,tk,no); bn.style.marginTop="10px"; c.append(bn); }
+    else if(S.carryAuto&&S.carryAuto[uY]) c.append(el("p","hint","Darin enthalten: "+carryOf(uY)+" Tage Rest aus "+(uY-1)+" – passt sich automatisch an.")); }
+  const vsb=el("button","btn ghost","✎ Urlaubstage einstellen"); vsb.style.marginTop="10px"; vsb.onclick=()=>openVacSettings(uY); c.append(vsb);
   const r=el("div","row"); r.style.marginTop="12px"; const a1=el("button","btn pri grow","+ Urlaub eintragen"), a2=el("button","btn ai grow","Urlaub berechnen"); a1.type=a2.type="button"; a1.onclick=()=>openVac(); a2.onclick=()=>{ agState.year=uY; openAgent(); }; r.append(a1,a2); c.append(r); box.append(c);
   const lc=el("div","card"); lc.append(el("h3",null,"Deine Urlaube "+uY)); const bl=vacBlocks(uY);
   if(!bl.length) lc.append(el("p","muted","Noch kein Urlaub eingetragen."));
