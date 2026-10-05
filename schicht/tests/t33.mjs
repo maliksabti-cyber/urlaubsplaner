@@ -16,6 +16,7 @@ const cls=s=>p.evaluate(s=>document.querySelector('#yplan .ypc[data-s="'+s+'"]')
 ok(/\bho\b/.test(await cls('2027-05-27')), 'Fronleichnam 27.5.2027 als Feiertag markiert');
 ok(/\bho\b/.test(await cls('2027-01-01')), 'Neujahr markiert');
 ok(/\bfe\b/.test(await cls('2027-04-01')), 'Osterferien (1.4.2027) markiert');
+ok(await p.evaluate(()=>document.querySelector('#yplan .ypc[data-s="2027-01-01"] .yps.free')?.textContent)==='F', 'Freie Tage im Jahreskalender als F sichtbar');
 ok(/\bso\b/.test(await cls('2027-01-03')) && /\bsa\b/.test(await cls('2027-01-02')), 'Wochenende markiert');
 await p.screenshot({path:'/tmp/claude-0/t33-a.png'});
 // Halbjahr wechseln

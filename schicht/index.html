@@ -149,6 +149,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypc.sel{background:#FFD3BC!important;color:#16222B!important;box-shadow:inset 5px 0 0 #D9480F}
 .ypd{white-space:nowrap;overflow:hidden;text-overflow:clip}
 .yps{flex:none;min-width:13px;height:13px;border-radius:3px;font:800 9px/13px var(--f-body);text-align:center}
+.yps.free{background:var(--free-bd);color:var(--free-ink);box-shadow:inset 0 0 0 1px var(--free-ink)}.ypc.fr:not(.sa):not(.so):not(.fe):not(.ho):not(.va):not(.sel){background:color-mix(in srgb,var(--free-bg) 45%,var(--card))}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .ypc.sa{background:#3A3420} :root:not([data-theme="light"]) .ypc.so{background:#4A3420} :root:not([data-theme="light"]) .ypc.fe{background:#4A4410} :root:not([data-theme="light"]) .ypc.ho{background:#4A2420;color:#FF9A8E} :root:not([data-theme="light"]) .ypc.va{background:#1F4A30} :root:not([data-theme="light"]) .ypc.sel{background:#6A3418!important;color:#fff!important} }
 :root[data-theme="dark"] .ypc.sa{background:#3A3420}:root[data-theme="dark"] .ypc.so{background:#4A3420}:root[data-theme="dark"] .ypc.fe{background:#4A4410}:root[data-theme="dark"] .ypc.ho{background:#4A2420;color:#FF9A8E}:root[data-theme="dark"] .ypc.va{background:#1F4A30}:root[data-theme="dark"] .ypc.sel{background:#6A3418!important;color:#fff!important}
 .yplg{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--soft);justify-content:center}.yplg span{display:inline-flex;align-items:center;gap:4px}.yplg .ypc{width:14px;height:12px;border:1px solid var(--rule);border-radius:3px;padding:0}
@@ -1669,11 +1670,11 @@ function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*
     if(w===6) c.classList.add("sa"); if(w===0) c.classList.add("so"); if(fe) c.classList.add("fe"); if(hn) c.classList.add("ho"); if(s===t) c.classList.add("now");
     const vb=vacAt(s); if(vb && vacOnDay(vb,s)) c.classList.add("va");
     c.append(el("span","ypd",d+" "+DOW[w]));
-    if(x2 && x2.kind!=="free"){ const o=x2.kind==="vac"?(ownShift(s)||x2):x2; const ch=el("span","yps",o.short); ch.style.background=o.color; ch.style.color=isDark(o.color)?"#16222B":"#fff"; c.append(ch); }
+    if(x2 && x2.kind!=="free"){ const o=x2.kind==="vac"?(ownShift(s)||x2):x2; const ch=el("span","yps",o.short); ch.style.background=o.color; ch.style.color=isDark(o.color)?"#16222B":"#fff"; c.append(ch); } else if(x2 || planKnown(s)){ const fr=el("span","yps free",(x2&&x2.short)||(S.types.find(t=>t.kind==="free")||{}).short||"F"); c.classList.add("fr"); c.append(fr); }
     c.title=fmt(s)+(hn?" · "+hn:"")+(fe?" · "+fe[2]:"")+(x2?" · "+x2.name:"");
     g.append(c); }
   ov.append(g); markYP();
-  const lg=el("div","yplg"); [["sa","Samstag"],["so","Sonntag"],["ho","Feiertag"],["fe","Schulferien"],["va","Urlaub"],["sel","Auswahl"]].forEach(([k,l])=>{ if(k==="fe"&&!(S.land==="NW"&&S.showFerien!==false)) return; const sp=el("span"); sp.append(el("i","ypc "+k), document.createTextNode(l)); lg.append(sp); }); ov.append(lg);
+  const lg=el("div","yplg"); [["sa","Samstag"],["so","Sonntag"],["ho","Feiertag"],["fe","Schulferien"],["va","Urlaub"],["sel","Auswahl"]].forEach(([k,l])=>{ if(k==="fe"&&!(S.land==="NW"&&S.showFerien!==false)) return; const sp=el("span"); sp.append(el("i","ypc "+k), document.createTextNode(l)); lg.append(sp); }); { const sp=el("span"); sp.append(el("b","yps free","F"), document.createTextNode("Frei")); lg.prepend(sp); } ov.append(lg);
   const bar=el("div","ypbar"); bar.id="ypbar"; ov.append(bar); drawYPBar();
   // Ziehen
   let drag=false; const cellAt=(cx,cy)=>{ const e=document.elementFromPoint(cx,cy); const c=e&&e.closest&&e.closest(".ypc[data-s]"); return c&&g.contains(c)?c:null; };
