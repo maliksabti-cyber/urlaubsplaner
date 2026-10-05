@@ -158,6 +158,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypbar{display:flex;align-items:center;gap:8px;height:76px;overflow:hidden;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:8px 10px;min-height:56px}
 .ypbar small{display:block;color:var(--soft);font-size:12px;line-height:1.25}.ypbar b{font-size:15px}.ypbar .btn{min-height:44px}
 .ypopen{width:100%;min-height:48px}
+.ypstep{font-weight:700;font-size:14px;line-height:1.3}.ypflash{animation:ypfl .9s}@keyframes ypfl{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 4px var(--accent)}}
 .instcard{display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent)}.instcard small{display:block;color:var(--soft);font-size:13px}.inststeps{display:grid;gap:10px;padding-left:22px;font-size:16px}
 .applink{font:600 15px/1.4 var(--f-body);word-break:break-all;background:var(--tint);border-radius:8px;padding:10px 12px;margin:4px 0 10px;user-select:all}
 .mrow{width:100%;min-height:56px}.mrow .qi{font-size:22px;width:32px;text-align:center}
@@ -1669,12 +1670,42 @@ function shareText(st){ const who=S.name?" – "+S.name:"", L=[];
 function shareTitle(st){ return st.kind==="month"?"Monatsplan "+MON[st.m]+" "+st.y:st.kind==="year"?"Jahresplan "+st.y:"Urlaub & Schichtplan "+st.y; }
 function shareMenu(st){ const txt=shareText(st), title=shareTitle(st), pdf=()=>pdfYear(st.y);
   const btns=[];
-  if(dlNs) btns.push({label:"📄 Als PDF – WhatsApp, Mail, Drucken",pri:true,fn:()=>pdf()});
-  btns.push({label:"💬 Als Text per WhatsApp",fn:()=>{ window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank","noopener"); }});
-  btns.push({label:"✉️ Als Text per E-Mail",fn:()=>{ location.href="mailto:?subject="+encodeURIComponent(title)+"&body="+encodeURIComponent(txt); }});
+  btns.push({label:"✉️ Per E-Mail – mit Jahreskalender",pri:true,fn:()=>mailYear(st)});
+  btns.push({label:"🖼 Jahreskalender als Bild (WhatsApp, E-Mail …)",fn:()=>shareYearImage(st.y)});
+  if(dlNs) btns.push({label:"📄 Als PDF – Urlaub + Jahreskalender",fn:()=>pdf()});
+  btns.push({label:"💬 Nur Text per WhatsApp",fn:()=>{ window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank","noopener"); }});
   btns.push({label:"📋 Text kopieren",fn:async()=>{ try{ await navigator.clipboard.writeText(txt); toast("Text kopiert – jetzt einfügen, wo du willst"); }catch(e){ toast("Kopieren hat nicht geklappt."); } }});
   btns.push({label:"Abbrechen",fn:()=>{}});
   ask("Wie möchtest du teilen?",title,btns); }
+/* Jahreskalender als Bild: Januar … Dezember von links nach rechts, darunter die Tage 1–31 */
+async function yearPNG(y){ const C=12, cw=118, rh=24, M=24, top=96, hh=30, W=M*2+C*cw, lgH=24+Math.ceil(S.types.length/3)*22, H=top+hh+31*rh+16+lgH+M;
+  const cv=document.createElement("canvas"), k=2; cv.width=W*k; cv.height=H*k; const g=cv.getContext("2d"); g.scale(k,k);
+  const F="Figtree, Arial, sans-serif"; g.fillStyle="#fff"; g.fillRect(0,0,W,H); g.fillStyle="#D9480F"; g.fillRect(0,0,W,6);
+  g.fillStyle="#16222B"; g.font="700 28px "+F; g.fillText("Urlaub & Schichtplan "+y+(S.name?" – "+S.name:""),M,46);
+  g.font="15px "+F; g.fillStyle="#5A6670"; g.fillText("Urlaub: "+vacUsed(y)+" von "+vacTotal(y)+" Tagen verplant · "+(vacTotal(y)-vacUsed(y))+" übrig",M,72);
+  const MONF=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"], vc=(vacType()||{color:"#2E8B57"}).color;
+  for(let m=0;m<12;m++){ const x=M+m*cw; g.fillStyle="#16222B"; g.fillRect(x,top,cw-2,hh); g.fillStyle="#fff"; g.font="700 14px "+F; g.textAlign="center"; g.fillText(MONF[m],x+cw/2-1,top+20); g.textAlign="left";
+    const dim=new Date(y,m+1,0).getDate();
+    for(let d=1; d<=31; d++){ const yy=top+hh+2+(d-1)*rh; if(d>dim){ g.fillStyle="#F3F4F5"; g.fillRect(x,yy,cw-2,rh-2); continue; }
+      const s=y+"-"+pad(m+1)+"-"+pad(d), w=parse(s).getDay(), t=shiftOf(s), hn=holName(s), fe=ferien(s), v=dayKind(s)==="v", fr=!v&&(!t||t.kind==="free")&&planKnown(s);
+      g.fillStyle=v?vc:hn?"#F7D0C9":fr?"#DDF1E3":(w===0?"#F2C79B":w===6?"#FBEBC8":fe?"#FFF4A8":"#FFFFFF"); g.fillRect(x,yy,cw-2,rh-2);
+      g.strokeStyle="#E3E7EA"; g.strokeRect(x+.5,yy+.5,cw-3,rh-3);
+      g.fillStyle=v?"#fff":hn?"#B03A2E":"#16222B"; g.font="700 12px "+F; g.fillText(pad(d)+" "+DOW[w],x+5,yy+16);
+      if(v){ g.font="600 10px "+F; g.fillText("Urlaub",x+46,yy+16); }
+      const o=v?ownShift(s):t; if(o&&o.kind!=="free"){ g.fillStyle=o.color; g.fillRect(x+cw-30,yy+3,24,rh-8); if(v){ g.strokeStyle="#fff"; g.lineWidth=1.5; g.strokeRect(x+cw-30,yy+3,24,rh-8); g.lineWidth=1; }
+        g.fillStyle=isDark(o.color)?"#16222B":"#fff"; g.font="800 12px "+F; g.textAlign="center"; g.fillText(o.short,x+cw-18,yy+16); g.textAlign="left"; }
+      else if(fr){ g.fillStyle="#17663A"; g.font="800 12px "+F; g.textAlign="center"; g.fillText((t&&t.short)||"F",x+cw-18,yy+16); g.textAlign="left"; } } }
+  let ly=top+hh+31*rh+30, lx=M; g.font="13px "+F;
+  S.types.forEach((t,i)=>{ if(i&&i%3===0){ ly+=22; lx=M; } const lab=t.short+" = "+t.name+(t.kind==="work"&&t.start?"  "+t.start+"–"+t.end+" · "+hStr(minutes(t)):"");
+    g.fillStyle=t.kind==="free"?"#DDF1E3":t.color; g.fillRect(lx,ly-12,14,14); g.fillStyle="#16222B"; g.fillText(lab,lx+20,ly); lx+=Math.round(W/3)-10; });
+  return await new Promise(r=>cv.toBlob(b=>b.arrayBuffer().then(a=>r(new Uint8Array(a))),"image/png")); }
+async function shareYearImage(y){ try{ const b=await yearPNG(y); await shareFile(b,"Jahreskalender_"+y+".png","image/png","Jahreskalender "+y); }catch(e){ toast("Bild konnte nicht erstellt werden."); } }
+/* E-Mail mit Jahreskalender: Bild (und Text) über das Teilen-Menü; am Computer Bild speichern + E-Mail öffnen */
+async function mailYear(st){ const txt=shareText(st), title=shareTitle(st); try{ const b=await yearPNG(st.y), f=new File([b],"Jahreskalender_"+st.y+".png",{type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title,text:txt}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
+    const u=URL.createObjectURL(f), a=document.createElement("a"); a.href=u; a.download=f.name; document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),5000);
+    toast("Jahreskalender als Bild gespeichert – in der E-Mail als Anhang einfügen.");
+    setTimeout(()=>{ location.href="mailto:?subject="+encodeURIComponent(title)+"&body="+encodeURIComponent(txt+"\n\n(Jahreskalender im Anhang)"); },600); }catch(e){ toast("Das hat nicht geklappt."); } }
 /* Teilen – einfach: Urlaub von/bis + Jahreskalender + Legende mit Uhrzeit und Stunden, als ein PDF */
 function shiftLegend(box){ const lg=el("div","slegend"); S.types.filter(t=>t.kind!=="vac").forEach(t=>{ const r=el("div","slrow"); const w=t.kind==="work"&&t.start; r.append(chip(t), el("b","grow",t.name), el("span","muted",w?t.start+" – "+t.end+" · "+hStr(minutes(t)):"")); lg.append(r); }); box.append(lg); return lg; }
 function openSharePreview(kind,y){ const st={kind:"list",y:y||planYear()};
@@ -1691,7 +1722,9 @@ function openSharePreview(kind,y){ const st={kind:"list",y:y||planYear()};
     const yb=el("button","btn ghost","📅 Im großen Jahreskalender ansehen"); yb.type="button"; yb.onclick=()=>{ closeSheet(); openYearPlanner(st.y); }; c2.append(yb); p.append(c2);
     const c3=el("div","card prev"); c3.append(el("h3",null,"Legende – Schichten")); shiftLegend(c3); p.append(c3);
     const go=el("button","btn pri","📄 PDF teilen"); go.type="button"; go.onclick=()=>{ if(dlNs) pdfYear(st.y); else shareMenu(st); }; p.append(go);
-    const tx=el("button","btn","Als Text teilen …"); tx.type="button"; tx.onclick=()=>shareMenu(st); p.append(tx); });
+    const im=el("button","btn","🖼 Jahreskalender als Bild teilen"); im.type="button"; im.onclick=()=>shareYearImage(st.y); p.append(im);
+    const ml=el("button","btn","✉️ Per E-Mail – mit Jahreskalender"); ml.type="button"; ml.onclick=()=>mailYear(st); p.append(ml);
+    const tx=el("button","btn ghost","Weitere Möglichkeiten …"); tx.type="button"; tx.onclick=()=>shareMenu(st); p.append(tx); });
   draw(); }
 /* ===================== Urlaub selbst im Kalender wählen ===================== */
 function vacCount(f,t){ const r={n:0,free:0,as:0,days:[]}; for(let s=f;s<=t;s=addD(s,1)){ if(vacAt(s)){ r.free++; continue; } const x=ownShift(s);
@@ -1728,7 +1761,7 @@ function ypPending(){ const r=ypRange(); if(!r) return false; return yp.mode==="
 function closeYP(force){ const ov=$("#yplan"); if(!ov || ov.hidden) return;
   if(force!==true && ypPending()){ const sh=yp.mode==="shift";
     ask(sh?"Schichten eintragen?":"Urlaub speichern?","Du hast im Jahreskalender etwas markiert, aber noch nicht eingetragen.",[
-      {label:sh?"Ja, eintragen":"Ja, Urlaub speichern",pri:true,fn:()=>{ const b=[...document.querySelectorAll("#ypbar button")].find(x=>x.textContent==="Eintragen"); if(b) b.click(); closeYP(true); }},
+      {label:sh?"Ja, eintragen":"Ja, Urlaub speichern",pri:true,fn:()=>{ const b=document.querySelector("#ypbar button[data-save]"); if(b) b.click(); closeYP(true); }},
       {label:"Nein, verwerfen",fn:()=>{ yp.a=yp.e=null; yp.tapped=false; closeYP(true); }},
       {label:"Weiter bearbeiten"}]); return; }
   ov.hidden=true; render(); }
@@ -1769,19 +1802,24 @@ function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*
 function ypRange(){ if(!yp.a) return null; const a=yp.a<yp.e?yp.a:yp.e, e=yp.a<yp.e?yp.e:yp.a; return [a,e]; }
 function markYP(){ const r=ypRange(); document.querySelectorAll("#yplan .ypc[data-s]").forEach(c=>c.classList.toggle("sel",!!r&&c.dataset.s>=r[0]&&c.dataset.s<=r[1])); }
 function drawYPBar(){ const bar=$("#ypbar"); if(!bar) return; bar.innerHTML=""; const r=ypRange();
-  if(!r){ bar.append(el("span","muted","Noch nichts ausgewählt.")); const cl=el("button","btn","Fertig"); cl.type="button"; cl.onclick=()=>closeYP(); bar.append(cl); return; }
+  if(!r){ const sh=yp.mode==="shift"; const go=el("button","btn pri grow",sh?"✎ Schicht eintragen":"☀ Urlaub eintragen"); go.type="button";
+    go.onclick=()=>{ yp.armed=true; drawYPBar(); const g=document.querySelector("#yplan .ypgrid"); if(g){ g.classList.add("ypflash"); setTimeout(()=>g.classList.remove("ypflash"),900); } };
+    if(yp.armed){ bar.append(el("div","grow ypstep",sh?"👆 Tippe den ersten Tag an – dann den letzten. Oder zieh eine Linie.":"👆 Tippe deinen ersten Urlaubstag an – dann den letzten. Oder zieh eine Linie.")); }
+    else bar.append(go);
+    const sb=el("button","btn","⇪ Teilen"); sb.type="button"; sb.onclick=()=>{ closeYP(true); openSharePreview("list",yp.y); }; bar.append(sb); return; }
+  yp.armed=false;
   const [a,e]=r; if(yp.mode==="shift") return drawYPShiftBar(bar,a,e); const ex=vacList().find(v=>!(v.e<a||v.a>e)); const n=vacCount(a,e); const ys=[]; for(let y=+a.slice(0,4); y<=+e.slice(0,4); y++) ys.push(y);
   const restTx=ys.length===1?String(vacTotal(ys[0])-vacUsed(ys[0])-n.n):ys.map(y=>y+": "+(vacTotal(y)-vacUsed(y)-n.days.filter(d=>+d.slice(0,4)===y).length)).join(" · ");
   const tx=el("div","grow"); tx.append(el("b",null,(a===e?fmtS(a):fmtS(a)+" – "+fmtS(e))+" · "+n.n+(n.n===1?" Urlaubstag":" Urlaubstage")), el("small",null,(diffD(a,e)+1)+" Kalendertage, davon "+n.free+" frei · danach "+restTx+" übrig"+(n.as?" · ohne Plan: Mo–Fr gerechnet":"")));
   bar.append(tx);
   if(ex && a===e && yp.tapped){ const ed=el("button","btn","Bearbeiten"); ed.type="button"; ed.onclick=()=>{ closeYP(true); openVacBlock({id:ex.id,a:ex.a,e:ex.e}); }; bar.append(ed); }
   const no=el("button","btn ghost","✕"); no.type="button"; no.setAttribute("aria-label","Auswahl löschen"); no.onclick=()=>{ yp.a=yp.e=null; yp.tapped=false; markYP(); drawYPBar(); };
-  const ok=el("button","btn pri","Eintragen"); ok.type="button"; ok.disabled=!n.n; ok.onclick=()=>{ vacSave(a,e,n.days); yp.a=yp.e=null; yp.tapped=false; drawYP(); };
+  const ok=el("button","btn pri","☀ Urlaub eintragen"); ok.type="button"; ok.dataset.save="1"; ok.disabled=!n.n; ok.onclick=()=>{ vacSave(a,e,n.days); yp.a=yp.e=null; yp.tapped=false; drawYP(); };
   bar.append(no,ok); }
 function drawYPShiftBar(bar,a,e){ const t=yp.brush==="reset"?null:typeOf(yp.brush), n=diffD(a,e)+1; let nv=0; for(let d=a;d<=e;d=addD(d,1)) if(dayKind(d)==="v") nv++;
   const tx=el("div","grow"); tx.append(el("b",null,(a===e?fmtS(a):fmtS(a)+" – "+fmtS(e))+" · "+n+(n===1?" Tag":" Tage")), el("small",null,"→ "+(t?t.name:"wie im Rhythmus")+(nv?" · Urlaub ("+nv+(nv===1?" Tag":" Tage")+") bleibt":""))); bar.append(tx);
   const no=el("button","btn ghost","✕"); no.type="button"; no.setAttribute("aria-label","Auswahl löschen"); no.onclick=()=>{ yp.a=yp.e=null; yp.tapped=false; markYP(); drawYPBar(); };
-  const ok=el("button","btn pri","Eintragen"); ok.type="button"; ok.onclick=()=>{ const sn={}; let k=0;
+  const ok=el("button","btn pri","✎ Eintragen"); ok.type="button"; ok.dataset.save="1"; ok.onclick=()=>{ const sn={}; let k=0;
     for(let d=a;d<=e;d=addD(d,1)){ if(dayKind(d)==="v") continue; sn[d]=Object.prototype.hasOwnProperty.call(S.ov,d)?S.ov[d]:undefined; const base=baseShift(d), baseId=base?base.id:"";
       if(yp.brush==="reset") delete S.ov[d]; else { const tg=t&&t.kind==="free"?"":yp.brush; if(baseId===tg) delete S.ov[d]; else S.ov[d]=tg; } k++; }
     save(); undoStack.push({ov:sn,vacs:JSON.parse(JSON.stringify(vacList()))}); yp.a=yp.e=null; yp.tapped=false; drawYP();
@@ -2643,7 +2681,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-6";
+const APP_VERSION="2026.10.05-7";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
