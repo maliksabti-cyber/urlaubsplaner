@@ -158,7 +158,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypbar{display:flex;align-items:center;gap:8px;height:76px;overflow:hidden;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:8px 10px;min-height:56px}
 .ypbar small{display:block;color:var(--soft);font-size:12px;line-height:1.25}.ypbar b{font-size:15px}.ypbar .btn{min-height:44px}
 .ypopen{width:100%;min-height:48px}
-.bigvac{min-height:60px;font-size:20px;margin:4px 0 8px}.utop{margin-bottom:12px}
+.bigvac{min-height:60px;font-size:20px;margin:4px 0 8px}.utop{margin-bottom:12px}.morebtn{display:block;margin:8px 0 0 auto;font-weight:700}
 .ypquota{margin:0;font-size:14px;white-space:nowrap}.ypquota b{font-size:19px;color:var(--ok)}.ypquota.none b{color:var(--bad)}
 @media (max-width:420px){.ypbar{gap:6px;padding:6px 8px}.ypbar b{font-size:13px}.ypbar small{font-size:11px}.ypbar .btn{padding-inline:10px}}
 .ypwarn{color:var(--bad)!important;font-weight:700}
@@ -2369,7 +2369,7 @@ function finishOnb(){
 /* ---------- Urlaub-Ansicht ---------- */
 let uY=new Date().getFullYear();
 function vacBlocks(y){ const ys=y+"-01-01", ye=y+"-12-31"; return vacList().filter(v=>v.a<=ye && v.e>=ys).sort((x,z)=>x.a<z.a?-1:1).map(v=>({id:v.id,a:v.a,e:v.e,n:vacDaysOf(v).filter(d=>d>=ys&&d<=ye).length,fixed:!!v.fixed})); }
-let uView="jahr", uM=null;
+let uView="jahr", uM=null, uAll=false;
 function renderUrlaub(){
   const box=$("#v-urlaub"); box.innerHTML="";
   const h=el("div","mhead"); const p=el("button","icon-btn","‹"), n=el("button","icon-btn","›"); p.type=n.type="button"; p.setAttribute("aria-label","Vorheriges Jahr"); n.setAttribute("aria-label","Nächstes Jahr");
@@ -2385,7 +2385,8 @@ function renderUrlaub(){
   const lc=el("div","card"); lc.append(el("h3",null,"Deine Urlaube "+uY)); const bl=vacBlocks(uY);
   if(!bl.length){ lc.append(el("p","muted",uY+": noch kein Urlaub eingetragen.")); const ys={}; vacList().forEach(v=>{ for(let y=+v.a.slice(0,4); y<=+v.e.slice(0,4); y++) if(y!==uY){ const n=vacDaysOf(v).filter(d=>+d.slice(0,4)===y).length; if(n){ ys[y]=ys[y]||{k:0,n:0}; ys[y].k++; ys[y].n+=n; } } });
     Object.keys(ys).map(Number).sort().forEach(y=>{ const l=el("button","linkbtn","In "+y+": "+ys[y].k+(ys[y].k===1?" Urlaub":" Urlaube")+" ("+ys[y].n+(ys[y].n===1?" Tag":" Tage")+") ›"); l.type="button"; l.className="linkbtn yrjump"; l.onclick=()=>{ uY=y; renderUrlaub(); }; lc.append(l); }); }
-  bl.forEach(b=>{ const it=el("button","vrow"); it.type="button"; const t=el("div","grow"); t.append(el("b",null,fmtS(b.a)+" – "+fmtS(b.e)+b.e.slice(0,4)), el("small",null,(diffD(b.a,b.e)+1)+" Kalendertage"+(ferien(b.a)?" · "+ferien(b.a)[2]:""))); const g=el("div","gain"); g.append(el("b","num",String(b.n)),el("small",null,b.n===1?"Urlaubstag":"Urlaubstage")); it.append(chip(vacType()),t,g); if(b.id===vacHL) it.classList.add("hl"); it.onclick=()=>openVacBlock(b); lc.append(it); });
+  (uAll?bl:bl.slice(0,4)).forEach(b=>{ const it=el("button","vrow"); it.type="button"; const t=el("div","grow"); t.append(el("b",null,fmtS(b.a)+" – "+fmtS(b.e)+b.e.slice(0,4)), el("small",null,(diffD(b.a,b.e)+1)+" Kalendertage"+(ferien(b.a)?" · "+ferien(b.a)[2]:""))); const g=el("div","gain"); g.append(el("b","num",String(b.n)),el("small",null,b.n===1?"Urlaubstag":"Urlaubstage")); it.append(chip(vacType()),t,g); if(b.id===vacHL) it.classList.add("hl"); it.onclick=()=>openVacBlock(b); lc.append(it); });
+  if(bl.length>4){ const mo=el("button","linkbtn morebtn",uAll?"Weniger anzeigen ‹":"Alle "+bl.length+" ansehen ›"); mo.type="button"; mo.onclick=()=>{ uAll=!uAll; renderUrlaub(); }; lc.append(mo); }
   box.append(lc);
   { const cc=el("div","card sec ucal"); const hd=el("div","row"); hd.append(el("h3","grow","Kalender "+uY));
     const seg=el("div","seg"); [["jahr","Jahr"],["monat","Monat"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(uView===k)); b.onclick=()=>{ uView=k; renderUrlaub(); }; seg.append(b); }); hd.append(seg); cc.append(hd);
@@ -2470,7 +2471,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-29";
+const APP_VERSION="2026.10.05-30";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
