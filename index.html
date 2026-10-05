@@ -236,6 +236,8 @@ details[open]{display:grid;gap:10px}
 .mini i.e{color:transparent}.mini .wdh{font:700 9px/1.4 var(--f-body);color:var(--soft);text-align:center}.mini i.hd{text-decoration:underline;font-weight:800}
 .mini i.e{background:transparent}
 .mini i.now{outline:2px solid var(--ink)}
+.mini i.ys{aspect-ratio:auto;min-height:30px;grid-template-rows:auto auto;align-content:center;gap:1px;padding:2px 0}
+.mini i.ys small{font:600 8px/1 var(--f-body);opacity:.85}.mini i.ys b{font:800 12px/1 var(--f-body)}
 .mini button{border:0;background:none;padding:0;text-align:left;width:100%}
 
 /* Statistik */
@@ -922,7 +924,7 @@ function renderYear(box){
   const w=el("div","years"); const t=TODAY();
   for(let m=0;m<12;m++){ const c=el("div","card mini"); const b=el("button"); b.type="button"; b.onclick=()=>{ curM=m; kalMode="monat"; renderKal(); };
     b.append(el("h4",null,MON[m])); const g=el("div","g"); ["M","D","M","D","F","S","S"].forEach(d=>g.append(el("span","wdh",d))); const f=curY+"-"+pad(m+1)+"-01"; const off=(parse(f).getDay()+6)%7; for(let i=0;i<off;i++) g.append(el("i","e"));
-    for(let s=f; +s.slice(5,7)===m+1; s=addD(s,1)){ const x=shiftOf(s), i=el("i",null,String(parse(s).getDate())), dk=dayKind(s); if(dk==="v"){ i.style.background=vacColor(); i.style.color="#fff"; } else if(dk==="f"){ i.style.background="var(--free-bg)"; i.style.color="var(--free-ink)"; } else if(x){ i.style.background=x.color; i.style.color=isDark(x.color)?"#16222B":"#fff"; } if(holName(s)) i.classList.add("hd"); if(s===t) i.classList.add("now"); i.title=fmtS(s)+" "+(x?x.name:"Frei"); g.append(i); }
+    for(let s=f; +s.slice(5,7)===m+1; s=addD(s,1)){ const x=shiftOf(s), i=el("i","ys"), dk=dayKind(s); const o=dk==="v"?(ownShift(s)||x):x; i.append(el("small",null,String(parse(s).getDate())), el("b",null,dk==="v"?((o&&o.kind==="work")?o.short:"U"):dk==="f"?((x&&x.short)||(planKnown(s)?"F":"")):(x?x.short:""))); if(dk==="v"){ i.style.background=vacColor(); i.style.color="#fff"; } else if(dk==="f"){ i.style.background="var(--free-bg)"; i.style.color="var(--free-ink)"; } else if(x){ i.style.background=x.color; i.style.color=isDark(x.color)?"#16222B":"#fff"; } if(holName(s)) i.classList.add("hd"); if(s===t) i.classList.add("now"); i.title=fmtS(s)+" "+(dk==="v"?"Urlaub"+(o&&o.kind==="work"?" (statt "+o.name+")":""):(x?x.name:"Frei")); g.append(i); }
     b.append(g); c.append(b); w.append(c); }
   box.append(w);
   const lg=el("div","legend"); S.types.forEach(t=>{ const sp=el("span"); sp.append(chip(t),document.createTextNode(t.name)); lg.append(sp); }); box.append(lg);
@@ -2684,7 +2686,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-8";
+const APP_VERSION="2026.10.05-9";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
