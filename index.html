@@ -1245,7 +1245,8 @@ function installCard(box,small){ if(isInstalled()) return; if(small && lsGet("su
   if(small){ const x=el("button","icon-btn","✕"); x.type="button"; x.setAttribute("aria-label","Ausblenden"); x.onclick=()=>{ lsSet("su_inst_hide","1"); render(); }; c.append(x); }
   box.append(c); }
 async function appInstall(){ if(instEv){ instEv.prompt(); try{ await instEv.userChoice; }catch(e){} instEv=null; return; }
-  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent), mob=ios||/android|mobile/i.test(navigator.userAgent);
+  if(!mob) return desktopShortcut();
   openSheet(p=>{ sheetTop(p,"App installieren");
     const steps=ios?["Unten in Safari auf das Teilen-Symbol tippen (Viereck mit Pfeil nach oben).","Nach unten scrollen und „Zum Home-Bildschirm“ wählen.","Oben rechts auf „Hinzufügen“ tippen – fertig."]
       :["Oben rechts im Browser auf ⋮ (drei Punkte) tippen.","„App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen.","Bestätigen – fertig. Die App liegt jetzt auf deinem Startbildschirm."];
@@ -1261,6 +1262,17 @@ function appLinkCard(box){ const c=el("div","card sec"); c.append(el("h2",null,"
     ask("Link teilen","Wie möchtest du den Link schicken?",[{label:"💬 WhatsApp",pri:true,fn:()=>window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank","noopener")},{label:"✉️ E-Mail",fn:()=>{ location.href="mailto:?subject="+encodeURIComponent("Schicht & Urlaub")+"&body="+encodeURIComponent(txt); }},{label:"📋 Kopieren",fn:copy},{label:"Abbrechen"}]); };
   const copy=async()=>{ try{ await navigator.clipboard.writeText(APP_URL); toast("Link kopiert"); }catch(e){ toast("Kopieren hat nicht geklappt."); } };
   const cp=el("button","btn","📋 Kopieren"); cp.type="button"; cp.onclick=copy; r.append(sh,cp); c.append(r); box.append(c); }
+/* Computer: Verknüpfung auf dem Desktop */
+function desktopShortcut(){ const mac=/mac/i.test(navigator.platform||navigator.userAgent), url=location.href.split("#")[0].split("?")[0];
+  openSheet(p=>{ sheetTop(p,"Verknüpfung auf dem Desktop");
+    p.append(el("p","hint","Am einfachsten: Datei herunterladen und auf den Desktop legen. Doppelklick öffnet die App."));
+    const b=el("button","btn pri",mac?"⬇ Verknüpfung für Mac herunterladen":"⬇ Verknüpfung für Windows herunterladen"); b.type="button";
+    b.onclick=()=>{ const txt=mac?'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict><key>URL</key><string>'+url+'</string></dict></plist>\n':"[InternetShortcut]\r\nURL="+url+"\r\n";
+      const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([txt],{type:"application/octet-stream"})); a.download=mac?"Schicht & Urlaub.webloc":"Schicht & Urlaub.url"; document.body.append(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+      toast("Heruntergeladen – jetzt aus „Downloads“ auf den Desktop ziehen."); };
+    p.append(b);
+    p.append(el("h3",null,"Oder als App im Browser"));
+    const ol=el("ol","inststeps"); ["Chrome oder Edge: rechts in der Adressleiste auf das Symbol „Installieren“ (Bildschirm mit Pfeil) klicken.","Oder Menü ⋮ → „Streamen, speichern und teilen“ → „Seite als App installieren“ (Edge: „Apps“ → „Diese Website als App installieren“).","Danach liegt „Schicht & Urlaub“ im Startmenü – mit Rechtsklick auch auf dem Desktop."].forEach(t=>ol.append(el("li",null,t))); p.append(ol); }); }
 /* „Mehr“: alles, was nicht jeden Tag gebraucht wird */
 function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; installCard(box); const c=el("div","card sec"); c.append(el("h2",null,"Mehr"));
   [["👥","Team","Urlaub mit Kollegen abgleichen",()=>show("team")],["📊","Statistik & Verdienst","Stunden, Überstunden, Zuschläge",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
@@ -2600,7 +2612,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-4";
+const APP_VERSION="2026.10.05-5";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
