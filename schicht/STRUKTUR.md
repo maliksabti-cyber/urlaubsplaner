@@ -43,6 +43,7 @@ Leitfaden nach dem 6-Schritte-Plan zur App-Entwicklung. Jede Änderung wird gege
 
 ## 5. Verbindungen nach außen (Brücke)
 - Firebase: Anmeldung und Team-Daten
+- Urlaubsantrag als PDF (zum Ausdrucken oder Schicken an den Chef)
 - Teilen: PDF, WhatsApp-Link, `mailto:` und Teilen-Menü des Handys
 - Handy-Kalender: `.ics`-Datei mit Erinnerung
 - „Gemeinsam frei“: Plan als Link (`#plan=…`)
