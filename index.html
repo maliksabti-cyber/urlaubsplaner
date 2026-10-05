@@ -2385,7 +2385,7 @@ function finishOnb(){
   let start; if(weekly){ start=addD(mondayOnOrBefore(t),-7*Math.max(0,onb.pos)); } else { start=addD(t,-Math.max(0,onb.pos)); }
   S.rots=pt.length?[{id:"r"+uid(),name,start,pattern:pt.slice()}]:[]; S.weekendFree=onb.weekendFree; S.holFree=onb.holFree; S.land=onb.land; S.showFerien=onb.showFerien; S.vacPerYear=onb.vac; S.carry={}; if(onb.carry) S.carry[new Date().getFullYear()]=onb.carry;
   S.example=false; S.onboarded=true; if(!S.since) S.since=t; for(const k in holCache) delete holCache[k]; save(); enterApp();
-  if(!pt.length){ show("kal"); setSel(true); toast("Wähle rechts eine Schicht und tippe auf die Tage."); } else toast("Dein Schichtplan ist fertig!"); }
+  show("heute"); if(!pt.length){ toast("Schichten trägst du unter „Schichtplan“ ein."); } else toast("Dein Schichtplan ist fertig!"); }
 
 /* ---------- Urlaub-Ansicht ---------- */
 let uY=new Date().getFullYear();
@@ -2491,7 +2491,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-21";
+const APP_VERSION="2026.10.05-22";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
