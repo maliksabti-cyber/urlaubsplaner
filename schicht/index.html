@@ -81,6 +81,8 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .today .big.free{background:var(--free-bg);color:var(--free-ink);border:1px solid var(--free-bd)}
 .today .big.dark{color:#16222B}
 .today .t1{font:700 30px/1 var(--f-display);text-transform:uppercase}
+.today .live{font-weight:700;font-size:14px;margin-top:4px;color:var(--soft)}.today .live.run{color:var(--ok)}
+.stat b{white-space:nowrap}.stats3 .stat b{font-size:clamp(22px,7vw,30px)}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .week button{border:1px solid var(--rule);background:var(--card);border-radius:8px;padding:6px 2px;display:grid;justify-items:center;gap:4px;font-size:12px;color:var(--soft)}
 .week button.now{border-color:var(--ink)}
@@ -599,6 +601,16 @@ function render(){ if(!S) return; if(typeof lastSnap!=="undefined" && lastSnap==
 function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("div","banner"); const t=el("span","grow"); t.innerHTML="<b>Beispiel-Rhythmus.</b> Stell unter Einstellungen deinen eigenen Schichtrhythmus ein."; const go=el("button","btn","Jetzt einstellen"); go.type="button"; go.onclick=()=>show("set"); b.append(t,go); box.append(b); }
 
 /* ---------- Heute ---------- */
+/* Live-Zeile: läuft die Schicht gerade, wann beginnt sie, wann ist Feierabend (auch Nachtschicht von gestern) */
+const hm=x=>{ const [a,b]=x.split(":").map(Number); return a*60+b; };
+const durTxt=m=>m>=60?Math.floor(m/60)+" Std."+(m%60?" "+(m%60)+" Min.":""):m+" Min.";
+function liveLine(t,now){ now=now||new Date(); if(iso(now)!==t) return null; const nm=now.getHours()*60+now.getMinutes();
+  const ys=shiftOf(addD(t,-1)); if(ys&&ys.kind==="work"&&ys.start&&ys.end&&hm(ys.end)<=hm(ys.start)&&nm<hm(ys.end)) return ["Läuft gerade: "+ys.name+" seit gestern – Feierabend um "+ys.end+" Uhr (in "+durTxt(hm(ys.end)-nm)+")",true];
+  const sh=shiftOf(t); if(!sh||sh.kind!=="work"||!sh.start||!sh.end) return null; const a=hm(sh.start), e=hm(sh.end), cross=e<=a;
+  if(nm<a) return ["Beginnt in "+durTxt(a-nm),false];
+  if(cross||nm<e) return ["Läuft gerade – Feierabend um "+sh.end+" Uhr (in "+durTxt((cross?e+1440:e)-nm)+")",true];
+  return ["Geschafft – Feierabend seit "+sh.end+" Uhr",false]; }
+setInterval(()=>{ if(!S||view!=="heute") return; const d=$("#live"), lv=liveLine(TODAY()); if(d&&lv){ d.textContent=lv[0]; d.classList.toggle("run",lv[1]); } },60000);
 function renderHeute(){
   const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box);
   const t=TODAY(), sh=shiftOf(t), hn=holName(t);
@@ -607,6 +619,7 @@ function renderHeute(){
   const big=el("div","big"); if(sh){ big.style.background=sh.color; if(isDark(sh.color)) big.classList.add("dark"); big.textContent=sh.short; } else { big.classList.add("free"); big.textContent=(S.types.find(x=>x.kind==="free")||{}).short||"–"; } if(dayKind(t)==="f"){ big.style.background=""; big.classList.add("free"); }
   const info=el("div"); info.append(el("div","muted",fmt(t)+(hn?" · "+hn:"")), el("div","t1",sh?sh.name:"Frei"));
   if(sh && sh.kind==="work" && sh.start) info.append(el("div","mono muted",sh.start+" – "+sh.end+" · "+hStr(minutes(sh))));
+  const lv=liveLine(t); if(lv){ const d=el("div","live"+(lv[1]?" run":""),lv[0]); d.id="live"; info.append(d); }
   const nt=S.notes[t]; if(nt) info.append(el("div",null,"📝 "+nt));
   top.append(big,info); top.onclick=()=>openDay(t); top.style.cursor="pointer"; c.append(top);
   const w=el("div","week"); for(let i=0;i<7;i++){ const s=addD(t,i), x=shiftOf(s), b=el("button"); b.type="button"; if(i===0) b.classList.add("now"); markDay(b,s); b.append(el("span",null,DOW[parse(s).getDay()]+" "+parse(s).getDate()), chip(x)); b.onclick=()=>openDay(s); w.append(b); } c.append(w);
@@ -654,6 +667,7 @@ function renderKal(){
   p.onclick=()=>{ if(--curM<0){curM=11;curY--;} renderKal(); }; n.onclick=()=>{ if(++curM>11){curM=0;curY++;} renderKal(); };
   const tt=el("h2",null,MON[curM]+" "+curY); tt.onclick=()=>{ curY=new Date().getFullYear(); curM=new Date().getMonth(); renderKal(); };
   h.append(p,tt,n); box.append(h);
+  if(curY!==new Date().getFullYear()||curM!==new Date().getMonth()){ const tb=el("button","btn ghost small","↩ Zurück zu heute"); tb.type="button"; tb.id="kaltoday"; tb.style.justifySelf="center"; tb.onclick=()=>{ curY=new Date().getFullYear(); curM=new Date().getMonth(); renderKal(); }; box.append(tb); }
   const g=el("div","grid"); ["Mo","Di","Mi","Do","Fr","Sa","So"].forEach(d=>g.append(el("div","dow",d)));
   const first=curY+"-"+pad(curM+1)+"-01"; let s=first; while(parse(s).getDay()!==1) s=addD(s,-1);
   const t=TODAY();
