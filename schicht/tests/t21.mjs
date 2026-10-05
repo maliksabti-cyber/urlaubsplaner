@@ -7,7 +7,7 @@ await p.evaluate(()=>{ S.rots=[{id:'r',name:'x',start:'2026-01-05',pattern:['F',
 await p.waitForTimeout(150);
 // Übersicht öffnen
 await p.locator('.guide summary').tap(); await p.waitForTimeout(100);
-const boxes=p.locator('.guide .gstep .gck input'); ok(await boxes.count()===4, 'Übersicht: jeder Schritt hat ein Häkchenfeld (4)');
+const boxes=p.locator('.guide .gstep .gck input'); ok(await boxes.count()===5, 'Übersicht: jeder Schritt hat ein Häkchenfeld (5)');
 ok(await boxes.nth(1).isChecked(), 'Automatisch erledigt (Lohn) ist angehakt');
 await boxes.nth(1).uncheck(); await p.waitForTimeout(150);
 ok(await p.evaluate(()=>!stepDone('money','pay')), 'Automatischer Schritt lässt sich abwählen');
@@ -16,7 +16,7 @@ await p.evaluate(()=>{ const d=document.querySelector('.guide details'); if(d) d
 ok(await p.evaluate(()=>stepDone('money','pay')), '… und wieder abhaken');
 // Zurück-Pfeil: aus der Schrittliste (Fenster) in eine Funktion und zurück
 await p.evaluate(()=>openGuide('money')); await p.waitForTimeout(150);
-await p.locator('#pan .gstep',{hasText:'Lohn'}).locator('button.btn').tap(); await p.waitForTimeout(200);
+await p.locator('#pan .gstep',{hasText:'Lohn & Zuschläge eintragen'}).locator('button.btn').tap(); await p.waitForTimeout(200);
 ok(/Lohn & Zuschläge/i.test(await p.locator('#pan h2').first().innerText()) && await p.isVisible('#hback'), 'Schritt geöffnet: Lohn-Fenster, Pfeil oben links sichtbar');
 await p.locator('#hback').tap(); await p.waitForTimeout(200);
 ok(/Verdienst/i.test(await p.locator('#pan h2').first().innerText()), 'Pfeil ← zurück zur Schrittliste');
