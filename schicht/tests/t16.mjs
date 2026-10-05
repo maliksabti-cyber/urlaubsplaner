@@ -13,7 +13,7 @@ await p.locator('#pan .goalbtn',{hasText:'Urlaub fürs Jahr planen'}).tap(); awa
 ok(/Urlaub fürs Jahr planen/i.test(await p.locator('.guide h2').innerText()) && /Urlaubstage prüfen/.test(await p.locator('.guide .gnext b').innerText()), 'Ziel gewählt → Schritt 1 „Urlaubstage prüfen“');
 await p.locator('.guide .btn.pri').tap(); await p.waitForTimeout(200); ok(!(await p.locator('#sheet').isHidden()), '„Los“ öffnet die Urlaubstage-Einstellung');
 await heute(); await p.getByRole('button',{name:'✓ Erledigt'}).tap(); await p.waitForTimeout(150);
-ok(/Bundesland/.test(await p.locator('.guide .gnext b').innerText()) && /1 von 8/.test(await p.locator('.guide .num').innerText()), '„Erledigt“ → nächster Schritt, 1 von 8');
+ok(/Bundesland/.test(await p.locator('.guide .gnext b').innerText()) && /2 von 9/.test(await p.locator('.guide .num').innerText()), '„Erledigt“ → nächster Schritt, 2 von 9 (Verfall-Schritt ist ohne Resturlaub erledigt)');
 await p.screenshot({path:'/tmp/claude-0/g3.png'});
 // Jeder Schritt jedes Ziels: Knopf führt irgendwohin, ohne Fehler
 const res=await p.evaluate(async()=>{ const out=[]; for(const g of GOALS){ for(const k of g.steps){ closeSheet(); const a=document.querySelector('#ask'); if(a) a.hidden=true; show('heute'); const before=view; let err=null;

@@ -18,7 +18,7 @@ Leitfaden nach dem 6-Schritte-Plan zur App-Entwicklung. Jede Änderung wird gege
 | Rhythmus | `rots` (Muster ab Startdatum), Vorlagen `tpls` | 1 Nutzer → n Rhythmen |
 | Einzelner Tag | `ov` (Datum → Schichtart), Notizen `notes` | überschreibt den Rhythmus |
 | Urlaub | `vacs` (Von–Bis); zählt nur Tage, an denen laut Plan gearbeitet wird | 1 Nutzer → n Urlaube |
-| Einstellungen | `land`, `localHol`, `holFree`, `weekendFree`, `vacPerYear`, `carry` (Resturlaub; `carryAuto` = Rest aus dem Vorjahr automatisch übernehmen), `pay`, `soll`, `holCredit`, `remind` | |
+| Einstellungen | `land`, `localHol`, `holFree`, `weekendFree`, `vacPerYear`, `carry` (Resturlaub; `carryAuto` = Rest aus dem Vorjahr automatisch übernehmen), `expire` (Verfall des Resturlaubs: an/aus + Stichtag, Standard 31.3.), `pay`, `soll`, `holCredit`, `remind` | |
 | Partner-Pläne | `partners` (per Link erhalten) | für „Gemeinsam frei“ |
 | Lotse | `goal`, `gman`, `gopen` | Fortschritt der Schritte |
 
@@ -34,6 +34,8 @@ Leitfaden nach dem 6-Schritte-Plan zur App-Entwicklung. Jede Änderung wird gege
 - Wenn kein Schichtplan eingetragen ist, wird mit Mo–Fr gerechnet, und die App zeigt einen Hinweis.
 - Wenn ein Tag laut Plan frei ist, ist er kein Urlaubstag und wird als F angezeigt.
 - Wenn an einem Tag zu viele aus dem Team weg sind, warnt die App, und der Urlaubsrechner lässt den Tag aus.
+- Wenn Resturlaub aus dem Vorjahr da ist, wird Urlaub im neuen Jahr zuerst davon abgezogen; was bis zum Stichtag nicht genommen ist, verfällt (Hinweis auf Heute, im Urlaub-Tab und im Lotsen).
+- Wenn Urlaub eingetragen wird, bietet die Meldung „Rückgängig“ und „📄 Antrag“ an; im Urlaub-Tab gibt es einen Antrag für mehrere Urlaube.
 - Wenn ein Urlaub über den Jahreswechsel geht, zählt jeder Tag in seinem Jahr; die App zeigt den Rest für beide Jahre.
 - Wenn der Nutzer etwas ändert, gibt es Rückgängig und das Fenster „Urlaub anpassen?“.
 
