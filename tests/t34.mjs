@@ -3,7 +3,7 @@ import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const c = await b.newContext({...devices['Pixel 7'],timezoneId:'Europe/Berlin'}); await c.addInitScript(()=>{ const T=new Date('2026-10-05T09:00:00').getTime(); const D=Date; class F extends D{ constructor(...a){ super(...(a.length?a:[T])); } static now(){ return T; } } window.Date=F; });
 const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(x,m)=>console.log((x?'✔ ':'✘ ')+m);
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 await p.evaluate(()=>{ S.land='NW'; S.rots=[{id:'r',name:'x',start:'2026-01-05',pattern:['F','F','N','N',null,null,null]}]; S.vacs=[]; S.ov={}; addVac('2026-10-19','2026-10-23'); S.guide={hide:true,pickhide:true}; save(); show('heute'); document.querySelector('#toast').hidden=true; });
 await p.waitForTimeout(300);

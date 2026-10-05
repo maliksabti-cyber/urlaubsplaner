@@ -1,7 +1,7 @@
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const c = await b.newContext({...devices['Pixel 7']}); const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 // 1) Feiertage je Bundesland 2026 (Soll laut Gesetz)
 const exp={BW:12,BY:13,BE:10,BB:12,HB:10,HH:10,HE:10,MV:11,NI:10,NW:11,RP:11,SL:12,SN:11,ST:11,SH:10,TH:11};

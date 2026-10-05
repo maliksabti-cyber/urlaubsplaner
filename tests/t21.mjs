@@ -1,7 +1,7 @@
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const c = await b.newContext({...devices['Pixel 7']}); await c.addInitScript(()=>{ navigator.canShare=undefined; }); const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 await p.evaluate(()=>{ S.rots=[{id:'r',name:'x',start:'2026-01-05',pattern:['F','F','F','F',null,null,null]}]; S.pay={rate:20}; S.goal='money'; save(); closeSheet(); show('heute'); document.querySelector('#toast').hidden=true; });
 await p.waitForTimeout(150);

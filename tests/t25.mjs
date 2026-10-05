@@ -4,7 +4,7 @@ import fs from 'fs';
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const c = await b.newContext({...devices['Pixel 7'], acceptDownloads:true}); await c.addInitScript(()=>{ navigator.canShare=undefined; });
 const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 const Y=new Date().getFullYear()+1;
 await p.evaluate(()=>{ setSel(false); S.rots=[{id:'r',name:'Mo-Fr',start:'2024-01-01',pattern:['F','F','F','F','F',null,null]}]; S.tpls=[]; S.ov={}; S.vacs=[]; S.name='Anna Test'; S.guide={hide:true,pickhide:true}; S.newsSeen=9; S.holFree=true; save(); show('heute'); document.querySelector('#toast').hidden=true; });

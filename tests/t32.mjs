@@ -2,7 +2,7 @@
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}); const c=await b.newContext({...devices['Pixel 7']}); const p=await c.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(x,m)=>console.log((x?'✔ ':'✘ ')+m);
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 await p.evaluate(()=>{ S.name='Malik'; S.vacs=[]; addVac('2026-11-09','2026-11-13'); S.guide={hide:true,pickhide:true}; save(); show('set'); });
 await p.waitForTimeout(200);

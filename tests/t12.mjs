@@ -2,7 +2,7 @@ import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const c = await b.newContext({...devices['Pixel 7']}); await c.addInitScript(()=>{ navigator.canShare=undefined; }); const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
 const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(800);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(800);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(250); }
 await p.evaluate(()=>{ S.rots=[]; S.tpls=[]; save(); });
 ok(await p.locator('.tabs button').count()===4, '4 Tabs unten');

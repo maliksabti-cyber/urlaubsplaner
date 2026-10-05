@@ -1,7 +1,7 @@
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const c = await b.newContext({...devices['Pixel 7']}); await c.addInitScript(()=>{ navigator.canShare=undefined; }); const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(800);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(800);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(250); }
 const heute=async()=>{ await p.evaluate(()=>{ closeSheet(); const a=document.querySelector('#ask'); if(a) a.hidden=true; show('heute'); document.querySelector('#toast').hidden=true; }); await p.waitForTimeout(120); };
 await heute(); ok(/App einrichten/i.test(await p.locator('.guide h2').innerText()), 'Neuer Nutzer: Ziel „App einrichten“ startet automatisch');

@@ -3,7 +3,7 @@ import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const c = await b.newContext({...devices['Pixel 7'], timezoneId:'Europe/Berlin'}); const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
 await p.clock.setFixedTime(new Date('2027-03-16T03:00:00+01:00')); // Di, 16.3.2027, 3 Uhr nachts
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(700);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(700);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(200); }
 // Mo Nacht, Di frei, Mi Tag, Do Spät (Wiederholung alle 4 Tage ab Mo 15.3.2027)
 await p.evaluate(()=>{ setSel(false); S.rots=[{id:'r',name:'x',start:'2027-03-15',pattern:['N',null,'F','S']}]; S.vacs=[]; S.ov={}; S.guide={hide:true,pickhide:true}; S.newsSeen=9; save(); show('heute'); document.querySelector('#toast').hidden=true; });

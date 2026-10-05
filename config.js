@@ -1,18 +1,14 @@
 /* ============================================================
-   Einstellungen für den Urlaubsplaner – nur diese Datei anpassen
+   Einstellungen für „Schicht & Urlaub“ – nur diese Datei anpassen
    ============================================================ */
 window.APP_CONFIG = {
-  // 1) Aus der Firebase-Konsole kopieren:
-  //    Projekteinstellungen (Zahnrad) → Allgemein → „Meine Apps“ → Web-App → SDK-Konfiguration → „Config“
-  firebase: {
-    apiKey: "AIzaSyCbn7aw2BBkkL0kD9keFjeCvlBflVaKzPc",
-    authDomain: "urlaubsplanung-team-zfp.firebaseapp.com",
-    projectId: "urlaubsplanung-team-zfp",
-    storageBucket: "urlaubsplanung-team-zfp.firebasestorage.app",
-    messagingSenderId: "38023697687",
-    appId: "1:38023697687:web:9703f118275e006baa1352"
-  },
-  // 2) E-Mail des Admins. Genau mit dieser E-Mail registrierst du dich als Erster.
-  //    Dieselbe Adresse steht auch in den Firestore-Regeln.
+  // true  = Testversion ohne Anmeldung, Daten bleiben nur auf diesem Gerät.
+  // false = Anmeldung mit E-Mail, Daten werden in Firebase gesichert
+  //         (vorher die Regel „nutzer“ aus firestore.rules in Firebase veröffentlichen).
+  localMode: true,
+  // Gleiches Firebase-Projekt wie der Team-Urlaubsplaner
+  apiKey: "AIzaSyCbn7aw2BBkkL0kD9keFjeCvlBflVaKzPc",
+  projectId: "urlaubsplanung-team-zfp",
+  // Admin des Teams (gibt Kollegen frei, legt fest, wie viele gleichzeitig Urlaub haben dürfen)
   adminEmail: "malik.sabti@googlemail.com"
 };

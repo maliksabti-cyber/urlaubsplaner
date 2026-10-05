@@ -1,33 +1,17 @@
-# Urlaubsplaner Team ZFP – Web-App einrichten (kostenlos)
+# Schicht & Urlaub – Web-App
 
-Du brauchst: ein Google-Konto (für Firebase) und ein kostenloses GitHub-Konto.
-Alles geht am Handy im Browser (Chrome/Safari). Wir gehen die Schritte im Chat zusammen durch.
+Die App liegt direkt unter `https://maliksabti-cyber.github.io/urlaubsplaner/`.
+(Die alte Adresse `…/urlaubsplaner/schicht/` leitet automatisch dorthin weiter.)
 
-1. **Firebase-Projekt anlegen** – console.firebase.google.com → „Projekt hinzufügen“ → Name z. B. `urlaub-zfp` → Google Analytics AUS.
-2. **Anmeldung einschalten** – Build → Authentication → „Jetzt starten“ → „E-Mail-Adresse/Passwort“ → aktivieren → Speichern.
-3. **Datenbank anlegen** – Build → Firestore Database → „Datenbank erstellen“ → Standort `europe-west3 (Frankfurt)` → „Produktionsmodus“.
-4. **Regeln einfügen** – Firestore → Tab „Regeln“ → alles löschen → Inhalt von `firestore.rules` einfügen → „Veröffentlichen“.
-5. **Web-App registrieren** – Zahnrad → Projekteinstellungen → unten „</>“ (Web) → Name `Urlaubsplaner` → Hosting NICHT anhaken → die `firebaseConfig`-Werte kopieren und an Claude schicken (oder selbst in `config.js` eintragen).
-6. **GitHub** – github.com → Konto anlegen → neues Repository `urlaubsplaner` (Public) → „uploading an existing file“ → alle Dateien aus diesem Ordner hochladen (index.html, config.js, manifest.webmanifest, sw.js, icon-192.png, icon-512.png).
-7. **Veröffentlichen** – Repository → Settings → Pages → Branch `main` / `root` → Save. Nach 1–2 Minuten: `https://DEINNAME.github.io/urlaubsplaner/`
-8. **Domain freigeben** – Firebase → Authentication → Einstellungen → „Autorisierte Domains“ → `DEINNAME.github.io` hinzufügen.
-9. **Als Erster registrieren** – Link öffnen → „Konto erstellen“ mit genau der Admin-E-Mail aus `config.js`.
-10. **Link an die Kollegen schicken.** Sie tippen im Browser auf „Zum Startbildschirm hinzufügen“, erstellen ein Konto, du bestätigst sie unter „Team“.
+**Aufs Handy holen:** Link im Browser öffnen →
+- Android/Chrome: Menü ⋮ → „Zum Startbildschirm hinzufügen“ bzw. „App installieren“
+- iPhone/Safari: Teilen-Symbol → „Zum Home-Bildschirm“
 
-**Später etwas ändern:** neue `index.html` bei GitHub hochladen (gleicher Name, überschreiben) – alle haben sofort die neue Version.
-**Kosten:** Firebase „Spark“ (kostenlos) + GitHub Pages (kostenlos). Keine Kreditkarte nötig.
-**Passwort vergessen:** mit E-Mail → „Passwort vergessen?“. Ohne E-Mail → Admin löscht den Nutzer in Firebase → Authentication → Nutzer, dann neu registrieren.
+**Aktualisieren:** Neue Versionen kommen automatisch. Die App meldet „Neue Version der App ist da“ → „Aktualisieren“.
+Von Hand: Tab „Mehr“ → „🔄 App aktualisieren“.
+Bei einer neuen Version in `index.html` die Zeile `APP_VERSION="…"` hochzählen, damit alle den Hinweis bekommen.
 
----
+**Daten:** bleiben auf dem eigenen Handy (`localMode: true` in `config.js`). Ab und zu unter Einstellungen eine Sicherung teilen.
 
-# Schicht & Urlaub (persönlicher Schichtplan) – Ordner `schicht/`
-
-Eigene App für deinen Schichtrhythmus, Urlaub, Feiertage und PDF-Export. Läuft unter
-`https://DEINNAME.github.io/urlaubsplaner/schicht/` und nutzt dasselbe Firebase-Projekt.
-
-1. **Regel veröffentlichen** – Firestore → „Regeln“ → Inhalt von `firestore.rules` (enthält jetzt den Block `nutzer`) einfügen → „Veröffentlichen“. Ohne diesen Schritt klappt die Cloud-Sicherung nicht.
-2. **Hochladen** – den Ordner `schicht/` (index.html, config.js, manifest.webmanifest, sw.js) und die neue `firestore.rules` ins Repository.
-3. **Öffnen** – Link aufrufen → „Konto erstellen“. Jeder sieht nur seine eigenen Schichtdaten.
-
-**Nur testen ohne Anmeldung:** in `schicht/config.js` `localMode: true` setzen – dann bleiben die Daten nur im Browser.
-**Achtung:** „Konto löschen“ in Schicht & Urlaub löscht das Firebase-Konto – also auch die Anmeldung für den Team-Urlaubsplaner, wenn dieselbe E-Mail benutzt wird.
+**Team-Funktion:** nutzt das Firebase-Projekt aus `config.js`. Regeln stehen in `firestore.rules`
+(Firebase → Firestore → „Regeln“ → einfügen → „Veröffentlichen“).

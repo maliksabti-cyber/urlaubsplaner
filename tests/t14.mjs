@@ -1,7 +1,7 @@
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const c = await b.newContext({...devices['Pixel 7']}); const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const ok=(c,m)=>console.log((c?'✔ ':'✘ ')+m);
-await p.goto('http://localhost:8765/schicht/'); await p.waitForTimeout(800);
+await p.goto('http://localhost:8765/'); await p.waitForTimeout(800);
 for(let i=0;i<6 && await p.isVisible('#onb');i++){ await p.locator('#onbbox button.pri').last().tap(); await p.waitForTimeout(250); }
 await p.evaluate(()=>{ S.guide={hide:true,pickhide:true}; histMute=true; save(); histMute=false; undoS.length=0; updHist(); }); await p.locator('.tabs button[data-v="heute"]').tap(); await p.waitForTimeout(200); await p.evaluate(()=>document.querySelector('#toast').hidden=true);
 await p.evaluate(()=>show('mehr')); await p.waitForTimeout(150); ok(await p.locator('#v-mehr .news').isVisible(), '„Mehr“ zeigt „Neu in der App“');

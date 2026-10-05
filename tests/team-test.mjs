@@ -1,6 +1,6 @@
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { fakeFirebase } from './fakefb.mjs';
-const ADMIN="malik.sabti@googlemail.com", URL0='http://localhost:8765/schicht/';
+const ADMIN="malik.sabti@googlemail.com", URL0='http://localhost:8765/';
 const fb=fakeFirebase(ADMIN);
 const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}).catch(()=>chromium.launch());
 const errs=[]; let step=0; const ok=(c,msg)=>{ step++; console.log((c?"✔":"✘")+" "+step+". "+msg); if(!c) process.exitCode=1; };
