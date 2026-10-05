@@ -1829,7 +1829,7 @@ function drawYPBar(){ const bar=$("#ypbar"); if(!bar) return; bar.innerHTML=""; 
   bar.append(tx);
   if(ex && a===e && yp.tapped){ const ed=el("button","btn","Bearbeiten"); ed.type="button"; ed.onclick=()=>{ closeYP(true); openVacBlock({id:ex.id,a:ex.a,e:ex.e}); }; bar.append(ed); }
   const no=el("button","btn ghost","✕"); no.type="button"; no.setAttribute("aria-label","Auswahl löschen"); no.onclick=()=>{ yp.a=yp.e=null; yp.tapped=false; markYP(); drawYPBar(); };
-  const ok=el("button","btn pri","☀ Urlaub eintragen"); ok.type="button"; ok.dataset.save="1"; ok.disabled=!n.n; ok.onclick=()=>{ vacSave(a,e,n.days); yp.a=yp.e=null; yp.tapped=false; closeYP(true); vacPreview(+a.slice(0,4),a,e); };
+  const ok=el("button","btn pri","☀ Urlaub eintragen"); ok.type="button"; ok.dataset.save="1"; ok.disabled=!n.n; ok.onclick=()=>{ vacSave(a,e,n.days); yp.a=yp.e=null; yp.tapped=false; drawYP(); };
   bar.append(no,ok); }
 function drawYPShiftBar(bar,a,e){ const t=yp.brush==="reset"?null:typeOf(yp.brush), n=diffD(a,e)+1; let nv=0; for(let d=a;d<=e;d=addD(d,1)) if(dayKind(d)==="v") nv++;
   const tx=el("div","grow"); tx.append(el("b",null,(a===e?fmtS(a):fmtS(a)+" – "+fmtS(e))+" · "+n+(n===1?" Tag":" Tage")), el("small",null,"→ "+(t?t.name:"wie im Rhythmus")+(nv?" · Urlaub ("+nv+(nv===1?" Tag":" Tage")+") bleibt":""))); bar.append(tx);
@@ -2719,7 +2719,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-14";
+const APP_VERSION="2026.10.05-15";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
