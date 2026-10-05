@@ -158,7 +158,7 @@ textarea{min-height:90px;resize:vertical;font-family:var(--f-mono);font-size:12p
 .ypbar{display:flex;align-items:center;gap:8px;height:76px;overflow:hidden;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:8px 10px;min-height:56px}
 .ypbar small{display:block;color:var(--soft);font-size:12px;line-height:1.25}.ypbar b{font-size:15px}.ypbar .btn{min-height:44px}
 .ypopen{width:100%;min-height:48px}
-.bigvac{min-height:60px;font-size:20px;margin:4px 0 8px}.utop{margin-bottom:12px}.morebtn{display:block;margin:8px 0 0 auto;font-weight:700}
+.bigvac{min-height:60px;font-size:20px;margin:4px 0 8px}.utop{margin-bottom:8px}.rmvac{width:100%;margin-bottom:12px}.morebtn{display:block;margin:8px 0 0 auto;font-weight:700}
 .ypquota{margin:0;font-size:14px;white-space:nowrap}.ypquota b{font-size:19px;color:var(--ok)}.ypquota.none b{color:var(--bad)}
 @media (max-width:420px){.ypbar{gap:6px;padding:6px 8px}.ypbar b{font-size:13px}.ypbar small{font-size:11px}.ypbar .btn{padding-inline:10px}}
 .ypwarn{color:var(--bad)!important;font-weight:700}
@@ -2427,8 +2427,26 @@ function renderUrlaub(){
     const big=el("button","btn pri ypopen bigvac","☀ Urlaub eintragen"); big.type="button"; big.onclick=()=>openYearPlanner(uY); box.insertBefore(big,box.children[1]||null);
     const r=el("div","row utop"); const ed=el("button","btn grow","✎ Urlaub bearbeiten"); ed.type="button"; ed.onclick=()=>openYearPlanner(uY);
     const sh=el("button","btn grow","⇪ Urlaub PDF teilen"); sh.type="button"; sh.onclick=()=>openSharePreview("list",uY); r.append(ed,sh); big.after(r);
+    const rm=el("button","btn bad rmvac","🗑 Urlaub entfernen"); rm.type="button"; rm.onclick=()=>openVacRemove(uY); r.after(rm);
     box.append(cc); }
 }
+/* Urlaub entfernen: Zeitraum von–bis oder ein ganzes Jahr zurücksetzen (mit Rückgängig) */
+function vacRemoveRange(a,e){ const old=JSON.parse(JSON.stringify(vacList())); let k=0;
+  for(let d=a;d<=e;d=addD(d,1)) if(vacAt(d)){ if(dayKind(d)==="v") k++; removeVacDay(d); }
+  S.vacs=vacList().filter(v=>vacDaysOf(v).length||v.e<a||v.a>e); normVacs(); save(); render(); return {k,old}; }
+function openVacRemove(y){ openSheet(p=>{ sheetTop(p,"Urlaub entfernen"); p.dataset.sheet="vacremove";
+    p.append(el("p","hint","Wähle den Zeitraum. Alle Urlaubstage darin werden gelöscht und stehen sofort wieder zur Verfügung."));
+    const two=el("div","two"), la=el("label","f","Von"), lb=el("label","f","Bis"), ia=el("input"), ib=el("input"); ia.type=ib.type="date"; ia.id="vr_from"; ib.id="vr_to";
+    const nx=vacList().filter(v=>v.e>=TODAY()).sort((x,z)=>x.a<z.a?-1:1)[0]; ia.value=nx?nx.a:y+"-01-01"; ib.value=nx?nx.e:y+"-12-31"; la.append(ia); lb.append(ib); two.append(la,lb); p.append(two);
+    const info=el("div","card"); p.append(info); const go=el("button","btn bad","🗑 Diesen Urlaub entfernen"); go.type="button";
+    const upd=()=>{ info.innerHTML=""; const a=ia.value, e=ib.value; if(!a||!e||e<a){ info.append(el("div","muted","Bitte Von und Bis wählen.")); go.disabled=true; return; }
+      let k=0; for(let d=a;d<=e;d=addD(d,1)) if(dayKind(d)==="v") k++; info.append(el("b","num",k+(k===1?" Urlaubstag":" Urlaubstage")+" werden entfernt")); go.disabled=!k; };
+    ia.oninput=()=>{ if(ib.value<ia.value) ib.value=ia.value; upd(); }; ib.oninput=upd; upd();
+    go.onclick=()=>{ const a=ia.value, e=ib.value, r=vacRemoveRange(a,e), yy=+a.slice(0,4); closeSheet(); toast(r.k+(r.k===1?" Urlaubstag":" Urlaubstage")+" entfernt · noch "+vacRest(yy)+" übrig ("+yy+")","Rückgängig",()=>{ S.vacs=r.old; save(); render(); }); };
+    p.append(go);
+    const all=el("button","btn ghost","Ganzen Urlaub "+y+" zurücksetzen"); all.type="button";
+    all.onclick=()=>ask("Ganzen Urlaub "+y+" löschen?","Alle Urlaubstage im Jahr "+y+" werden entfernt.",[{label:"Ja, alles löschen",pri:true,fn:()=>{ const r=vacRemoveRange(y+"-01-01",y+"-12-31"); closeSheet(); toast("Urlaub "+y+" zurückgesetzt · "+vacRest(y)+" Tage übrig","Rückgängig",()=>{ S.vacs=r.old; save(); render(); }); }},{label:"Abbrechen"}]);
+    p.append(all); }); }
 function openVacBlock(b){ const v0=vacList().find(x=>x.id===b.id); if(!v0){ toast("Diesen Urlaub gibt es nicht mehr."); return; }
   openSheet(p=>{ sheetTop(p,"Urlaub bearbeiten"); p.dataset.sheet="vacedit";
     const two=el("div","two"), la=el("label","f","Von"), lb=el("label","f","Bis"), ia=el("input"), ib=el("input"); ia.type=ib.type="date"; ia.id="ve_from"; ib.id="ve_to"; ia.value=v0.a; ib.value=v0.e; la.append(ia); lb.append(ib); two.append(la,lb); p.append(two);
@@ -2501,7 +2519,7 @@ boot();
 </script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-34";
+const APP_VERSION="2026.10.05-35";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
