@@ -597,6 +597,24 @@ img,svg,canvas{max-width:100%}
   #v-urlaub,#v-kal{max-width:1000px;margin-inline:auto;width:100%}
   body .day{min-height:104px}
 }
+
+/* ===== Schichtplan & Home – einfach und groß ===== */
+#hundo,#help{display:none!important}
+body:not([data-v="heute"]) .bar .logo{display:none}
+body .kseg{width:100%}body .kseg button{min-height:52px;font-size:20px}
+body .kbig{width:100%;min-height:56px;font-size:20px}
+body .krhy{justify-self:center;color:var(--accent)!important;font-size:18px!important;font-weight:700;min-height:48px;margin:-6px 0}
+body .kalnav .icon-btn{width:48px;height:48px}body .kalnav h2{font-size:22px}
+body #mscroll .day{min-height:var(--dayh,72px);border-radius:12px}
+body #mscroll .dn{font-size:14px}body #mscroll .day .chip{font-size:18px;border-radius:8px}
+body #mscroll .day.now{border:2.5px solid var(--ink)}
+body .mlab{font-size:18px}
+.hcard{display:grid;gap:6px;width:100%;text-align:left;border:0;border-radius:18px;padding:22px 20px;color:#fff;font:inherit;cursor:pointer;box-shadow:var(--shadow)}
+.hcard p{margin:0}.hcard .hd{font-size:18px;font-weight:600;opacity:.95}.hcard .hn{font:800 32px/1.15 var(--f-body)}.hcard .ht{font-size:20px;font-weight:600}.hcard .hl{font-size:20px;font-weight:800;margin-top:4px}
+.hcard.dark{color:#16222B}.hcard.free{background:var(--free-bg);color:var(--free-ink);border:2px solid var(--free-bd)}
+.hrow{display:flex;align-items:center;gap:14px;width:100%;min-height:72px;text-align:left;font:inherit;font-size:19px;color:var(--ink);cursor:pointer}.hrow b{font-weight:700;line-height:1.35}
+.hchip{min-width:52px!important;height:52px!important;font-size:24px!important;border-radius:12px!important}.hchev{font-size:30px;color:var(--soft)}
+body .hsave{border:2px dashed var(--warn);font-size:18px}body .hsave .btn{min-height:48px}
 </style>
 </head>
 <body>
@@ -839,7 +857,7 @@ let selMode=false, sel=new Set();
 function toast(msg,btn,fn,btn2,fn2){ const t=$("#toast"); if(typeof toastPre!=="undefined" && toastPre){ msg=toastPre+" · "+msg; toastPre=""; } $("#toastt").textContent=msg; const b=$("#toastb"); b.hidden=!btn; if(btn){ b.textContent=btn; b.onclick=()=>{ t.hidden=true; fn(); }; }
   let c=$("#toastb2"); if(!c){ c=el("button"); c.type="button"; c.id="toastb2"; t.append(c); } c.hidden=!btn2; if(btn2){ c.textContent=btn2; c.onclick=()=>{ t.hidden=true; fn2(); }; }
   t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true, btn2?9000:btn?6000:2600); }
-function show(v){ view=v; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",kal:"Schichtplan",urlaub:"Urlaub",mehr:"Mehr",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
+function show(v){ view=v; document.body.dataset.v=v; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",kal:"Schichtplan",urlaub:"Urlaub",mehr:"Mehr",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.v));
 function render(){ if(!S) return; if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); if(view==="mehr") renderMehr(); if(view==="team" && typeof renderTeam==="function") renderTeam(); const vr=$("#v-"+view); if(vr) drRestore(vr,"v:v-"+view); }
 function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("div","banner"); const t=el("span","grow"); t.innerHTML="<b>Beispiel-Rhythmus.</b> Stell unter Einstellungen deinen eigenen Schichtrhythmus ein."; const go=el("button","btn","Jetzt einstellen"); go.type="button"; go.onclick=()=>show("set"); b.append(t,go); box.append(b); }
@@ -854,53 +872,46 @@ function liveLine(t,now){ now=now||new Date(); if(iso(now)!==t) return null; con
   if(nm<a) return ["Beginnt in "+durTxt(a-nm),false];
   if(cross||nm<e) return ["Läuft gerade – Feierabend um "+sh.end+" Uhr (in "+durTxt((cross?e+1440:e)-nm)+")",true];
   return ["Geschafft – Feierabend seit "+sh.end+" Uhr",false]; }
-setInterval(()=>{ if(!S||view!=="heute") return; const d=$("#live"), lv=liveLine(TODAY()); if(d&&lv){ d.textContent=lv[0]; d.classList.toggle("run",lv[1]); } },60000);
+const minTxt=m=>{ const h=Math.floor(m/60), r=m%60, a=[]; if(h) a.push(h+(h===1?" Stunde":" Stunden")); if(r||!h) a.push(r+(r===1?" Minute":" Minuten")); return a.join(" "); };
+/* kurzer Satz für die große Karte auf Home: „Feierabend in 7 Minuten“ / „Beginnt in 2 Stunden“ */
+function homeLive(t){ const now=new Date(), nm=now.getHours()*60+now.getMinutes();
+  const ys=shiftOf(addD(t,-1)); if(ys&&ys.kind==="work"&&ys.start&&ys.end&&hm(ys.end)<=hm(ys.start)&&nm<hm(ys.end)) return "Feierabend in "+minTxt(hm(ys.end)-nm);
+  const sh=shiftOf(t); if(!sh||sh.kind!=="work"||!sh.start||!sh.end) return null; const a=hm(sh.start), e=hm(sh.end), cross=e<=a;
+  if(nm<a) return "Beginnt in "+minTxt(a-nm); if(cross||nm<e) return "Feierabend in "+minTxt((cross?e+1440:e)-nm); return "Für heute geschafft"; }
+setInterval(()=>{ if(!S||view!=="heute") return; const d=$("#live"), lv=homeLive(TODAY()); if(d&&lv) d.textContent=lv; },60000);
+const WDL=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"], MONL=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+/* Home: nur das Wichtigste – heute, danach, Urlaub, Sicherung */
 function renderHeute(){
   const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box); installCard(box,true);
-  const t=TODAY(), sh=shiftOf(t), hn=holName(t);
-  // 1) Heute + nächste 7 Tage in einer Karte
-  const c=el("div","card sec todaycard"); const top=el("div","today");
-  const big=el("div","big"); if(sh){ big.style.background=sh.color; if(isDark(sh.color)) big.classList.add("dark"); big.textContent=sh.short; } else { big.classList.add("free"); big.textContent=(S.types.find(x=>x.kind==="free")||{}).short||"–"; } if(dayKind(t)==="f"){ big.style.background=""; big.classList.add("free"); }
-  const info=el("div"); info.append(el("div","muted",fmt(t)+(hn?" · "+hn:"")), el("div","t1",sh?sh.name:"Frei"));
-  if(sh && sh.kind==="work" && sh.start) info.append(el("div","mono muted",sh.start+" – "+sh.end+" · "+hStr(minutes(sh))));
-  const lv=liveLine(t); if(lv){ const d=el("div","live"+(lv[1]?" run":""),lv[0]); d.id="live"; info.append(d); }
-  const nt=S.notes[t]; if(nt) info.append(el("div",null,"📝 "+nt));
-  top.append(big,info); top.onclick=()=>openDay(t); top.style.cursor="pointer"; c.append(top);
-  let ns=null; for(let i=sh&&sh.kind==="work"?1:0;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(x&&x.kind==="work"){ ns=[s,x]; break; } }
-  if(ns) c.append(el("div","nextline",(sh&&sh.kind==="work"?"Nächste Schicht danach: ":"Nächste Schicht: ")+(ns[0]===t?"heute":ns[0]===addD(t,1)?"morgen":fmt(ns[0]))+" · "+ns[1].name+(ns[1].start?" ab "+ns[1].start+" Uhr":"")));
-  box.append(c);
-  // 2) Schichten & Zeiten: alle Schichtarten mit Uhrzeit – antippen zum Bearbeiten
-  { const sc=el("details","card sec stimes"); if(S.stOpen) sc.open=true; sc.ontoggle=()=>{ S.stOpen=sc.open; histMute=true; save(); histMute=false; };
-    sc.append(el("summary",null,"⏱ Schichten bearbeiten & Zeiten eintragen"));
-    S.types.forEach(tp=>{ const r=el("button","strow"); r.type="button"; const m=spanMin(tp.start,tp.end,+tp.pause||0); const tx=el("div","grow");
-      const wt=tp.kind!=="work"&&+tp.credit>0?"Wert: "+hStr(+tp.credit)+" pro Tag":"";
-      tx.append(el("b",null,tp.name), el("small",null,[m!=null?tp.start+" – "+tp.end+" Uhr"+(+tp.pause?" · "+tp.pause+" Min. Pause":"")+(tp.kind==="work"?" · "+hStr(m):""):"", wt].filter(Boolean).join(" · ")||(tp.kind==="work"?"keine Uhrzeit – antippen zum Eintragen":"kein Wert – antippen zum Eintragen")));
-      r.append(chip(tp), tx, el("span","muted","›")); r.onclick=()=>openType(tp); sc.append(r); });
-    const nb=el("button","btn","+ Neue Schichtart"); nb.type="button"; nb.onclick=()=>openType(null); sc.append(nb); box.append(sc); }
+  const t=TODAY(), sh=shiftOf(t), hn=holName(t), d=parse(t), work=sh&&sh.kind==="work", free=!sh||sh.kind==="free"||dayKind(t)==="f";
+  // 1) Große Karte in der Farbe der heutigen Schicht
+  const hc=el("button","hcard"); hc.type="button"; hc.onclick=()=>openDay(t);
+  if(free){ hc.classList.add("free"); } else { hc.style.background=sh.color; if(isDark(sh.color)) hc.classList.add("dark"); }
+  hc.append(el("p","hd","Heute, "+WDL[d.getDay()]+" "+d.getDate()+". "+MONL[d.getMonth()]+(hn?" · "+hn:"")), el("p","hn",sh&&!free?sh.name:"Frei"));
+  if(work && sh.start) hc.append(el("p","ht",sh.start+" bis "+sh.end+" Uhr"));
+  const lv=homeLive(t); if(lv){ const l=el("p","hl",lv); l.id="live"; hc.append(l); }
+  if(S.notes[t]) hc.append(el("p","ht","📝 "+S.notes[t])); box.append(hc);
+  // 2) Danach
+  let ns=null; for(let i=work?1:0;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(x&&x.kind==="work"){ ns=[s,x]; break; } }
+  if(ns){ const nc=el("button","card hrow"); nc.type="button"; nc.onclick=()=>openDay(ns[0]); const when=ns[0]===t?"Heute":ns[0]===addD(t,1)?"Morgen":WDL[parse(ns[0]).getDay()]+" "+fmtS(ns[0]);
+    const tx=el("span","grow"); tx.append(el("b",null,(work?"Danach: ":"Nächste Schicht: ")+when+", "+ns[1].name+(ns[1].start?", ab "+ns[1].start+" Uhr":""))); const ch=chip(ns[1]); ch.classList.add("hchip"); nc.append(tx,ch); box.append(nc); }
+  // 3) Urlaub
+  { const y=+t.slice(0,4), r=vacRest(y); const uc=el("button","card hrow"); uc.type="button"; uc.onclick=()=>show("urlaub"); const tx=el("span","grow"); tx.append(el("b",null,"Dein Urlaub: "+(r<0?(-r)+" Tage zu viel":"Noch "+r+(r===1?" Tag":" Tage")+" übrig"))); uc.append(tx,el("span","hchev","›")); box.append(uc); }
   if(typeof teamUnread==="function" && TEAM.data){ const n=teamUnread(); if(n){ const b=el("button","banner tbanner"); b.type="button"; b.append(el("span","grow","📬 "+n+(n===1?" neue Team-Nachricht":" neue Team-Nachrichten"))); b.onclick=()=>show("team"); box.append(b); } }
-  // 3) Lotse / Neuigkeiten / Sicherung (immer nur eins)
+  // 4) Einrichtungs-Lotse (nur solange er läuft), sonst Sicherungs-Hinweis
   const gOn=activeGoal()?lotseCard(box):false;
-  if(!activeGoal() && backupDue() && dlNs){ const b=el("div","banner"); const tx=el("span","grow"); tx.innerHTML=S.lastBackup?"<b>Zeit für eine Sicherung.</b> Die letzte ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"<b>Noch keine Sicherung.</b> Deine Daten liegen nur auf diesem Handy."; const go=el("button","btn pri","Jetzt sichern"); go.type="button"; go.onclick=jsonSave; b.append(tx,go); box.append(b); }
-  // 5) Als Nächstes (kurz)
-  let nf=null; for(let i=1;i<60;i++){ const s=addD(t,i), x=shiftOf(s); if(!x || x.kind==="free"){ let e=s; for(let k=0;k<60;k++){ const n=addD(e,1), z=shiftOf(n); if(!z || z.kind==="free") e=n; else break; } nf=[s,e]; break; } }
-  const rows=[];
-  const tFree=!sh||sh.kind==="free"; if(tFree){ let e=t; while(diffD(t,e)<60){ const n=addD(e,1), z=shiftOf(n); if(!z||z.kind==="free") e=n; else break; } rows.push(["🌿","Heute frei",e===t?"nur heute":"frei bis "+fmt(e)+" ("+(diffD(t,e)+1)+" Tage)"]); if(nf && nf[0]<=e) nf=null; }
-  if(nf) rows.push(["🌿","Nächstes Frei",nf[0]===nf[1]?fmt(nf[0]):fmtS(nf[0])+" – "+fmtS(nf[1])+" ("+(diffD(nf[0],nf[1])+1)+" Tage)"]);
-  { const nv=vacList().filter(v=>v.e>=t&&vacDaysOf(v).length).sort((x,z)=>x.a<z.a?-1:1)[0]; if(nv){ rows.push(["☀️","Nächster Urlaub",(nv.a===nv.e?fmtS(nv.a)+nv.a.slice(0,4):fmtS(nv.a)+" – "+fmtS(nv.e)+nv.e.slice(0,4))+(nv.a>t?" · in "+diffD(t,nv.a)+" Tagen":" · läuft gerade")]);
-    if(nv.a>t){ let w=0; for(let d=t; d<nv.a; d=addD(d,1)){ const x=shiftOf(d); if(x&&x.kind==="work") w++; } rows.push(["💪","Bis zum Urlaub",w===0?"keine Schicht mehr – gleich geht's los!":"noch "+w+(w===1?" Arbeitstag":" Arbeitstage")]); } } }
-  if(partners().length){ const bf=bothFreeNext(1)[0]; rows.push(["♥","Gemeinsam frei",bf?(bf[0]===bf[1]?fmt(bf[0]):fmtS(bf[0])+" – "+fmtS(bf[1])):"in den nächsten Monaten nicht"]); }
-  if(rows.length){ const nx=el("div","card sec"); nx.append(el("h3",null,"Als Nächstes")); rows.forEach(([i,l,v])=>{ const r=el("div","nxrow"); r.append(el("span","nxi",i)); const tx=el("div","grow"); tx.append(el("small",null,l), el("b",null,v)); r.append(tx); nx.append(r); }); box.append(nx); }
+  if(!activeGoal() && backupDue() && dlNs){ const b=el("div","banner hsave"); b.append(el("span","grow",S.lastBackup?"Deine letzte Sicherung ist "+diffD(S.lastBackup,TODAY())+" Tage her.":"Deine Daten sind noch nicht gesichert.")); const go=el("button","btn pri","Sichern"); go.type="button"; go.onclick=async()=>{ await jsonSave(); renderHeute(); }; b.append(go); box.append(b); }
 }
 
 /* ---------- Kalender ---------- */
 function renderKal(){
   const box=$("#v-kal"); box.innerHTML=""; exampleBanner(box);
-  const top=el("div","row"); const seg=el("div","seg");
+  const top=el("div","row"); const seg=el("div","seg full kseg");
   [["monat","Monat"],["jahr","Jahr"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(kalMode===k)); b.onclick=()=>{ kalMode=k; setSel(false); renderKal(); }; seg.append(b); });
-  top.append(seg, el("span","grow"));
-  box.append(top); const rb=el("button","btn red","↻ Mein Rhythmus & Schichten"); rb.type="button"; rb.id="rhythmbtn"; rb.onclick=()=>{ setSel(false); openRhythm(); }; box.append(rb);
-  if(selMode){ const ms=el("button","btn","Fertig"); ms.id="paintbtn"; ms.type="button"; ms.onclick=()=>setSel(false); top.append(ms); }
-  const yb=el("button","btn pri ypopen","✎ Schichten im Jahreskalender eintragen"); yb.type="button"; yb.onclick=()=>openYearPlanner(curY,"shift"); box.append(yb);
+  top.append(seg); box.append(top);
+  /* EIN Knopf: im Monat Tage antippen/wischen, im Jahr den Jahreskalender */
+  { const yb=el("button","btn kbig"+(selMode?"":" pri"),selMode?"Fertig":"✎ Schichten eintragen"); yb.type="button"; yb.id="paintbtn"; yb.onclick=()=>{ if(selMode) setSel(false); else if(kalMode==="jahr") openYearPlanner(curY,"shift"); else setSel(true); }; box.append(yb);
+    const rb=el("button","linkbtn krhy","Mein Rhythmus ändern"); rb.type="button"; rb.id="rhythmbtn"; rb.onclick=()=>{ setSel(false); openRhythm(); }; box.append(rb); }
   if(kalMode==="jahr") return renderYear(box);
   renderMonths(box);
 }
@@ -935,7 +946,9 @@ function monthBlock(v){ const y=ymY(v), m=ymM(v), blk=el("section","mblock"); bl
   padAfter(lastOfMonth(first)).forEach(s=>cell(s,true));
   blk.append(g); return blk; }
 function kalFit(){ const sc=$("#mscroll"); if(!sc) return; const r=sc.getBoundingClientRect(), tabs=(document.querySelector("nav.tabs")||{offsetHeight:64}).offsetHeight, sb=selMode?($("#selbar").offsetHeight||70):0;
-  sc.style.height=Math.max(260, Math.round(window.innerHeight-(r.top+window.scrollY)-tabs-sb-48))+"px"; }
+  const avail=Math.round(window.innerHeight-(r.top+window.scrollY)-tabs-sb-16), lab=sc.querySelector(".mlab"), lh=(lab?lab.offsetHeight:30)+14;
+  /* Zeilenhöhe so, dass ein ganzer Monat (bis 6 Wochen) sichtbar ist – mindestens 52 px; sonst scrollt die Seite statt abzuschneiden */
+  const rh=Math.max(52,Math.min(110,Math.floor((avail-lh)/6)-4)); sc.style.setProperty("--dayh",rh+"px"); sc.style.height=Math.max(avail,lh+6*(rh+4))+"px"; }
 function kalTopBlock(sc){ const st=sc.scrollTop+2; let best=null; for(const b of sc.children){ if(!b.dataset.ym) continue; if(b.offsetTop<=st) best=b; else break; } return best||sc.querySelector(".mblock"); }
 function renderMonths(box){
   const nav=el("div","mhead kalnav"); const p=el("button","icon-btn","‹"), n=el("button","icon-btn","›"); p.type=n.type="button"; p.setAttribute("aria-label","Vorheriger Monat"); n.setAttribute("aria-label","Nächster Monat");
@@ -2722,7 +2735,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.06-50";
+const APP_VERSION="2026.10.06-51";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
