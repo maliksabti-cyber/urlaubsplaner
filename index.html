@@ -525,6 +525,38 @@ nav.tabs button{min-height:56px}
   .yps{min-width:12px;height:12px;font-size:8px;line-height:12px}
 }
 @media (max-width:340px){ .ypd{font-size:9px} .bar h1{font-size:15px} }
+
+/* ===== Großer, klarer Stil (für alle gut lesbar): Schrift mind. 18 px, hoher Kontrast, Touch-Flächen mind. 48 px, viel Weißraum ===== */
+:root{--soft:#3B4852;--rule:#B9C3C8}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--soft:#C0CBD2;--rule:#3C4C57} }
+:root[data-theme="dark"]{--soft:#C0CBD2;--rule:#3C4C57}
+body{font-size:18px;line-height:1.5}
+body .bar small,body h3,body label.f,body .banner,body .chip,body .today .live,body .week button,body .week .chip,body .stat span,body .dow,body .dn,body .day .chip,body .legend,body .legend .chip,body .hint,body .yphint,body .ypbar small,body .ypbar b,body .ypquota,body .ypstep,body .instcard small,body .inststeps,body .applink,body .stimes summary,body .strow small,body .ptab .tbl td,body .ptab .tbl th,body .tlegend,body .turg,body .tpal .tsh,body .slrow .muted,body .small,body .nxrow small,body .guide summary,body .guide .gnext small,body #pan[data-sheet="ag"] .hint,body #pan[data-sheet="ag"] .presets .btn,body #pan[data-sheet="ag"] .sw,body #pan[data-sheet="ag"] .agitem .muted,body .aglab,body #pan[data-sheet="ag"] .gain small,body .gstep small,body .gnext small,body .gnum,body .gstep .btn,body .gstep .ck,body .goalbtn b,body .goalbtn small,body .tbl th,body .presets button,body .agitem .fe,body .gain small,body .rnum,body .rstep b,body .endseg button,body .mcal .dw,body .mcal .mc i,body .mnav h4,body .rrow .chip,body .wkrow .chip,body .wx,body .qbtn,body .onbtag,body .mlab,body .vmlab,body #selchips .chip,body .tabs button,body .amsg,body .afoot,body .onbopt .chip,body .syncline,body .sharebtn b,body .sharebtn small,body input[type=email],body input[type=password],body input,body select,body .yptop h2,body .ypinfo .yphint,body .ypmode,body .bar h1{font-size:18px}
+body h1{font-size:22px}
+body h2{font-size:24px;text-transform:none;letter-spacing:0;line-height:1.2}
+body h3{font:700 19px/1.3 var(--f-body);text-transform:none;letter-spacing:0;color:var(--ink)}
+body .card{padding:18px;border-radius:14px}
+body .sec{gap:18px}
+body .btn{min-height:48px;padding:11px 16px;border-radius:12px;border-width:2px;font-weight:700}
+body .btn:not(.pri):not(.ai){border-color:var(--soft)}
+body .linkbtn{min-height:48px;font-size:18px}
+body .icon-btn{width:48px;height:48px;font-size:20px;border-radius:12px;border-width:2px}
+body input[type=text],body input[type=number],body input[type=date],body input[type=time],body input[type=email],body input[type=password],body select{min-height:48px;font-size:18px;border-width:2px;border-color:var(--soft);border-radius:10px}
+body label.f{color:var(--ink);gap:6px}
+body .sw{min-height:48px}
+body .seg button{min-height:48px;padding:10px 16px}
+body .tabs button{min-height:56px}
+body .vrow,body .mrow,body .strow{min-height:56px}
+body .dow{text-transform:none;letter-spacing:0}
+body .day{min-height:72px}
+body .day .tm,body .day .hn{display:none}
+body .dn{font-weight:700}
+body .banner{border-width:2px;padding:12px 14px}
+body .ypbar{height:auto}
+body .tpal button{width:48px;height:48px}
+body .toast{font-size:18px}
+body .mono{font-family:var(--f-body);font-size:18px}
+body .instcard{flex-wrap:wrap}body .instcard>.grow{flex:1 1 calc(100% - 90px)}body .instcard>.icon-btn{align-self:flex-start}body .instcard>.btn{flex:1 1 100%;order:3}
 </style>
 </head>
 <body>
@@ -2647,7 +2679,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.06-44";
+const APP_VERSION="2026.10.06-45";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
