@@ -666,7 +666,7 @@ body .seg.pseg3{grid-template-columns:repeat(3,1fr)}
 .jhead{display:grid;gap:14px}.jhead h2{color:var(--navy);font-size:26px;margin:0}.jsub{margin:2px 0 0;color:var(--soft);font-size:16px}
 .jrest{display:flex;align-items:center;gap:12px;background:color-mix(in srgb,var(--ok) 12%,var(--card));border:2px solid color-mix(in srgb,var(--ok) 45%,var(--card));border-radius:14px;padding:12px 16px}.jri{font-size:30px}.jrest b{display:block;font-size:22px;color:var(--navy)}.jrest small{font-size:16px;color:var(--soft)}
 .jyear{display:flex;align-items:center;gap:10px}.jyear b{font-size:22px;min-width:64px;text-align:center;color:var(--navy)}.jyear .icon-btn{width:48px;height:48px}.jtoday{margin-left:auto;min-height:48px}
-.jlegend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:16px}.jlegend span{display:inline-flex;align-items:center;gap:6px}.jsw{width:20px;height:20px;border-radius:6px;display:inline-block}.jsw.jfe{background:#FFE066}.jsw.jho{background:#fff;box-shadow:inset 0 0 0 3px #D62828}
+.jlegend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:16px}.jlegend span{display:inline-flex;align-items:center;gap:6px}.jsw{width:20px;height:20px;border-radius:6px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(128,128,128,.6)}.jsw.jfe{background:#FFE066}.jsw.jho{background:#fff;box-shadow:inset 0 0 0 3px #D62828}
 .jhint{text-align:left;font-size:17px}
 .jtip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-left:5px solid #E0A100;font-size:17px}.jtip .btn{min-height:48px}
 .jgrid{display:grid;grid-template-columns:1fr;gap:16px}
@@ -684,6 +684,18 @@ body .seg.pseg3{grid-template-columns:repeat(3,1fr)}
 .jsum{display:grid;gap:14px}.jsum h3{color:var(--navy);font-size:20px;margin:0}.jstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.jstats div{background:var(--tint);border-radius:12px;padding:10px;text-align:center}.jstats small{display:block;font-size:16px;color:var(--soft)}.jstats b{font-size:20px;color:var(--navy)}
 .jbig{width:100%;min-height:60px;font-size:20px}
 @media (min-width:560px){.jd{min-height:40px;font-size:15px}}
+
+/* ===== Feinschliff: Kennzahlen, kompakte Monate am Handy, Heute ===== */
+.jkpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media (min-width:560px){.jkpi{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.jk{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;background:var(--tint);border-radius:14px;padding:10px 12px}.jk .jki{grid-row:span 2;font-size:24px}.jk b{font-size:24px;color:var(--navy);line-height:1.1}.jk small{font-size:15px;color:var(--soft)}
+.jk.k1{background:color-mix(in srgb,var(--ok) 16%,var(--card));border:2px solid color-mix(in srgb,var(--ok) 50%,var(--card))}
+@media (max-width:559px){ .jgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .jmon.jsmall{padding:10px 8px;gap:6px;cursor:pointer}.jsmall .jmh{min-height:40px}.jsmall .jmh b{font-size:18px}.jsmall .jchev{font-size:22px}
+  .jsmall .jg{gap:2px}.jsmall .jw{font-size:11px}.jsmall .jd{min-height:20px;font-size:12px;border-radius:5px;font-weight:600;pointer-events:none}
+  .jsmall .jd.jfe{box-shadow:inset 0 -3px 0 #FFD43B}.jsmall .jd.jho{box-shadow:inset 0 0 0 2px #D62828}.jsmall .jd.jnow{outline-width:2px}
+  .jtags{display:flex;flex-wrap:wrap;gap:4px}.jtag{font-size:13px;font-weight:700;border-radius:99px;padding:2px 8px;background:var(--tint)}.jtf{color:#7A5A00}.jth{color:#B42318} }
+.hlab{display:block;font-size:17px;color:var(--soft);font-weight:600;margin-bottom:2px}
+.hfer{font-size:18px;font-weight:600;border-left:5px solid #FFD43B}
 </style>
 </head>
 <body>
@@ -785,7 +797,7 @@ function defaults(){
       {id:"S",name:"Spätschicht",short:"S",color:"#E8590C",start:"14:00",end:"22:00",pause:30,kind:"work"},
       {id:"N",name:"Nachtschicht",short:"N",color:"#111111",start:"22:00",end:"06:00",pause:30,kind:"work"},
       {id:"U",name:"Urlaub",short:"U",color:"#2E8B57",start:"",end:"",pause:0,kind:"vac"},
-      {id:"K",name:"Krank",short:"K",color:"#C2185B",start:"",end:"",pause:0,kind:"sick"},
+      {id:"K",name:"Krank",short:"K",color:"#8E6C88",start:"",end:"",pause:0,kind:"sick"},
       {id:"X",name:"Frei",short:"F",color:"#6B7A85",start:"",end:"",pause:0,kind:"free"}],
     rots:[{id:"r1",name:"Wechselschicht 2-2-2 / 4 frei",start:addD(mondayOnOrBefore(t),-360),pattern:["F","F","S","S","N","N",null,null,null,null]}],
     ov:{}, notes:{}, vacs:[], tpls:[] };
@@ -915,7 +927,7 @@ function toast(msg,btn,fn,btn2,fn2){ const t=$("#toast"); if(typeof toastPre!=="
   t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true, btn2?9000:btn?6000:2600); }
 function show(v){ view=v; document.body.dataset.v=v; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",jahr:"Plan",kal:"Plan",urlaub:"Plan",mehr:"Mehr",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="jahr" && (v==="urlaub"||v==="kal")) || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","jahr","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.v));
-function render(){ if(!S) return; if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="jahr") renderJahr(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); if(view==="mehr") renderMehr(); if(view==="team" && typeof renderTeam==="function") renderTeam(); const vr=$("#v-"+view); if(vr) drRestore(vr,"v:v-"+view); }
+function render(){ if(!S) return; { const k=S.types.find(x=>x.kind==="sick"&&x.color==="#C2185B"); if(k){ k.color="#8E6C88"; histMute=true; save(); histMute=false; } } applyTheme(); if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="jahr") renderJahr(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); if(view==="mehr") renderMehr(); if(view==="team" && typeof renderTeam==="function") renderTeam(); const vr=$("#v-"+view); if(vr) drRestore(vr,"v:v-"+view); }
 function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("div","banner"); const t=el("span","grow"); t.innerHTML="<b>Beispiel-Rhythmus.</b> Stell unter Einstellungen deinen eigenen Schichtrhythmus ein."; const go=el("button","btn","Jetzt einstellen"); go.type="button"; go.onclick=()=>show("set"); b.append(t,go); box.append(b); }
 
 /* ---------- Heute ---------- */
@@ -952,7 +964,14 @@ function renderHeute(){
       const nm=dk==="v"?"Urlaub":(!x||x.kind==="free"||dk==="f")?"Frei":x.name+(x.kind==="work"&&x.start?", "+x.start+" bis "+x.end+" Uhr":"");
       const tx=el("span","grow"); tx.append(el("b",null,l+": "),document.createTextNode(nm)); const ch=dk==="v"?el("span","chip","U"):chip(x&&dk!=="f"?x:null); if(dk==="v") ch.style.setProperty("--c",vacColor()); ch.classList.add("hchip2"); r.append(tx,ch); nb.append(r); }); box.append(nb); }
   // 3) Urlaub
-  { const y=+t.slice(0,4), r=vacRest(y); const uc=el("button","card hrow"); uc.type="button"; uc.onclick=()=>show("urlaub"); const tx=el("span","grow"); tx.append(el("b",null,"Dein Urlaub: "+(r<0?(-r)+" Tage zu viel":"Noch "+r+(r===1?" Tag":" Tage")+" übrig"))); uc.append(tx,el("span","hchev","›")); box.append(uc); }
+  { const y=+t.slice(0,4), r=vacRest(y); const uc=el("button","card hrow"); uc.type="button"; uc.onclick=()=>show("urlaub"); const tx=el("span","grow");
+    const nv=vacList().filter(v=>v.e>=t&&vacDaysOf(v).length).sort((x,z)=>x.a<z.a?-1:1)[0];
+    if(nv) tx.append(el("span","hlab","🏖️ "+(nv.a<=t?"Urlaub läuft – bis ":"Nächster Urlaub: ")+(nv.a<=t?ddm(nv.e):ddRange(nv.a,nv.e))+(nv.a>t?" (in "+diffD(t,nv.a)+(diffD(t,nv.a)===1?" Tag)":" Tagen)"):"")));
+    tx.append(el("b",null,(nv?"":"🏖️ ")+(r<0?(-r)+" Urlaubstage zu viel":"Noch "+r+(r===1?" Urlaubstag":" Urlaubstage")+" übrig"))); uc.append(tx,el("span","hchev","›")); box.append(uc);
+    /* Ferien: laufen gerade oder beginnen bald (nächste 60 Tage) */
+    if(hasFerien()){ const cur=curFerien().find(f=>f[0]<=t&&f[1]>=t), nx=curFerien().filter(f=>f[0]>t).sort((a,b)=>a[0]<b[0]?-1:1)[0];
+      const tx2=cur?"🟡 "+cur[2]+" – noch bis "+ddm(cur[1]):(nx&&diffD(t,nx[0])<=60)?"🟡 "+nx[2]+" beginnen "+(diffD(t,nx[0])===1?"morgen":"in "+diffD(t,nx[0])+" Tagen")+" ("+ddRange(nx[0],nx[1])+")":null;
+      if(tx2) box.append(el("div","card hfer",tx2)); } }
   if(typeof teamUnread==="function" && TEAM.data){ const n=teamUnread(); if(n){ const b=el("button","banner tbanner"); b.type="button"; b.append(el("span","grow","📬 "+n+(n===1?" neue Team-Nachricht":" neue Team-Nachrichten"))); b.onclick=()=>show("team"); box.append(b); } }
   // 4) Einrichtungs-Lotse (nur solange er läuft), sonst Sicherungs-Hinweis
   const gOn=activeGoal()?lotseCard(box):false;
@@ -960,6 +979,9 @@ function renderHeute(){
 }
 
 /* ---------- Kalender ---------- */
+/* Darstellung: automatisch (wie das Handy), immer hell oder immer dunkel */
+function applyTheme(){ const m=S&&S.theme; if(m==="light"||m==="dark") document.documentElement.dataset.theme=m; else delete document.documentElement.dataset.theme; }
+function openTheme(){ openSheet(p=>{ sheetTop(p,"Darstellung"); [["light","☀️ Hell"],["dark","🌙 Dunkel"],["auto","Automatisch (wie das Handy)"]].forEach(([k,l])=>{ const on=(S.theme||"auto")===k, b=el("button","btn uwide"+(on?" pri":""),(on?"✓ ":"")+l); b.type="button"; b.onclick=()=>{ S.theme=k==="auto"?undefined:k; save(); applyTheme(); closeSheet(); }; p.append(b); }); }); }
 /* ===================== Jahresübersicht: 12 Monatskarten mit Schichten, Urlaub, Ferien, Feiertagen =====================
    Ein Tag antippen = Start, zweiter Tag = Ende → unten „Urlaub eintragen“. Monatsname antippen = Monat groß öffnen. */
 const jSt={y:null,a:null,e:null,mode:"vac",jahr:true,scrolled:false};
@@ -972,11 +994,13 @@ function vacTip(y){ const t=TODAY(), from=+t.slice(0,4)===y?addD(t,1):y+"-01-01"
       let a=d, e=last; while(off(addD(a,-1))&&diffD(addD(a,-1),d)<20) a=addD(a,-1); while(off(addD(e,1))&&diffD(last,addD(e,1))<20) e=addD(e,1);
       const span=diffD(a,e)+1, gain=span-k; if(gain>=3 && (!best || gain/k>best.gain/best.k || (gain/k===best.gain/best.k && span>best.span))) best={d,last,a,e,k,span,gain}; } }
   if(!best || vacRest(y)<best.k) return null; return best; }
+const narrowJ=()=>window.innerWidth<560;
 function renderJahr(){ const box=$("#v-jahr"); box.innerHTML=""; exampleBanner(box); planSeg(box,"jahr");
   const t=TODAY(); if(!jSt.y) jSt.y=+t.slice(0,4); const y=jSt.y, tot=vacTotal(y), used=vacUsed(y), rest=tot-used;
   /* Kopf: Titel, Resturlaub, Jahr */
   const hd=el("div","card jhead"); const l=el("div","grow"); l.append(el("h2",null,"Jahresübersicht"), el("p","jsub","Schichten, Urlaub, Ferien und Feiertage auf einen Blick"));
-  const rc=el("div","jrest"), rt=el("div"); rt.append(el("b",null,"Noch "+Math.max(0,rest)+(rest===1?" Urlaubstag":" Urlaubstage")), el("small",null,"von "+tot+" Tagen")); rc.append(el("span","jri","🏖️"), rt);
+  const rc=el("div","jkpi"); { let fd=0, hd2=0; for(let d=y+"-01-01"; d<=y+"-12-31"; d=addD(d,1)){ if(ferien(d)) fd++; if(holName(d)) hd2++; }
+    [["🏖️",Math.max(0,rest),"Urlaubstage übrig","k1"],["📅",used,"Tage verplant","k2"],...(hasFerien()?[["🟡",fd,"Ferientage","k3"]]:[]),["🔴",hd2,"Feiertage","k4"]].forEach(([i,n,l,k])=>{ const d=el("div","jk "+k); d.append(el("span","jki",i), el("b",null,String(n)), el("small",null,l)); rc.append(d); }); }
   const yn=el("div","jyear"); const pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"), td=el("button","btn ghost jtoday","Heute"); pv.type=nx.type=td.type="button"; pv.setAttribute("aria-label","Jahr zurück"); nx.setAttribute("aria-label","Jahr vor");
   pv.onclick=()=>{ jSt.y--; jSt.a=jSt.e=null; renderJahr(); }; nx.onclick=()=>{ jSt.y++; jSt.a=jSt.e=null; renderJahr(); };
   td.onclick=()=>{ jSt.y=+TODAY().slice(0,4); jSt.scrolled=false; renderJahr(); };
@@ -986,14 +1010,17 @@ function renderJahr(){ const box=$("#v-jahr"); box.innerHTML=""; exampleBanner(b
   S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const sw=el("i","jsw"); sw.style.background=x.kind==="free"?"var(--free-bg)":x.color; if(x.kind==="free") sw.style.border="1px solid var(--free-bd)"; add(sw,x.name); });
   { const sw=el("i","jsw"); sw.style.background=vacColor(); add(sw,"Urlaub"); } if(hasFerien()) add(el("i","jsw jfe"),"Schulferien"); add(el("i","jsw jho"),"Feiertag"); box.append(lg);
   /* Hinweis und Urlaubstipp */
-  box.append(el("p","yphint2 jhint",jSt.a&&!jSt.e?"Ab "+ddm(jSt.a)+" – tippe jetzt den letzten Urlaubstag an.":"Urlaub eintragen: ersten und letzten Tag antippen. Monatsname antippen = Monat groß."));
+  box.append(el("p","yphint2 jhint",jSt.a&&!jSt.e?"② Endtag auswählen (Start: "+ddm(jSt.a)+")":jSt.a&&jSt.e?"③ Prüfe unten und bestätige.":(narrowJ()?"Monat antippen – dort Urlaub eintragen: ① Starttag ② Endtag ③ bestätigen.":"Urlaub eintragen: ① Starttag ② Endtag ③ bestätigen. Monatsname = Monat groß.")));
   { const tp=vacTip(y); if(tp){ const c=el("div","card jtip"); const tx=el("div","grow"); tx.append(el("b",null,"💡 Urlaubstipp: "), document.createTextNode("Mit "+tp.k+(tp.k===1?" Urlaubstag":" Urlaubstagen")+" am "+(tp.k===1?ddm(tp.d):ddRange(tp.d,tp.last))+" hast du "+tp.span+" Tage frei am Stück ("+ddRange(tp.a,tp.e)+")."));
-      const b=el("button","btn","Ansehen"); b.type="button"; b.onclick=()=>{ jSt.a=tp.d; jSt.e=tp.last; renderJahr(); const c2=$("#v-jahr").querySelector('.jd[data-s="'+tp.d+'"]'); if(c2) c2.scrollIntoView({block:"center"}); }; c.append(tx,b); box.append(c); } }
+      const b=el("button","btn","Ansehen"); b.type="button"; b.onclick=()=>{ if(narrowJ()){ openVac(+tp.d.slice(0,4),+tp.d.slice(5,7)-1); return; } jSt.a=tp.d; jSt.e=tp.last; renderJahr(); const c2=$("#v-jahr").querySelector('.jd[data-s="'+tp.d+'"]'); if(c2) c2.scrollIntoView({block:"center"}); }; c.append(tx,b); box.append(c); } }
   /* 12 Monatskarten */
   const g=el("div","jgrid"), r=jSt.a?[jSt.a,jSt.e||jSt.a]:null;
   for(let m=0;m<12;m++){ const c=el("div","card jmon"); c.dataset.m=m; const f=y+"-"+pad(m+1)+"-01", lst=lastOfMonth(f);
-    const h=el("button","jmh"); h.type="button"; h.append(el("b",null,MONF_[m]+" "+y), el("span","jchev","›")); h.onclick=()=>openVac(y,m); c.append(h);
-    const info=el("div","jinfo");
+    const h=el("button","jmh"); h.type="button"; h.append(el("b",null,narrowJ()?MONF_[m]:MONF_[m]+" "+y), el("span","jchev","›")); h.onclick=()=>openVac(y,m); c.append(h);
+    if(narrowJ()){ c.classList.add("jsmall"); c.onclick=ev=>{ if(!ev.target.closest(".jmh")) openVac(y,m); };
+      const fe=curFerien().filter(x=>hasFerien()&&x[0]<=lst&&x[1]>=f), hc=(()=>{ let n=0; for(let d=f; d<=lst; d=addD(d,1)) if(holName(d)) n++; return n; })();
+      if(fe.length||hc){ const tg=el("div","jtags"); if(fe.length) tg.append(el("span","jtag jtf","🟡 "+fe[0][2].replace("ferien",""))); if(hc) tg.append(el("span","jtag jth","🔴 "+hc+(hc===1?" Feiertag":" Feiertage"))); c.append(tg); } }
+    const info=el("div","jinfo"); if(narrowJ()) info.hidden=true;
     curFerien().filter(fe=>hasFerien()&&fe[0]<=lst&&fe[1]>=f).forEach(fe=>info.append(el("div","jfer","🟡 "+fe[2]+" "+ddm(fe[0])+" – "+ddm(fe[1]))));
     for(let d=f; d<=lst; d=addD(d,1)){ const hn=holName(d); if(hn) info.append(el("div","jhol","🔴 "+ddm(d)+" "+hn)); }
     if(info.children.length) c.append(info);
@@ -1006,9 +1033,9 @@ function renderJahr(){ const box=$("#v-jahr"); box.innerHTML=""; exampleBanner(b
       if(ferien(d)) b.classList.add("jfe"); if(holName(d)) b.classList.add("jho"); if(d===t) b.classList.add("jnow");
       if(r && d>=r[0] && d<=r[1]){ b.classList.add("jsel"); if(d===r[0]) b.classList.add("js0"); if(d===r[1]) b.classList.add("js1"); }
       b.title=fmt(d)+(holName(d)?" · "+holName(d):"")+(ferien(d)?" · "+ferien(d)[2]:"")+(dk==="v"?" · Urlaub":x?" · "+x.name:"");
-      gr.append(b); }
+      if(narrowJ()) b.tabIndex=-1; gr.append(b); }
     c.append(gr); g.append(c); }
-  g.addEventListener("click",ev=>{ const b=ev.target.closest(".jd[data-s]"); if(!b) return; const d=b.dataset.s;
+  g.addEventListener("click",ev=>{ if(narrowJ()) return; const b=ev.target.closest(".jd[data-s]"); if(!b) return; const d=b.dataset.s;
     if(!jSt.a || jSt.e){ const v=vacAt(d); if(!jSt.a && v && dayKind(d)==="v"){ openVacChoice({id:v.id,a:v.a,e:v.e,n:vacDaysOf(v).length}); return; } jSt.a=d; jSt.e=null; }
     else if(d<jSt.a){ jSt.e=jSt.a; jSt.a=d; } else jSt.e=d;
     const sy=window.scrollY; renderJahr(); window.scrollTo(0,sy); });
@@ -1252,7 +1279,7 @@ function vsRange(a,e){ const da=+a.slice(8,10), de=+e.slice(8,10), ma=+a.slice(5
   return da+". "+MONF_[ma]+(a.slice(0,4)!==e.slice(0,4)?" "+a.slice(0,4):"")+" bis "+de+". "+MONF_[me]+(a.slice(0,4)!==e.slice(0,4)?" "+e.slice(0,4):""); }
 function openVac(y0,m0){ const t=TODAY(), st={y:y0||+t.slice(0,4),m:m0!=null?m0:y0&&y0!==+t.slice(0,4)?0:+t.slice(5,7)-1,a:null,e:null,view:"monat"}; let drag=null;
   openSheet(p=>{ p.dataset.sheet="vsimple"; sheetTop(p,"Urlaub eintragen"); const box=el("div","vs"); p.append(box);
-    const rest=el("p","vsrest"), nav=el("div","vsnav"), grid=el("div","vsgrid"), line=el("p","vsline"), msg=el("p","vsmsg"), go=el("button","btn pri vsgo","Urlaub eintragen"); go.type="button";
+    const rest=el("p","vsrest"), nav=el("div","vsnav"), grid=el("div","vsgrid"), line=el("p","vsline"), msg=el("p","vsmsg"), go=el("button","btn pri vsgo","Urlaub bestätigen"); go.type="button";
     const prev=el("button",null,"‹"), next=el("button",null,"›"), mn=el("h3"); prev.type=next.type="button"; prev.setAttribute("aria-label","Monat zurück"); next.setAttribute("aria-label","Monat vor");
     const mv=k=>{ if(st.view==="jahr"){ st.y+=k; draw(); return; } st.m+=k; if(st.m<0){ st.m=11; st.y--; } if(st.m>11){ st.m=0; st.y++; } draw(); }; prev.onclick=()=>mv(-1); next.onclick=()=>mv(1); nav.append(prev,mn,next);
     /* Jahreskalender (alle 12 Monate mit Schicht-Kürzeln) – Zurück führt zum Monatskalender */
@@ -1262,9 +1289,9 @@ function openVac(y0,m0){ const t=TODAY(), st={y:y0||+t.slice(0,4),m:m0!=null?m0:
     const sel=()=>st.a?[st.a,st.e||st.a]:null;
     const paint=()=>{ const r=sel(); grid.querySelectorAll("button[data-s]").forEach(b=>{ const s=b.dataset.s, on=r&&s>=r[0]&&s<=r[1]; b.classList.toggle("sel",!!on); b.classList.toggle("s0",!!on&&(s===r[0]||parse(s).getDay()===1)); b.classList.toggle("s1",!!on&&(s===r[1]||parse(s).getDay()===0)); });
       msg.hidden=true; go.disabled=true;
-      if(!r){ line.textContent="Tippe auf den ersten Urlaubstag."; return; }
-      if(!st.e){ line.textContent="Ab "+vsRange(r[0],r[0])+" – jetzt den letzten Tag antippen."; }
-      const days=vsDays(r[0],r[1]); if(st.e) line.textContent=vsRange(r[0],r[1])+" · "+days.length+(days.length===1?" Tag":" Tage");
+      if(!r){ line.textContent="① Starttag auswählen"; return; }
+      if(!st.e){ line.textContent="② Endtag auswählen (Start: "+vsRange(r[0],r[0])+")"; }
+      const days=vsDays(r[0],r[1]); if(st.e) line.textContent="③ 🏖️ "+days.length+(days.length===1?" Urlaubstag":" Urlaubstage")+" · "+vsRange(r[0],r[1]);
       if(!days.length){ msg.textContent="An diesen Tagen hast du sowieso frei."; msg.hidden=false; return; }
       if(vacOver(days).length){ msg.textContent="Dafür reichen deine Urlaubstage leider nicht."; msg.hidden=false; return; }
       go.disabled=!st.e; };
@@ -1584,7 +1611,7 @@ function desktopShortcut(){ const mac=/mac/i.test(navigator.platform||navigator.
     const ol=el("ol","inststeps"); ["Chrome oder Edge: rechts in der Adressleiste auf das Symbol „Installieren“ (Bildschirm mit Pfeil) klicken.","Oder Menü ⋮ → „Streamen, speichern und teilen“ → „Seite als App installieren“ (Edge: „Apps“ → „Diese Website als App installieren“).","Danach liegt „Schicht & Urlaub“ im Startmenü – mit Rechtsklick auch auf dem Desktop."].forEach(t=>ol.append(el("li",null,t))); p.append(ol); }); }
 /* „Mehr“: alles, was nicht jeden Tag gebraucht wird */
 function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; installCard(box); const c=el("div","card sec"); c.append(el("h2",null,"Mehr"));
-  [["⚙","Einstellungen","Name, Bundesland, Sicherung",()=>show("set")],["☀","Urlaubstage","Anspruch und Resturlaub einstellen",()=>openVacSettings(new Date().getFullYear())],["↻","Schichtrhythmus","Deinen Rhythmus ändern",()=>openRhythm()],["📄","Urlaubsplan als PDF","Liste deiner Urlaube zum Teilen oder Drucken",()=>pdfVacPlan(new Date().getFullYear())],["❓","Hilfe","So funktioniert die App",()=>openHelp()],["🔒","Datenschutz","Was du teilst und was privat bleibt",()=>goSettings("consent")],
+  [["⚙","Einstellungen","Name, Bundesland, Sicherung",()=>show("set")],["☀️","Hell / Dunkel","Darstellung der App wählen",()=>openTheme()],["☀","Urlaubstage","Anspruch und Resturlaub einstellen",()=>openVacSettings(new Date().getFullYear())],["↻","Schichtrhythmus","Deinen Rhythmus ändern",()=>openRhythm()],["📄","Urlaubsplan als PDF","Liste deiner Urlaube zum Teilen oder Drucken",()=>pdfVacPlan(new Date().getFullYear())],["❓","Hilfe","So funktioniert die App",()=>openHelp()],["🔒","Datenschutz","Was du teilst und was privat bleibt",()=>goSettings("consent")],
    ["👥","Team","Team erstellen oder beitreten, Team-Kalender",()=>show("team")],["📊","Statistik","Stunden und Überstunden",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
    ["📆","Mit Apple/Google Kalender verbinden","Schichten und Urlaub in deinen Handy-Kalender",()=>ask("Kalender verbinden?","Deine Schichten und dein Urlaub werden als Kalender-Datei übergeben.\nApple: Datei öffnen → „Alle hinzufügen“.\nGoogle: calendar.google.com → Einstellungen → Importieren.",[{label:"Ja, verbinden",pri:true,fn:()=>calSave()},{label:"Nein"}])],["🔄","App aktualisieren","Neueste Version laden",()=>appUpdate()]].filter(Boolean).forEach(([i,t,d,fn])=>{
     const b=el("button","vrow mrow"); b.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t), el("small",null,d)); b.append(el("span","qi",i), tx, el("span","muted","›")); b.onclick=fn; c.append(b); });
@@ -2063,7 +2090,7 @@ function drawYPInline(st){ const ov=st.root, sc0=ov.querySelector(".ypscroll"); 
   pv.onclick=()=>{ if(st.h===1) st.h=0; else { st.y--; st.h=1; } st.sTop=0; nav(); }; nx.onclick=()=>{ if(st.h===0) st.h=1; else { st.y++; st.h=0; } st.sTop=0; nav(); };
   const hb=el("button","btn ghost yptoday","Heute"); hb.type="button"; hb.onclick=()=>{ ypHome(st); nav(); };
   top.append(pv, el("h2","grow",y+" · "+(st.h?"Juli – Dezember":"Januar – Juni")), hb, nx); ov.append(top);
-  if(st.paint){ ov.append(el("p","yphint2",!st.a?(vac?"Tippe den ersten Urlaubstag an.":"Wähle die Schicht. Tippe dann den ersten Tag an."):!st.e?"Tippe jetzt den letzten Tag an.":"Prüfe unten und tippe auf „Speichern“."));
+  if(st.paint){ ov.append(el("p","yphint2",!st.a?(vac?"① Starttag auswählen":"Wähle die Schicht. ① Starttag auswählen"):!st.e?"② Endtag auswählen":"③ Prüfe unten und bestätige."));
     if(!vac){ const bt=S.types.filter(t=>t.kind!=="vac"); if(st.brush==null || !(st.brush==="reset"||bt.some(t=>t.id===st.brush))) st.brush=(bt.find(t=>t.kind==="work")||{}).id||"reset";
       const br=el("div","ypbrush"); bt.concat([{id:"reset"}]).forEach(t=>{ const b=el("button","ypb"); b.type="button"; b.setAttribute("aria-pressed",String(st.brush===t.id));
         if(t.id==="reset") b.append(el("span","chip free","↻"), el("small",null,"Rhythmus")); else b.append(chip(t), el("small",null,t.name)); b.onclick=()=>{ st.brush=t.id; drawYP(st); }; br.append(b); }); ov.append(br); } }
@@ -2087,9 +2114,9 @@ function ypTap(st,s){
   if(!st.a || st.e){ st.a=s; st.e=null; } else if(s<st.a){ st.e=st.a; st.a=s; } else st.e=s; drawYP(st); }
 /* feste Leiste unten: was passiert, „Speichern“ (groß) und „Abbrechen“ (klein) */
 function ypFixBar(st){ const a=st.a, e=st.e, bar=el("div","ypfix"), tx=el("div","grow"), sv=el("button","btn pri","Speichern"), no=el("button","linkbtn","Abbrechen"); sv.type=no.type="button";
-  no.onclick=()=>{ st.a=st.e=null; if(st.redraw) st.redraw(); else drawYP(st); }; if(st.jahr) sv.textContent="Urlaub eintragen";
+  no.onclick=()=>{ st.a=st.e=null; if(st.redraw) st.redraw(); else drawYP(st); }; if(st.jahr||st.mode==="vac") sv.textContent="Urlaub bestätigen";
   if(st.mode==="vac"){ const days=vsDays(a,e); let have=0; for(let d=a;d<=e;d=addD(d,1)) if(dayKind(d)==="v") have++; const free=diffD(a,e)+1-days.length-have;
-    tx.append(el("b",null,days.length+(days.length===1?" Urlaubstag":" Urlaubstage")+(free>0?" ("+free+(free===1?" freier Tag zählt":" freie Tage zählen")+" nicht)":"")));
+    tx.append(el("b",null,"🏖️ "+days.length+(days.length===1?" Urlaubstag":" Urlaubstage")+(free>0?" ("+free+(free===1?" freier Tag zählt":" freie Tage zählen")+" nicht)":"")));
     if(!days.length){ tx.append(el("small",null,"An diesen Tagen hast du sowieso frei.")); sv.disabled=true; }
     else if(vacOver(days).length){ tx.append(el("small","ypwarn","Dafür reichen deine Urlaubstage leider nicht.")); sv.disabled=true; }
     else if(st.jahr) tx.append(el("small",null,"Noch verfügbar danach: "+(vacRest(+a.slice(0,4))-days.length)+" Tage"));
@@ -2964,7 +2991,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.07-63";
+const APP_VERSION="2026.10.07-64";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
