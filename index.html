@@ -192,6 +192,9 @@ body.ypon .toast,body:has(#yplan:not([hidden])) .toast{bottom:auto!important;top
 .urow{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:10px 4px;border:0;border-top:1px solid var(--rule);background:none;font:inherit;font-size:19px;color:var(--ink);text-align:left;cursor:pointer}.urow b{white-space:nowrap}.urow .chev{font-size:26px;color:var(--soft)}.urow.hl{background:var(--tint)}
 .umore{justify-self:center;font-size:20px!important;padding:10px 16px}.ubig2{font-size:22px;font-weight:700;margin:0;text-align:center}
 .vsybtn,.vsback{width:100%;min-height:56px;font-size:20px}.vsyw{display:grid;gap:12px}
+.years.zoom{grid-template-columns:1fr}.years.zoom .mini{padding:10px}.years.zoom .mini .g{gap:4px}.years.zoom .mini .wdh{font-size:14px}
+.years.zoom .mini i.ys{min-height:54px;border-radius:8px;cursor:pointer}.years.zoom .mini i.ys small{font-size:13px}.years.zoom .mini i.ys b{font-size:19px}.years.zoom .mini i.e{min-height:54px}
+.mini i.vstart{outline:4px solid var(--accent);outline-offset:-2px}
 .tbanner{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
@@ -1058,12 +1061,30 @@ $("#selrep").onclick=()=>{ const d=detectCycle(); if(!d){ toast("Trag zuerst ein
 
 /* 12 Monate mit Schicht-Kürzel je Tag; Monat antippen → onMonth(m) */
 function yearGrid(y,onMonth){
-  const w=el("div","years"); const t=TODAY();
+  const w=el("div","years");
   for(let m=0;m<12;m++){ const c=el("div","card mini"); const b=el("button"); b.type="button"; b.onclick=()=>onMonth(m);
-    b.append(el("h4",null,MON[m])); const g=el("div","g"); ["M","D","M","D","F","S","S"].forEach(d=>g.append(el("span","wdh",d))); const f=y+"-"+pad(m+1)+"-01"; const off=(parse(f).getDay()+6)%7; for(let i=0;i<off;i++) g.append(el("i","e"));
-    for(let s=f; +s.slice(5,7)===m+1; s=addD(s,1)){ const x=shiftOf(s), i=el("i","ys"), dk=dayKind(s); const o=dk==="v"?(ownShift(s)||x):x; i.append(el("small",null,String(parse(s).getDate())), el("b",null,dk==="v"?((o&&o.kind==="work")?o.short:"U"):dk==="f"?((x&&x.short)||(planKnown(s)?"F":"")):(x?x.short:""))); if(dk==="v"){ i.style.background=vacColor(); i.style.color="#fff"; } else if(dk==="f"){ i.style.background="var(--free-bg)"; i.style.color="var(--free-ink)"; } else if(x){ i.style.background=x.color; i.style.color=isDark(x.color)?"#16222B":"#fff"; } if(holName(s)) i.classList.add("hd"); if(s===t) i.classList.add("now"); i.title=fmtS(s)+" "+(dk==="v"?"Urlaub"+(o&&o.kind==="work"?" (statt "+o.name+")":""):(x?x.name:"Frei")); g.append(i); }
-    b.append(g); c.append(b); w.append(c); }
+    b.append(el("h4",null,MON[m]), miniMonthGrid(y,m)); c.append(b); w.append(c); }
   return w; }
+/* Ein Monat im Jahreskalender: Tage mit Schicht-Kürzel und Farbe (Urlaub = U). Gemeinsame Datenquelle: S.vacs / Schichtplan */
+function miniMonthGrid(y,m){ const t=TODAY(); { const g=el("div","g"); ["M","D","M","D","F","S","S"].forEach(d=>g.append(el("span","wdh",d))); const f=y+"-"+pad(m+1)+"-01"; const off=(parse(f).getDay()+6)%7; for(let i=0;i<off;i++) g.append(el("i","e"));
+    for(let s=f; +s.slice(5,7)===m+1; s=addD(s,1)){ const x=shiftOf(s), i=el("i","ys"), dk=dayKind(s); const o=dk==="v"?(ownShift(s)||x):x; i.append(el("small",null,String(parse(s).getDate())), el("b",null,dk==="v"?"U":dk==="f"?((x&&x.short)||(planKnown(s)?"F":"")):(x?x.short:""))); if(dk==="v"){ i.style.background=vacColor(); i.style.color="#fff"; } else if(dk==="f"){ i.style.background="var(--free-bg)"; i.style.color="var(--free-ink)"; } else if(x){ i.style.background=x.color; i.style.color=isDark(x.color)?"#16222B":"#fff"; } if(holName(s)) i.classList.add("hd"); if(s===t) i.classList.add("now"); i.dataset.s=s; i.title=fmtS(s)+" "+(dk==="v"?"Urlaub"+(o&&o.kind==="work"?" (statt "+o.name+")":""):(x?x.name:"Frei")); g.append(i); }
+    return g; } }
+/* Jahreskalender im Urlaub: Monat antippen → vergrößert; Start- und End-Tag antippen = Urlaub; U antippen = Tag entfernen */
+function openVacZoom(y,m){ const st={y,m,a:null};
+  openSheet(p=>{ p.dataset.sheet="vzoom"; sheetTop(p,"Urlaub im Kalender"); const rest=el("p","vsrest"), nav=el("div","vsnav"), box=el("div","years zoom"), line=el("p","vsline"), msg=el("p","vsmsg"), ok=el("button","btn pri vsgo","Fertig"); ok.type="button"; ok.onclick=()=>closeSheet();
+    const pv=el("button",null,"‹"), nx=el("button",null,"›"), mn=el("h3"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Monat zurück"); nx.setAttribute("aria-label","Monat vor");
+    const mv=k=>{ st.m+=k; if(st.m<0){ st.m=11; st.y--; } if(st.m>11){ st.m=0; st.y++; } draw(); }; pv.onclick=()=>mv(-1); nx.onclick=()=>mv(1); nav.append(pv,mn,nx);
+    const draw=()=>{ const n=vacRest(st.y); rest.innerHTML=""; rest.append(document.createTextNode("Noch "), el("b",null,String(Math.max(0,n))), document.createTextNode(n===1?" Urlaubstag übrig":" Urlaubstage übrig"));
+      mn.textContent=MONF_[st.m]+" "+st.y; box.innerHTML=""; const c=el("div","card mini"); c.append(miniMonthGrid(st.y,st.m)); box.append(c);
+      if(st.a){ const x=box.querySelector('[data-s="'+st.a+'"]'); if(x) x.classList.add("vstart"); line.textContent="Ab "+vsRange(st.a,st.a)+" – jetzt den letzten Tag antippen."; }
+      else line.textContent="Ersten Urlaubstag antippen, dann den letzten. Urlaub (U) antippen = entfernen."; };
+    box.addEventListener("click",ev=>{ const x=ev.target.closest("[data-s]"); if(!x) return; const s=x.dataset.s; msg.hidden=true;
+      if(!st.a){ if(dayKind(s)==="v"){ const r=vacRemoveRange(s,s); toast("Urlaubstag entfernt · noch "+vacRest(+s.slice(0,4))+" übrig","Rückgängig",()=>{ S.vacs=r.old; save(); render(); }); draw(); return; } st.a=s; draw(); return; }
+      const a=s<st.a?s:st.a, e=s<st.a?st.a:s, days=vsDays(a,e); st.a=null;
+      if(!days.length){ msg.textContent="An diesen Tagen hast du sowieso frei."; msg.hidden=false; draw(); return; }
+      if(vacOver(days).length){ msg.textContent="Dafür reichen deine Urlaubstage leider nicht."; msg.hidden=false; draw(); return; }
+      vacSave(a,e,days); render(); draw(); });
+    msg.hidden=true; p.append(rest,nav,box,line,msg,ok); draw(); }); }
 function renderYear(box){
   const h=el("div","mhead"); const p=el("button","icon-btn","‹"), n=el("button","icon-btn","›"); p.type=n.type="button";
   p.onclick=()=>{ curY--; renderKal(); }; n.onclick=()=>{ curY++; renderKal(); }; h.append(p,el("h2",null,String(curY)),n); box.append(h);
@@ -2613,6 +2634,11 @@ function renderUrlaub(){
   const m=el("div","meter umeter"), i=el("i"); i.style.width=Math.min(100,tot?used/tot*100:0)+"%"; if(used>tot) i.style.background="var(--bad)"; m.append(i); top.append(m);
   top.append(el("p","ursub",used+" von "+tot+" Tagen eingetragen")); box.append(top);
   const big=el("button","btn pri bigvac uwide","☀ Urlaub eintragen"); big.type="button"; big.onclick=()=>openVac(uY); box.append(big);
+  { const yc=el("div","card sec ucal"); const h=el("div","mhead"); const pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Jahr zurück"); nx.setAttribute("aria-label","Jahr vor");
+    pv.onclick=()=>{ uY--; renderUrlaub(); }; nx.onclick=()=>{ uY++; renderUrlaub(); }; h.append(pv,el("h2",null,"Jahr "+uY),nx); yc.append(h);
+    yc.append(el("p","hint","Monat antippen – dann ersten und letzten Urlaubstag antippen. Urlaub (U) antippen = entfernen."));
+    yc.append(yearGrid(uY,m=>openVacZoom(uY,m)));
+    const lg=el("div","legend"); S.types.forEach(t=>{ const sp=el("span"); sp.append(chip(t),document.createTextNode(t.name)); lg.append(sp); }); const hs=el("span"); hs.append(el("b",null,"1"),document.createTextNode(" unterstrichen = Feiertag")); lg.append(hs); yc.append(lg); box.append(yc); }
   const lc=el("div","card ulist"); lc.append(el("h2",null,"Deine Urlaube")); const bl=vacBlocks(uY);
   if(!bl.length) lc.append(el("p","muted","Noch kein Urlaub eingetragen."));
   (uAll?bl:bl.slice(0,4)).forEach(b=>{ const it=el("button","urow"); it.type="button"; const tx=el("span","grow",vsRange(b.a,b.e)); it.append(tx, el("b",null,b.n+(b.n===1?" Tag":" Tage")), el("span","chev","›")); if(b.id===vacHL) it.classList.add("hl"); it.onclick=()=>openVacChoice(b); lc.append(it); });
@@ -2624,9 +2650,6 @@ function renderUrlaub(){
   const ob=(txt,fn)=>{ const b=el("button","btn uwide",txt); b.type="button"; b.onclick=fn; oc.append(b); };
   ob("⇪ Urlaub als PDF teilen",()=>openSharePreview("list",uY));
   ob("✎ Urlaubstage einstellen",()=>openVacSettings(uY));
-  ob("📅 Jahreskalender",()=>openYearPlanner(uY));
-  const yr=el("div","mhead"); const pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Jahr zurück"); nx.setAttribute("aria-label","Jahr vor");
-  pv.onclick=()=>{ uY--; renderUrlaub(); }; nx.onclick=()=>{ uY++; renderUrlaub(); }; yr.append(pv,el("h2",null,"Jahr "+uY),nx); oc.append(yr);
   { const pr=vacTotal(uY-1)-vacUsed(uY-1); if(S.carry[uY]==null && !(S.carryAuto&&S.carryAuto[uY]) && pr>0 && vacUsed(uY-1)>0 && uY>=new Date().getFullYear()){ const bn=el("div","banner"); bn.id="carryhint"; const tx=el("span","grow","Aus "+(uY-1)+" sind noch "+pr+(pr===1?" Tag":" Tage")+" übrig. Für "+uY+" übernehmen?"); tx.style.flexBasis="100%"; const tk=el("button","btn pri","Übernehmen"); tk.type="button"; tk.onclick=()=>{ S.carryAuto=S.carryAuto||{}; S.carryAuto[uY]=true; save(); renderUrlaub(); toast("Übernommen."); }; bn.append(tx,tk); oc.append(bn); } }
   { const eb=expBanner(uY,"expurlaub"); if(eb) oc.append(eb); }
   box.append(oc); box.append(periodTable(uY+"-01-01",uY+"-12-31","Jahr "+uY)); box.append(converterCard());
@@ -2743,7 +2766,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.06-52";
+const APP_VERSION="2026.10.06-53";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
