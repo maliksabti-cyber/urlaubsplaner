@@ -180,6 +180,7 @@ body.ypon .toast,body:has(#yplan:not([hidden])) .toast{bottom:auto!important;top
 .turg{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--tint)}.turg.mid{background:#FFE8B3;color:#7A5200}.turg.hi{background:#FAD4D4;color:#B42318}
 .tmrow{border-top:1px solid var(--rule);padding:10px 0;display:grid;gap:8px}.tpal{display:flex;flex-wrap:wrap;gap:6px}.tpal button{width:28px;height:28px;border-radius:50%;border:2px solid transparent}.tpal button.on{border-color:var(--ink)}.tpal .tsh{background:var(--card);border:1px solid var(--rule);border-radius:6px;font-size:16px}.tpal .tsh.on{border:2px solid var(--ink)}
 .banner.tip>.grow{flex:1 1 100%}
+.tconf{border-top:1px solid var(--rule);padding:10px 0;display:grid;gap:8px}.tconf small{display:block;color:var(--soft)}.tconf .row{flex-wrap:wrap}
 .tbanner{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
@@ -2618,7 +2619,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.05-40";
+const APP_VERSION="2026.10.06-41";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */

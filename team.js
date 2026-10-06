@@ -1,5 +1,5 @@
 /* =====================================================================
-   Schicht & Urlaub – Team (Stufe 2) · eigenes Modul
+   Schicht & Urlaub – Team (Stufe 3) · eigenes Modul
    Architektur (siehe aufgaben/TEAM-SPEZ.md):
    • Private Daten bleiben im Planer (S.vacs …). Ins Team geht nur eine Kopie,
      und nur wenn Einverständnis (consentGet("teamJoin")) + Sichtbarkeit (shareVacGet) es erlauben.
@@ -7,6 +7,7 @@
                 teams/{t}/members/{uid}      Mitglied (Name, Farbe, Form, Rolle, Vertreter-Ebene, Kinder, Name zeigen)
                 teams/{t}/entries/{uid_id}   Team-Kopie eines Urlaubs (von–bis, Tage, Wert in Minuten, eingetragen am)
                 teams/{t}/notes/{id}         zentrale Benachrichtigungen (Konflikt, Erinnerung, Freigabe …)
+                teams/{t}/conflicts/{id}     Überschneidung mit Frage-Reihenfolge, Antworten, Entscheidung, Status
    • Team verlassen/entfernt = Mitglied + seine entries löschen. Der private Planer bleibt unberührt.
    • Ohne Server: Benachrichtigungen erscheinen in der App (Posteingang + Dringlichkeit).
    ===================================================================== */
@@ -59,8 +60,10 @@ async function teamLoad(){ const ref=tRef(); if(!ref||!TEAM.s){ TEAM.data=null; 
     const team=tDoc(t), mem=(await tList(TP()+"/members")).sort((a,b)=>(a.joined||0)-(b.joined||0)), me=mem.find(m=>m.id===TEAM.s.uid);
     if(!me){ tRefSet(null); TEAM.data=null; toast("Du bist nicht mehr im Team. Dein privater Planer bleibt, wie er ist."); return; }
     const ent=await tList(TP()+"/entries"), notes=(await tList(TP()+"/notes")).sort((a,b)=>(b.created||0)-(a.created||0));
-    TEAM.data={team,mem,me,ent,notes}; TEAM.err=null;
+    const conf=await tList(TP()+"/conflicts").catch(()=>[]);
+    TEAM.data={team,mem,me,ent,notes,conf}; TEAM.err=null;
     if(!TEAM.synced){ TEAM.synced=true; await teamSync(true); }
+    await confTick();
   }catch(e){ TEAM.err=tErrMsg(e); } finally{ TEAM.loading=false; if(view==="team") renderTeam(); if(view==="heute") renderHeute(); } }
 
 /* ---------- Eigenen Urlaub als Team-Kopie abgleichen (nur bei Änderungen, kein Dauer-Hintergrund) ---------- */
@@ -72,8 +75,9 @@ async function teamSync(quiet){ const d=TEAM.data; if(!d||!TEAM.s) return; const
   try{ for(const w of want){ const o=mine.find(m=>m.id===w.id); if(!o||o.a!==w.a||o.e!==w.e||o.days!==w.days||o.value!==w.value||o.kids!==w.kids){ const rec={...w,created:o&&o.created?o.created:Date.now(),updated:Date.now()}; delete rec.id; await tPut(TP()+"/entries/"+w.id,rec); changed.push({...rec,id:w.id}); } }
     for(const o of mine) if(!want.some(w=>w.id===o.id)) await tDel(TP()+"/entries/"+o.id);
     /* Prüfung nur beim Eintragen/Ändern – mit frischem Stand aller Team-Einträge */
-    if(changed.length || mine.length!==want.length){ d.ent=await tList(TP()+"/entries"); d.notes=(await tList(TP()+"/notes")).sort((a,b)=>(b.created||0)-(a.created||0)); }
+    if(changed.length || mine.length!==want.length){ d.ent=await tList(TP()+"/entries"); d.notes=(await tList(TP()+"/notes")).sort((a,b)=>(b.created||0)-(a.created||0)); d.conf=await tList(TP()+"/conflicts").catch(()=>d.conf||[]); }
     if(changed.length) await teamCheck(changed,quiet);
+    if(changed.length || mine.length!==want.length){ await confTick(); if(view==="team") renderTeam(); }
   }catch(e){ if(!quiet) toast(tErrMsg(e)); } }
 let tSyncT=null; function teamSyncSoon(){ if(!tRef()||!TEAM.s||!TEAM.data) return; clearTimeout(tSyncT); tSyncT=setTimeout(()=>teamSync(false),1500); }
 
@@ -83,11 +87,120 @@ function teamAwayMap(a,e){ const d=TEAM.data, m=new Map(); if(!d) return m; cons
 const tMax=()=>{ const d=TEAM.data; const n=d&&+d.team.maxAway; return n>0?n:999; };
 function teamConflicts(a,e){ const out=[], m=teamAwayMap(a,e), mx=tMax(); [...m.keys()].sort().forEach(s=>{ const st=m.get(s); if(st.size>mx){ const L=out[out.length-1], who=[...st].sort().join("|");
   if(L && L.who===who && L.e===addD(s,-1)) L.e=s; else if(L && L.who===who && diffD(L.e,s)<=3 && [...Array(diffD(L.e,s)-1)].every((_,i)=>{ const w=parse(addD(L.e,i+1)).getDay(); return w===0||w===6; })) L.e=s; else out.push({a:s,e:s,who,uids:[...st],n:st.size}); } }); return out; }
+/* ---------- Stufe 3: Konfliktlösung ----------
+   teams/{t}/conflicts/{id} = {a,e,uids,order,need,step,asked,answers,status,decided,due,created,lastRemind,ferien}
+   Ablauf: open (einer nach dem anderen wird gefragt) → admin (alle haben abgelehnt) → decided (Admin oder Regel) → solved.
+   Reihenfolge: zuerst gefragt wird, wer zuletzt eingetragen hat – wer zuerst kam, behält.
+   In den Schulferien werden Kollegen ohne Kinder zuerst gefragt. Läuft die Frist ab, gilt automatisch diese Regel. */
+const hsh=t=>{ let h=0; for(const c of t) h=(h*31+c.charCodeAt(0))|0; return (h>>>0).toString(36); };
+const cId=k=>"k"+k.a.replace(/-/g,"")+"_"+k.e.replace(/-/g,"")+"_"+hsh(k.uids.slice().sort().join("|"));
+const rTxt=(a,e)=>a===e?fmt(a):fmtS(a)+" – "+fmt(e);
+const uLab=u=>{ const i=mIdx(u); return i>=0?mLabel(TEAM.data.mem[i],i):"ehemaliges Mitglied"; };
+const memKids=u=>{ const m=TEAM.data.mem.find(x=>x.id===u); return m&&m.kids?1:0; };
+function rangeFerien(a,e){ for(let s=a;s<=e;s=addD(s,1)) if(ferien(s)) return true; return false; }
+function entCreated(u,a,e){ let c=0; TEAM.data.ent.forEach(x=>{ if(x.uid===u&&x.a<=e&&x.e>=a) c=Math.max(c,x.created||0); }); return c; }
+function conflictOrder(k,fe){ return k.uids.slice().sort((x,y)=>(fe?memKids(x)-memKids(y):0)||(entCreated(y,k.a,k.e)-entCreated(x,k.a,k.e))); }
+function whyTxt(c,u){ return c.ferien&&!memKids(u)&&c.uids.some(memKids)?"In den Schulferien haben Kollegen mit Kindern Vorrang.":"Du hast als Letzter eingetragen – wer zuerst eingetragen hat, behält seinen Urlaub."; }
+const admins=()=>TEAM.data.mem.filter(m=>m.role==="admin"||m.role==="deputy").map(m=>m.id);
+const tFrist=()=>(+TEAM.data.team.deadlineDays||7)*86400000;
+async function cPut(c,up){ Object.assign(c,up); await tPut(TP()+"/conflicts/"+c.id,up); }
+async function askAt(c,u){ await notify({type:"konflikt",to:[u],title:"Kannst du ausweichen?",text:rTxt(c.a,c.e)+": zu viele gleichzeitig. "+whyTxt(c,u)+" Bitte im Team-Bereich antworten.",due:c.due,range:[c.a,c.e]}); }
 async function teamCheck(changed,quiet){ const d=TEAM.data, mx=tMax(); if(mx>=999) return; const hits=[];
-  changed.forEach(c=>teamConflicts(c.a,c.e).forEach(k=>{ if(k.uids.includes(TEAM.s.uid)) hits.push(k); }));
-  if(!hits.length) return; const fr=+d.team.deadlineDays||7, due=Date.now()+fr*86400000;
-  for(const k of hits) if(!d.notes.some(n=>n.type==="konflikt"&&n.range&&n.range[0]===k.a&&n.range[1]===k.e&&(n.due||0)>Date.now())) await notify({type:"konflikt", to:k.uids, title:"Zu viele gleichzeitig im Urlaub", text:(k.a===k.e?fmt(k.a):fmtS(k.a)+" – "+fmt(k.e))+": "+k.n+" statt höchstens "+mx+". Bitte klären.", due, range:[k.a,k.e]});
-  if(!quiet) ask("Überschneidung im Team",hits.map(k=>(k.a===k.e?fmt(k.a):fmtS(k.a)+" – "+fmt(k.e))+": "+k.n+" statt höchstens "+mx).join("\n")+"\nDie Betroffenen werden benachrichtigt. Frist: "+fr+" Tage.",[{label:"Zum Team-Kalender",pri:true,fn:()=>{ TEAM.m={y:+hits[0].a.slice(0,4),m:+hits[0].a.slice(5,7)-1}; show("team"); }},{label:"OK"}]); }
+  changed.forEach(c=>teamConflicts(c.a,c.e).forEach(k=>{ if(k.uids.includes(TEAM.s.uid) && !hits.some(h=>cId(h)===cId(k))) hits.push(k); }));
+  if(!hits.length) return; if(!d.conf) d.conf=[]; const due=Date.now()+tFrist();
+  for(const k of hits){ const id=cId(k); if(d.conf.some(c=>c.id===id&&c.status!=="solved")) continue;
+    /* schon offene Überschneidung im selben Zeitraum → erweitern statt doppelt anlegen; Neuer wird zuerst gefragt */
+    const ex=d.conf.find(c=>c.status!=="solved"&&c.a<=k.e&&c.e>=k.a);
+    if(ex){ const uids=[...new Set(ex.uids.concat(k.uids))], a=ex.a<k.a?ex.a:k.a, e=ex.e>k.e?ex.e:k.e, fe=rangeFerien(a,e); const order=conflictOrder({a,e,uids},fe);
+      await cPut(ex,{a,e,uids,order,ferien:fe,need:k.n-mx,status:"open",step:-1,decided:[],due}); await notify({type:"konflikt",to:uids,title:"Zu viele gleichzeitig im Urlaub",text:rTxt(a,e)+": jetzt "+k.n+" statt höchstens "+mx+".",due,range:[a,e]});
+      await confNext(ex,new Set(uids)); continue; }
+    const fe=rangeFerien(k.a,k.e), order=conflictOrder(k,fe), c={id,a:k.a,e:k.e,uids:k.uids,order,need:k.n-mx,step:0,asked:order[0],answers:{},status:"open",decided:[],due,created:Date.now(),lastRemind:Date.now(),ferien:fe};
+    const rec={...c}; delete rec.id; await tPut(TP()+"/conflicts/"+id,rec); d.conf=d.conf.filter(x=>x.id!==id).concat([c]);
+    await notify({type:"konflikt",to:k.uids,title:"Zu viele gleichzeitig im Urlaub",text:rTxt(k.a,k.e)+": "+k.n+" statt höchstens "+mx+". Zuerst gefragt wird: "+uLab(order[0])+".",due,range:[k.a,k.e]});
+    await askAt(c,order[0]); }
+  if(!quiet){ const meAsk=d.conf.some(c=>c.status==="open"&&c.asked===TEAM.s.uid);
+    ask("Überschneidung im Team",hits.map(k=>rTxt(k.a,k.e)+": "+k.n+" statt höchstens "+mx).join("\n")+"\n"+(meAsk?"Du wirst zuerst gefragt, ob du ausweichen kannst.":"Die anderen werden der Reihe nach gefragt.")+" Frist: "+(+d.team.deadlineDays||7)+" Tage.",[{label:"Zum Team",pri:true,fn:()=>{ TEAM.m={y:+hits[0].a.slice(0,4),m:+hits[0].a.slice(5,7)-1}; show("team"); }},{label:"OK"}]); } }
+/* noch betroffen? (wer inzwischen ausgewichen ist, fällt raus) */
+function confNow(c){ const cur=teamConflicts(c.a,c.e).filter(k=>k.uids.some(u=>c.uids.includes(u))); const still=new Set(); let n=0; cur.forEach(k=>{ k.uids.forEach(u=>still.add(u)); n=Math.max(n,k.n); }); return {still,n,open:cur.length>0}; }
+async function confNext(c,still){ const st=c.order.findIndex((u,i)=>i>c.step&&still.has(u)&&(c.answers||{})[u]!=="nein");
+  if(st>=0){ await cPut(c,{step:st,asked:c.order[st]}); await askAt(c,c.asked); }
+  else{ await cPut(c,{status:"admin",asked:null}); await notify({type:"konflikt",to:admins(),title:"Bitte entscheiden",text:rTxt(c.a,c.e)+": Niemand kann ausweichen. Der Admin entscheidet (Admin-Maske).",due:c.due,range:[c.a,c.e]}); } }
+async function confRule(c,byAdmin){ const {still,n}=confNow(c), need=Math.max(1,n-tMax()), dec=c.order.filter(u=>still.has(u)).slice(0,need), due=Date.now()+tFrist();
+  await cPut(c,{status:"decided",decided:dec,asked:null,due,lastRemind:Date.now()});
+  await notify({type:"konflikt",to:dec,title:"Bitte weiche aus",text:rTxt(c.a,c.e)+": "+(byAdmin?"Der Admin hat entschieden":"Die Frist ist abgelaufen – es gilt: Wer zuerst eingetragen hat, behält")+". Bitte verschiebe deinen Urlaub.",due,range:[c.a,c.e]});
+  if(!byAdmin) await notify({type:"info",to:admins(),title:"Frist abgelaufen",text:rTxt(c.a,c.e)+": automatisch entschieden – "+dec.map(uLab).join(", ")+" soll ausweichen.",range:[c.a,c.e]}); }
+async function confDecide(c,u){ const due=Date.now()+tFrist(); await cPut(c,{status:"decided",decided:[u],asked:null,due,lastRemind:Date.now()});
+  await notify({type:"konflikt",to:[u],title:"Bitte weiche aus",text:rTxt(c.a,c.e)+": Der Admin hat entschieden. Bitte verschiebe deinen Urlaub.",due,range:[c.a,c.e]}); }
+async function confNo(c){ const a=Object.assign({},c.answers,{[TEAM.s.uid]:"nein"}); await cPut(c,{answers:a}); await confNext(c,confNow(c).still); renderTeam(); }
+/* läuft bei jedem Laden: gelöst? weiterfragen? Frist abgelaufen? automatische Erinnerung 48 Std. vor Fristende */
+async function confTick(){ const d=TEAM.data; if(!d||!d.conf) return; const now=Date.now();
+  try{ for(const c of d.conf){ if(c.status==="solved") continue; const {still,open}=confNow(c);
+    if(tMax()>=999||!open){ await cPut(c,{status:"solved",asked:null}); await notify({type:"info",to:c.uids,title:"Überschneidung gelöst",text:rTxt(c.a,c.e)+": jetzt passt es. Danke!",range:[c.a,c.e]}); continue; }
+    if(c.status==="open" && !still.has(c.asked)){ await confNext(c,still); continue; }
+    if((c.status==="open"||c.status==="admin") && c.due<=now){ await confRule(c,false); continue; }
+    if(c.status==="decided" && c.decided.length && !c.decided.some(u=>still.has(u))){ await confNext(Object.assign(c,{status:"open",step:-1,decided:[]}),still); continue; }
+    if((c.status==="open"||c.status==="decided") && c.due-now<48*3600000 && now-(c.lastRemind||0)>24*3600000){ const to=c.status==="open"?[c.asked]:c.decided;
+      await cPut(c,{lastRemind:now}); await notify({type:"erinnerung",to,title:"Frist läuft bald ab",text:rTxt(c.a,c.e)+": Bitte kläre deine Überschneidung.",due:c.due,range:[c.a,c.e]}); } } }catch(e){} }
+/* Ausweichtage: eigenen Urlaub verschieben, so dass höchstens die erlaubte Zahl gleichzeitig weg ist */
+function altDays(c){ const me=TEAM.s.uid, mx=tMax(), today=TODAY(); const v=vacList().filter(x=>shareVacGet(x.id)&&x.a<=c.e&&x.e>=c.a)[0]; if(!v) return {v:null,alt:[]}; const alt=[];
+  for(let k=1;k<=60&&alt.length<3;k++) for(const dl of [k,-k]){ if(alt.length>=3) break; const na=addD(v.a,dl), ne=addD(v.e,dl); if(na<=today) continue;
+    if(vacList().some(o=>o.id!==v.id&&o.a<=addD(ne,1)&&o.e>=addD(na,-1))) continue;
+    const mp=teamAwayMap(na,ne); let okk=true; mp.forEach(st=>{ const n=st.size-(st.has(me)?1:0); if(n+1>mx) okk=false; }); if(!okk) continue;
+    const days=vacDaysOf({a:na,e:ne}); if(!days.length||vacOver(days,v.id).length) continue; alt.push({a:na,e:ne,dl,n:days.length}); }
+  return {v,alt}; }
+function openAlt(c){ const {v,alt}=altDays(c);
+  openSheet(p=>{ sheetTop(p,"Ausweichtage"); if(!v){ p.append(el("p",null,"Du hast in diesem Zeitraum keinen freigegebenen Urlaub.")); return; }
+    p.append(el("p","hint","Dein Urlaub "+rTxt(v.a,v.e)+". Diese Zeiträume sind frei – ein Tipp verschiebt deinen Urlaub dorthin:"));
+    if(!alt.length) p.append(el("p",null,"Keine passenden Tage in den nächsten 2 Monaten gefunden. Bitte im Jahreskalender selbst ändern."));
+    alt.forEach(x=>{ const b=el("button","vrow"); b.type="button"; const t=el("div","grow"); t.append(el("b",null,rTxt(x.a,x.e)), el("small",null,x.n+" Urlaubstage · "+(x.dl>0?x.dl+" Tage später":(-x.dl)+" Tage früher"))); b.append(t,el("span","chev","›"));
+      b.onclick=()=>{ v.a=x.a; v.e=x.e; if(v.fixed) v.fixed=v.fixed.map(s=>addD(s,x.dl)); normVacs(); save(); closeSheet(); toast("Urlaub verschoben auf "+rTxt(x.a,x.e)+". Das Team wird informiert."); }; p.append(b); }); }); }
+function teamConfCard(box){ const d=TEAM.data, me=TEAM.s.uid, adm=isTAdmin(); const L=(d.conf||[]).filter(c=>c.status!=="solved"&&(adm||c.uids.includes(me))).sort((x,y)=>x.a<y.a?-1:1); if(!L.length) return;
+  const card=el("div","card sec"); card.append(el("h3",null,"⚠️ Offene Überschneidungen ("+L.length+")"));
+  L.forEach(c=>{ const r=el("div","tconf"); const t=el("div"); const mk=el("span"); c.uids.forEach(u=>{ const i=mIdx(u); if(i>=0) mk.append(mMark(d.mem[i],i,true)); }); t.append(el("b",null,rTxt(c.a,c.e)+" "),mk);
+    const stx=c.status==="open"?"Gefragt: "+(c.asked===me?"du":uLab(c.asked)):c.status==="admin"?"Niemand kann ausweichen – der Admin entscheidet.":"Entscheidung: "+c.decided.map(u=>u===me?"du":uLab(u)).join(", ")+" soll ausweichen.";
+    t.append(el("small",null,stx)); const nein=Object.keys(c.answers||{}).filter(u=>c.answers[u]==="nein"); if(nein.length) t.append(el("small",null,"Behalten: "+nein.map(u=>u===me?"du":uLab(u)).join(", ")));
+    const left=c.due-Date.now(); t.append(el("span","turg"+(left<86400000?" hi":left<3*86400000?" mid":""),"⏳ "+dueTxt(c.due))); r.append(t);
+    const act=el("div","row"); const mine=(c.status==="open"&&c.asked===me)||(c.status==="decided"&&c.decided.includes(me));
+    if(mine){ if(c.status==="open") act.append(el("p","hint",whyTxt(c,me))); const y=el("button","btn pri grow","↔ Ausweichtage zeigen"); y.type="button"; y.onclick=()=>openAlt(c); act.append(y);
+      if(c.status==="open"){ const n=el("button","btn grow","Nein, ich behalte"); n.type="button"; n.onclick=()=>ask("Urlaub behalten?","Dann wird der Nächste gefragt. Wenn niemand ausweichen kann, entscheidet der Admin.",[{label:"Ja, behalten",pri:true,fn:()=>confNo(c).catch(e=>toast(tErrMsg(e)))},{label:"Abbrechen"}]); act.append(n); } }
+    if(adm){ const dz=el("button","btn grow","⚖ Entscheiden"); dz.type="button"; dz.onclick=()=>openConfDecide(c); act.append(dz); }
+    const sh=el("button","btn ghost","Ansehen"); sh.type="button"; sh.onclick=()=>{ TEAM.m={y:+c.a.slice(0,4),m:+c.a.slice(5,7)-1}; renderTeam(); }; act.append(sh);
+    r.append(act); card.append(r); }); box.append(card); }
+function openConfDecide(c){ const d=TEAM.data, {still}=confNow(c);
+  openSheet(p=>{ sheetTop(p,"Entscheiden: "+rTxt(c.a,c.e)); p.append(el("p","hint","Wer soll ausweichen? Die Person bekommt eine Nachricht mit neuer Frist."));
+    c.order.filter(u=>still.has(u)).forEach(u=>{ const i=mIdx(u); const r=el("div","trow"); if(i>=0) r.append(mMark(d.mem[i],i)); const nm=i>=0?d.mem[i].name:"?"; r.append(el("b","grow",nm+(memKids(u)?" · Kinder":"")+((c.answers||{})[u]==="nein"?" · möchte behalten":"")));
+      const b=el("button","btn","muss ausweichen"); b.type="button"; b.onclick=()=>confDecide(c,u).then(()=>{ closeSheet(); toast(nm+" wird benachrichtigt."); renderTeam(); }).catch(e=>toast(tErrMsg(e))); r.append(b); p.append(r); });
+    const rl=el("button","btn pri","Regel anwenden (wer zuerst eingetragen hat, behält)"); rl.type="button"; rl.onclick=()=>confRule(c,true).then(()=>{ closeSheet(); toast("Entschieden – die Betroffenen werden benachrichtigt."); renderTeam(); }).catch(e=>toast(tErrMsg(e))); p.append(rl);
+    if(c.ferien) p.append(el("p","hint","Schulferien: Kollegen mit Kindern stehen in der Reihenfolge hinten.")); }); }
+const confOpen=()=>(TEAM.data.conf||[]).filter(c=>c.status!=="solved").length;
+async function teamRelease(){ const d=TEAM.data; const at=Date.now(); await tPut(TP(),{released:{at,by:TEAM.s.uid}}); d.team.released={at,by:TEAM.s.uid};
+  await notify({type:"freigabe",to:[],title:"Team-Kalender freigegeben",text:"Alle Überschneidungen sind geklärt. Den Team-Kalender gibt es jetzt als PDF."}); toast("Freigegeben – alle werden benachrichtigt."); renderTeam(); }
+
+/* ---------- Team-PDF (gleiches PDF-Modul wie privat: Inhaltsverzeichnis + Monatsseiten zum Antippen) ---------- */
+async function pdfTeam(y){ const d=TEAM.data, P=makePDF(true), M=28, mx=tMax(), RED=[0.78,0.12,0.1];
+  const MONF=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  const ab=(m,i)=>m.showName||m.id===TEAM.s.uid?mInit(m):["K","R","H","W"][mShape(m,i)];
+  const mark=(m,i,x,yy,sz)=>{ const c=hexRGB(mCol(m,i)); P.rect(x,yy,sz,sz-2,c); P.text(x+sz/2,yy+sz-5,ab(m,i),sz*0.5,true,isDark(mCol(m,i))?INK:[1,1,1],"center"); };
+  const yearMap=teamAwayMap(y+"-01-01",y+"-12-31");
+  P.page(); P.rect(0,0,P.W,5,ACC); P.text(M,38,"Team-Kalender "+y+" · "+d.team.name,20,true,INK);
+  P.text(M,56,"Höchstens "+(mx>=999?"unbegrenzt":mx)+" gleichzeitig im Urlaub · "+(d.team.released?"freigegeben am "+fmt(iso(new Date(d.team.released.at))):"noch nicht freigegeben")+" · Stand "+fmt(TODAY()),9,false,GREY);
+  let yy=90; P.text(M,yy,"LEGENDE",11,true,INK); yy+=8;
+  d.mem.forEach((m,i)=>{ yy+=20; if(yy>P.H-40) return; mark(m,i,M,yy-13,16); let n=0; yearMap.forEach(st=>{ if(st.has(m.id)) n++; }); P.text(M+24,yy,mLabel(m,i)+(m.showName||m.id===TEAM.s.uid?"":" ("+SHAPE_N[mShape(m,i)]+")"),10,true,INK); P.text(M+300,yy,n+" Urlaubstage "+y,10,false,GREY); });
+  yy+=22; if(mx<999) P.text(M,yy,"Rot umrandet = mehr als "+mx+" gleichzeitig.",9,false,RED);
+  { const x0=P.W/2+20; let ty=90; P.text(x0,ty,"INHALT (antippen)",11,true,INK); MONF.forEach((mn,k)=>{ const cx=x0+(k>5?170:0), cy=ty+24+(k%6)*22; P.text(cx,cy,"› "+mn+" "+y,11,true,ACC); P.link(cx,cy-12,150,17,k+1); }); }
+  P.text(M,P.H-16,"Schicht & Urlaub · Team · Namen nur mit Einverständnis",7.5,false,GREY);
+  for(let m=0;m<12;m++){ P.page(); P.rect(0,0,P.W,5,ACC); P.text(M,34,MONF[m]+" "+y,18,true,INK); P.text(M+tw(MONF[m]+" "+y,18,true)+12,34,d.team.name,11,false,GREY);
+    P.text(P.W-M,34,"‹ Inhalt",11,true,ACC,"right"); P.link(P.W-M-70,20,70,18,0);
+    const f=y+"-"+pad(m+1)+"-01", off=(parse(f).getDay()+6)%7, dim=new Date(y,m+1,0).getDate(), rows=Math.ceil((off+dim)/7), top=50, cw=(P.W-2*M)/7, hh=16, ch=(P.H-top-hh-40)/rows;
+    WDS.forEach((w,k)=>{ P.rect(M+k*cw,top,cw,hh,INK); P.text(M+k*cw+cw/2,top+11.5,w,9,true,[1,1,1],"center"); });
+    const mp=teamAwayMap(f,lastOfMonth(f));
+    for(let dd=1;dd<=dim;dd++){ const s=y+"-"+pad(m+1)+"-"+pad(dd), k=off+dd-1, x=M+(k%7)*cw, y0=top+hh+Math.floor(k/7)*ch, w=parse(s).getDay(), st=mp.get(s), over=st&&st.size>mx;
+      P.rect(x,y0,cw,ch,holName(s)?[1,0.93,0.72]:(w===0||w===6)?[0.935,0.945,0.955]:null,RULE,0.5);
+      P.text(x+5,y0+12,String(dd),10,true,INK); if(holName(s)) P.text(x+20,y0+12,holName(s).slice(0,18),6.5,false,[0.6,0.33,0]);
+      if(st){ let n=0; const per=Math.max(1,Math.floor((cw-8)/17)); d.mem.forEach((mm,i)=>{ if(!st.has(mm.id)) return; const r=Math.floor(n/per), cpos=n%per; if(y0+18+r*16+14<y0+ch) mark(mm,i,x+4+cpos*17,y0+18+r*16,15); n++; }); }
+      if(over) P.rect(x+1,y0+1,cw-2,ch-2,null,RED,2); }
+    P.text(M,P.H-16,"Legende auf Seite 1 · Rot umrandet = zu viele gleichzeitig",7.5,false,GREY); }
+  await pdfSave(P.build(),"Team_"+String(d.team.name).replace(/[^\wäöüÄÖÜß-]+/g,"_")+"_"+y+".pdf"); }
 
 /* ---------- Zentrales Benachrichtigungssystem ----------
    Ein Kanal für alles: Konfliktanfragen, automatische und manuelle Erinnerungen, finale Freigabe.
@@ -141,7 +254,8 @@ function renderTeam(){ const box=$("#v-team"); if(!box) return; box.innerHTML=""
   const fr=el("button","btn grow","🔒 Meine Freigaben"); fr.type="button"; fr.onclick=()=>goSettings("consent"); r2.append(fr); h.append(r2); box.append(h);
   /* einmalige Empfehlung: Vertreter bestimmen */
   if(d.me.role==="admin" && d.mem.length>=3 && !d.mem.some(m=>m.role==="deputy") && !d.team.deputyHint){ const b=el("div","banner tip"); b.append(el("span","grow","Tipp: Bestimme einen Vertreter, der dich bei Abwesenheit vertritt (freiwillig).")); const ok=el("button","btn","Vertreter wählen"); ok.type="button"; ok.onclick=()=>{ tPut(TP(),{deputyHint:true}).catch(()=>{}); d.team.deputyHint=true; openTeamAdmin(); }; const no=el("button","btn ghost","Später"); no.type="button"; no.onclick=()=>{ tPut(TP(),{deputyHint:true}).catch(()=>{}); d.team.deputyHint=true; renderTeam(); }; b.append(ok,no); box.append(b); }
-  teamInbox(box); teamCalendar(box);
+  if(d.team.released && !confOpen()) box.append(el("div","banner tip","✅ Team-Kalender freigegeben am "+fmt(iso(new Date(d.team.released.at)))+"."));
+  teamConfCard(box); teamInbox(box); teamCalendar(box);
   const lv=el("button","linkbtn","Team verlassen"); lv.type="button"; lv.onclick=()=>ask("Team verlassen?","Deine Daten verschwinden aus der Team-Ansicht. Dein privater Planer bleibt unverändert.",[{label:"Ja, verlassen",pri:true,fn:teamLeave},{label:"Abbrechen"}]);
   const lo=el("button","linkbtn","Abmelden"); lo.type="button"; lo.onclick=tLogout; const rr=el("div","row"); rr.append(lv,lo); box.append(rr); }
 
@@ -162,7 +276,10 @@ function teamCalendar(box){ const d=TEAM.data; if(!TEAM.m){ const t=TODAY(); TEA
   padBefore(f).forEach(s=>cell(s,true)); for(let s=f; s<=l; s=addD(s,1)) cell(s,false); padAfter(l).forEach(s=>cell(s,true));
   swipeMonths(g,go); c.append(g);
   const lg=el("div","tlegend"); d.mem.forEach((mm,i)=>{ const sp=el("span"); sp.append(mMark(mm,i), document.createTextNode(" "+mLabel(mm,i))); lg.append(sp); }); c.append(lg);
-  if(mx<999) c.append(el("p","hint","Rot umrandet = mehr als "+mx+" gleichzeitig im Urlaub.")); box.append(c); }
+  if(mx<999) c.append(el("p","hint","Rot umrandet = mehr als "+mx+" gleichzeitig im Urlaub."));
+  if(isTAdmin()||d.team.released){ const pb=el("button","btn grow","📄 Team-Kalender "+y+" als PDF"); pb.type="button"; pb.onclick=()=>pdfTeam(y).catch(()=>toast("PDF hat nicht geklappt.")); c.append(pb); }
+  else c.append(el("p","hint","Das Team-PDF gibt es, sobald der Admin den Kalender freigegeben hat."));
+  box.append(c); }
 
 function teamDayPopup(s){ const d=TEAM.data, st=teamAwayMap(s,s).get(s)||new Set(), mx=tMax();
   openSheet(p=>{ sheetTop(p,fmt(s)); if(holName(s)) p.append(el("p","muted",holName(s)));
@@ -226,7 +343,13 @@ function openTeamAdmin(){ const d=TEAM.data; if(!d||!isTAdmin()) return;
     /* Überschneidungen nach Tagen und Farben */
     p.append(el("h3",null,"Überschneidungen"));
     const t=TODAY(), cl=teamConflicts(t,addD(t,730)); if(!cl.length) p.append(el("p","muted",tMax()>=999?"Keine Grenze eingestellt.":"Keine – nie mehr als "+tMax()+" gleichzeitig."));
-    cl.slice(0,40).forEach(k=>{ const r=el("div","trow"); r.append(el("b","grow",(k.a===k.e?fmt(k.a):fmtS(k.a)+" – "+fmt(k.e))+": "+k.n)); const mk=el("span"); k.uids.forEach(u=>{ const i=mIdx(u); if(i>=0) mk.append(mMark(d.mem[i],i,true)); }); r.append(mk); p.append(r); }); }); }
+    cl.slice(0,40).forEach(k=>{ const r=el("div","trow"); r.append(el("b","grow",(k.a===k.e?fmt(k.a):fmtS(k.a)+" – "+fmt(k.e))+": "+k.n)); const mk=el("span"); k.uids.forEach(u=>{ const i=mIdx(u); if(i>=0) mk.append(mMark(d.mem[i],i,true)); }); r.append(mk); p.append(r); });
+    /* Finale Freigabe: erst wenn alles geklärt ist */
+    p.append(el("h3",null,"Freigabe"));
+    const offen=confOpen()+cl.filter(k=>!(d.conf||[]).some(c=>c.status!=="solved"&&c.a<=k.e&&c.e>=k.a)).length;
+    if(d.team.released) p.append(el("p","muted","Zuletzt freigegeben am "+fmt(iso(new Date(d.team.released.at)))+"."));
+    const rb=el("button","btn pri","✅ Alle Überschneidungen gelöst – Kalender freigeben"); rb.type="button"; rb.disabled=offen>0; rb.onclick=()=>teamRelease().then(closeSheet).catch(e=>toast(tErrMsg(e))); p.append(rb);
+    if(offen) p.append(el("p","hint","Erst alle "+offen+" Überschneidungen klären, dann kannst du freigeben.")); }); }
 
 /* ---------- Einbindung ---------- */
 function teamOnEnter(){ tsLoad(); const h=location.hash; if(h.startsWith("#join=")){ sessionStorage.setItem("su_join",h.slice(6)); try{ history.replaceState(null,"",location.pathname); }catch(e){} }

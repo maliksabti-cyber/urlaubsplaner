@@ -33,5 +33,15 @@
 ## Stand Stufe 2 (Team-Grundlage) ✅
 `team.js`: Anmeldung, Team erstellen, Beitritt per Link (Kinder-Frage, Einverständnis, Name zeigen), Admin/Vertreter (max. 3 Ebenen), einmalige Vertreter-Empfehlung ab 3 Mitgliedern, Team-Monatskalender (Farbe, Form, Initialen ab 9 Mitgliedern, Popup mit X, Namen nur mit Einverständnis), Admin-Maske (Name, Farbe, Form, Grenze, Frist, Überschneidungen, Erinnern, Entfernen), Überschneidungsprüfung nur beim Eintragen/Ändern, Posteingang mit Dringlichkeit, Team verlassen/entfernt löscht nur Team-Daten.
 
-## Offen: Stufe 3
-Konfliktlösung (Ausweichtage per Klick, Reihenfolge 3+ Personen, Kinder-Vorrang in Ferien mit Rückfrage, automatische Erinnerung, Admin-Entscheid), finale Freigabe → Team-PDF.
+## Stand Stufe 3 (Konfliktlösung & Freigabe) ✅
+- Neue Sammlung `teams/{t}/conflicts/{id}` (Regel in `firestore.rules` – muss neu veröffentlicht werden).
+- Reihenfolge: wer zuletzt eingetragen hat, wird zuerst gefragt; in Schulferien zuerst Kollegen ohne Kinder (mit Begründung). Kommt jemand dazu, wird die offene Überschneidung erweitert und der Neue zuerst gefragt.
+- Gefragter: „Ausweichtage zeigen“ (bis zu 3 freie Zeiträume ±60 Tage, Kontingent geprüft, ein Tipp verschiebt den privaten Urlaub) oder „Nein, ich behalte“ → Nächster wird gefragt → wenn niemand: Admin entscheidet.
+- Admin: „muss ausweichen“ pro Person oder „Regel anwenden“. Frist abgelaufen → Regel automatisch (wer zuerst eingetragen hat, behält).
+- Automatische Erinnerung 48 Std. vor Fristende (höchstens 1× pro Tag) – ohne Server beim Öffnen der App durch ein Teammitglied.
+- Gelöst wird automatisch erkannt. Freigabe-Knopf in der Admin-Maske erst ohne offene Überschneidungen → Nachricht an alle.
+- Team-PDF (gleiches PDF-Modul): Seite 1 Legende + Inhaltsverzeichnis zum Antippen, 12 Monatsseiten mit Farbmarken, rot = zu viele. Für Admins immer, für Mitglieder nach Freigabe.
+- Test: `tests/t41-konflikt.mjs` (3 Fake-Nutzer, 16 Prüfungen grün).
+
+## Offen
+Echte Push-Nachrichten und automatischer Kalender-Abgleich (brauchen Server).
