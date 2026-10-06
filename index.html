@@ -17,6 +17,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Figtree:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
 <style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}img{max-width:100%}</style>
 <script src="config.js"></script>
+<script>/* Notbremse: startet die App nicht innerhalb von 8 Sekunden, bietet ein sauberes Neuladen an (ohne alte Zwischenspeicher) */
+setTimeout(function(){ if(window.__booted) return; var d=document.createElement("div"); d.id="bootfail"; d.setAttribute("style","position:fixed;inset:0;z-index:99;background:#fff;color:#16222B;display:grid;place-items:center;padding:24px;font:18px/1.5 system-ui,sans-serif;text-align:center");
+  d.innerHTML='<div><p style="font-size:22px;font-weight:800;margin:0 0 8px">Die App startet gerade nicht.</p><p style="margin:0 0 20px">Bitte einmal neu laden.</p><button type="button" style="min-height:56px;padding:0 28px;font:700 20px system-ui;border:0;border-radius:14px;background:#D9480F;color:#fff">Neu laden</button></div>';
+  d.querySelector("button").onclick=function(){ var go=function(){ location.replace(location.pathname+"?r="+Date.now()); }; try{ Promise.all([navigator.serviceWorker?navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); }):0, window.caches?caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); }):0]).then(go,go); }catch(e){ go(); } };
+  document.body.appendChild(d); },8000);</script>
 <style>
 [hidden]{display:none!important}
 body{margin:0}
@@ -690,7 +695,7 @@ body:has(.ypfix) .toast{bottom:calc(200px + env(safe-area-inset-bottom,0px))!imp
   <button role="tab" data-v="mehr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>Mehr</button>
 </div></nav>
 </div>
-<div class="auth" id="auth"><div class="acard">
+<div class="auth" id="auth" hidden><div class="acard">
   <span class="logo big" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M7 13h4v4H7z"/></svg></span>
   <h1>Schicht &amp; Urlaub</h1>
   <p class="muted">Dein Schichtplan mit Rhythmus, Urlaub und PDF zum Teilen.</p>
@@ -2552,7 +2557,7 @@ function openShare(){ openSharePreview("list",planYear()); }
 
 $("#gear").onclick=()=>show("set");
 /* ===================== Konto & Cloud (Firebase, ohne SDK) ===================== */
-const CFG=window.APP_CONFIG||{};
+const CFG=Object.assign({localMode:true},window.APP_CONFIG||{});
 let sess=null, dirty=false, pushT=null;
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k,v){ try{ if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){} }
@@ -2634,7 +2639,8 @@ async function deleteAccount(){ try{ const t=await token(); await cloudDelete();
   catch(e){ toast(authMsg(e)); } }
 
 /* ---------- Start ---------- */
-async function boot(){ lsSet("su_team",null); lsSet("su_team_cache",null);
+async function boot(){ try{ await bootInner(); }catch(e){ console.error("Start fehlgeschlagen",e); try{ S=load()||defaults(); if(!S.onboarded) openOnboarding(); else enterApp(); }catch(e2){ S=defaults(); openOnboarding(); } } window.__booted=true; }
+async function bootInner(){ lsSet("su_team",null); lsSet("su_team_cache",null);
   if(CFG.localMode){ sess=null;
     /* Daten aus einer früheren Anmeldung auf diesem Gerät übernehmen */
     if(!lsGet(dataKey())){ try{ let best=null; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!/^su_data_.+$/.test(k) || /_dirty$/.test(k)) continue; const d=JSON.parse(localStorage.getItem(k)); if(validData(d) && (!best || (d.updated||0)>(best.updated||0))) best=d; } if(best) lsSet(dataKey(),JSON.stringify(best)); }catch(e){} }
@@ -2863,7 +2869,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.07-60";
+const APP_VERSION="2026.10.07-61";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
