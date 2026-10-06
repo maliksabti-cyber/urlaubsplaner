@@ -912,9 +912,17 @@ function renderKal(){
   /* EIN Knopf: im Monat Tage antippen/wischen, im Jahr den Jahreskalender */
   { const yb=el("button","btn kbig"+(selMode?"":" pri"),selMode?"Fertig":"✎ Schichten eintragen"); yb.type="button"; yb.id="paintbtn"; yb.onclick=()=>{ if(selMode) setSel(false); else if(kalMode==="jahr") openYearPlanner(curY,"shift"); else setSel(true); }; box.append(yb);
     const rb=el("button","linkbtn krhy","Mein Rhythmus ändern"); rb.type="button"; rb.id="rhythmbtn"; rb.onclick=()=>{ setSel(false); openRhythm(); }; box.append(rb); }
-  if(kalMode==="jahr") return renderYear(box);
-  renderMonths(box);
+  if(kalMode==="jahr"){ renderYear(box); box.append(stimesCard()); return; }
+  renderMonths(box); box.append(stimesCard());
 }
+/* Schichtarten mit Uhrzeit – antippen zum Bearbeiten (unten im Schichtplan) */
+function stimesCard(){ const sc=el("details","card sec stimes"); if(S.stOpen) sc.open=true; sc.ontoggle=()=>{ S.stOpen=sc.open; histMute=true; save(); histMute=false; };
+  sc.append(el("summary",null,"⏱ Schichten bearbeiten & Zeiten eintragen"));
+  S.types.forEach(tp=>{ const r=el("button","strow"); r.type="button"; const m=spanMin(tp.start,tp.end,+tp.pause||0); const tx=el("div","grow");
+    const wt=tp.kind!=="work"&&+tp.credit>0?"Wert: "+hStr(+tp.credit)+" pro Tag":"";
+    tx.append(el("b",null,tp.name), el("small",null,[m!=null?tp.start+" – "+tp.end+" Uhr"+(+tp.pause?" · "+tp.pause+" Min. Pause":"")+(tp.kind==="work"?" · "+hStr(m):""):"", wt].filter(Boolean).join(" · ")||(tp.kind==="work"?"keine Uhrzeit – antippen zum Eintragen":"kein Wert – antippen zum Eintragen")));
+    r.append(chip(tp), tx, el("span","muted","›")); r.onclick=()=>openType(tp); sc.append(r); });
+  const nb=el("button","btn","+ Neue Schichtart"); nb.type="button"; nb.onclick=()=>openType(null); sc.append(nb); return sc; }
 /* ---------- Monate untereinander (durchgehend scrollbar wie ein Handy-Kalender) ----------
    Die Monate liegen in einem eigenen Scroll-Bereich (#mscroll). Oben steht immer der Monat, der gerade sichtbar ist.
    Am Anfang/Ende werden je 3 Monate nachgeladen; höchstens KAL_MAX Monate gleichzeitig (für Tempo). */
@@ -2735,7 +2743,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.06-51";
+const APP_VERSION="2026.10.06-52";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
