@@ -557,6 +557,41 @@ body .tpal button{width:48px;height:48px}
 body .toast{font-size:18px}
 body .mono{font-family:var(--f-body);font-size:18px}
 body .instcard{flex-wrap:wrap}body .instcard>.grow{flex:1 1 calc(100% - 90px)}body .instcard>.icon-btn{align-self:flex-start}body .instcard>.btn{flex:1 1 100%;order:3}
+
+/* ===== Passt sich jedem Gerät an: kleine Handys, große Handys, Tablets, PC ===== */
+.sec{grid-template-columns:minmax(0,1fr)}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+body .tbl th{text-transform:none;letter-spacing:0}
+img,svg,canvas{max-width:100%}
+/* kleine Handys (z. B. iPhone SE, ältere Android) */
+@media (max-width:380px){
+  .wrap{padding-inline:10px}
+  body .card{padding:14px}
+  body h2{font-size:21px}
+  body .tabs button{font-size:15px;letter-spacing:-.2px;padding-inline:0}
+  body .btn{padding-inline:12px}
+  body .bar-in{padding-inline:10px;gap:6px}
+  body .icon-btn{width:44px;height:44px}
+}
+/* Tablets (hochkant und quer) */
+@media (min-width:700px){
+  .wrap,.bar-in,.tabs-in{max-width:920px}
+  body .day{min-height:92px}
+  body .dn{font-size:20px}
+  body .day .chip{font-size:20px;min-height:38px}
+  body .vsgrid button{min-height:64px;font-size:22px}
+  .sheet{align-items:center;padding:24px}
+  .sheet .pan{max-width:680px;border-radius:18px;max-height:calc(100dvh - 48px)}
+  body .tabs button{font-size:18px;padding-block:10px}
+}
+/* PC und große Tablets quer: breiter, Karten nebeneinander */
+@media (min-width:1100px){
+  .wrap,.bar-in,.tabs-in{max-width:1180px}
+  #v-heute:not([hidden]),#v-set:not([hidden]),#v-mehr:not([hidden]),#v-team:not([hidden]),#v-stat:not([hidden]){grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  #v-heute>:not(.card),#v-set>:not(.card),#v-mehr>:not(.card),#v-team>:not(.card),#v-stat>:not(.card),#v-team>.tcal,#v-stat>.ptab{grid-column:1/-1}
+  #v-urlaub,#v-kal{max-width:1000px;margin-inline:auto;width:100%}
+  body .day{min-height:104px}
+}
 </style>
 </head>
 <body>
@@ -2576,7 +2611,7 @@ function periodTable(a,e,label){ const c=el("div","card sec ptab"); c.append(el(
   const tb=el("table","tbl"); tb.innerHTML="<thead><tr><th>Art</th><th class='r'>Tage</th><th class='r'>Std:Min</th><th class='r'>Minuten</th><th class='r'>Dezimal</th></tr></thead>"; const bd=el("tbody");
   [...S.types.map(t=>t.id),"-"].forEach(k=>{ const r=rows.get(k); if(!r) return; const tr=el("tr"), td1=el("td"), sp=el("span","row"); sp.append(chip(r.t),document.createTextNode(r.t?r.t.name:"Frei")); td1.append(sp);
     tr.append(td1, el("td","r",String(r.n)), el("td","r",hmm(r.m)), el("td","r",String(Math.round(r.m))), el("td","r",dec(r.m))); bd.append(tr); tm+=r.m; td+=r.n; });
-  const tf=el("tr"); tf.append(el("th",null,"Summe"), el("th","r",String(td)), el("th","r",hmm(tm)), el("th","r",String(Math.round(tm))), el("th","r",dec(tm))); bd.append(tf); tb.append(bd); c.append(tb);
+  const tf=el("tr"); tf.append(el("th",null,"Summe"), el("th","r",String(td)), el("th","r",hmm(tm)), el("th","r",String(Math.round(tm))), el("th","r",dec(tm))); bd.append(tf); tb.append(bd); const tsc=el("div","tscroll"); tsc.append(tb); c.append(tsc);
   c.append(el("p","hint","Arbeit = Schichtdauer ohne Pause. Urlaub/Krank/Frei = eingestellter Wert pro Tag (Home → Schichten & Zeiten)"+(+S.soll>0?"; ohne Wert: Soll ÷ "+wDays()+" Arbeitstage.":"."))); return c; }
 /* Umrechner: Dezimal ↔ Stunden/Minuten ↔ Minuten */
 function converterCard(){ const c=el("div","card sec conv"); c.append(el("h3",null,"Umrechner"));
@@ -2679,7 +2714,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.06-45";
+const APP_VERSION="2026.10.06-46";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
