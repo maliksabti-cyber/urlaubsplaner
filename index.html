@@ -1113,7 +1113,10 @@ const PRESETS=[
   ["4 Tage an, 4 frei",["F","F","F","F",null,null,null,null]]];
 let editRot=null;
 function renderSet(){
-  const box=$("#v-set"); box.innerHTML=""; appLinkCard(box);
+  const box=$("#v-set"); box.innerHTML="";
+  { const dl=el("button","btn pri","📲 App runterladen"); dl.type="button"; dl.id="appdl"; dl.style.width="100%";
+    if(isInstalled()){ dl.textContent="✓ App ist schon installiert"; dl.disabled=true; } else dl.onclick=appInstall; box.append(dl); }
+  appLinkCard(box);
   if(CFG.localMode){ const kc=el("div","card sec"); kc.append(el("h2",null,"Deine Daten"), el("p","hint","Deine Daten sind auf diesem Handy gespeichert, eine Anmeldung brauchst du nicht. Teile ab und zu unten eine Sicherung, z. B. an dich selbst per WhatsApp oder Mail."));
     const l=el("label","f","Vorname"), i=el("input"); i.type="text"; i.id="myname"; i.value=S.name||""; i.onchange=()=>{ S.name=i.value.trim().slice(0,40); save(); $("#who").textContent=S.name||""; }; l.append(i); kc.append(l); box.append(kc); }
   else { const kc=el("div","card sec"); kc.append(el("h2",null,"Konto"));
@@ -2619,7 +2622,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.06-41";
+const APP_VERSION="2026.10.06-42";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
