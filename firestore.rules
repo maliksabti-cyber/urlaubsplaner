@@ -44,6 +44,10 @@ service cloud.firestore {
         allow read, create: if isMem();
         allow delete: if isAdm();
       }
+      match /conflicts/{c} {
+        allow read, create, update: if isMem();
+        allow delete: if isAdm();
+      }
     }
   }
 }
