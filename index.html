@@ -192,11 +192,11 @@ body.ypon .toast,body:has(#yplan:not([hidden])) .toast{bottom:auto!important;top
 .urow{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:10px 4px;border:0;border-top:1px solid var(--rule);background:none;font:inherit;font-size:19px;color:var(--ink);text-align:left;cursor:pointer}.urow b{white-space:nowrap}.urow .chev{font-size:26px;color:var(--soft)}.urow.hl{background:var(--tint)}
 .umore{justify-self:center;font-size:20px!important;padding:10px 16px}.ubig2{font-size:22px;font-weight:700;margin:0;text-align:center}
 .vsybtn,.vsback{width:100%;min-height:56px;font-size:20px}.vsyw{display:grid;gap:12px}
-.vsyear{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 14px}.vsgrid.vsyear{touch-action:pan-y}.vsm{min-width:0}
-.vsmh{display:block;width:100%;min-height:44px;border:0;background:none;font:inherit;font-size:19px;font-weight:800;color:var(--ink);text-align:left;padding:0 2px;cursor:pointer}
-.vsmg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px 2px}.vsmg .dw{font-size:13px!important;padding:0!important}
-.vsgrid.vsyear .vsmg button{min-height:30px;font-size:13px;font-weight:600}.vsgrid.vsyear .vsmg button.s0{border-radius:15px 0 0 15px}.vsgrid.vsyear .vsmg button.s1{border-radius:0 15px 15px 0}.vsgrid.vsyear .vsmg button.s0.s1{border-radius:15px}.vsgrid.vsyear .vsmg button.has{box-shadow:inset 0 -3px 0 #2E8B57}
-@media (min-width:700px){.vsyear{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.ypwall{overflow:auto;max-height:70vh;border:1px solid var(--rule);border-radius:10px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.ypwall .ypgrid{touch-action:auto;border:0;border-radius:0;min-height:0;width:max-content;min-width:100%}
+.ypwall .yph{position:sticky;top:0;z-index:2;font-size:14px;line-height:2.4;text-transform:none}
+.ypwall .ypc{min-height:42px;font-size:13px;padding:0 5px;cursor:pointer}.ypwall .ypd{font-size:13px}.ypwall .yps{min-width:20px;height:20px;font-size:13px;line-height:20px;border-radius:5px}
+.ypwall .ypc.va{background:#C9EBD3}.ypwall .ypc.sel{outline:3px solid #D9480F;outline-offset:-3px}
 .tbanner{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
 .slegend{display:grid;gap:6px}.slrow{display:flex;align-items:center;gap:10px}.slrow .muted{font-size:13px;text-align:right}
 .ypseg{align-self:center}.ypseg button{min-height:36px;padding-top:4px;padding-bottom:4px}
@@ -1943,13 +1943,7 @@ function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*
   const t=TODAY();
   for(let d=1; d<=31; d++) for(let m=m0;m<m0+6;m++){ const days=new Date(y,m+1,0).getDate();
     if(d>days){ g.append(el("div","ypc none")); continue; }
-    const s=y+"-"+pad(m+1)+"-"+pad(d), w=parse(s).getDay(), x2=shiftOf(s), hn=holName(s), fe=ferien(s), c=el("div","ypc"); c.dataset.s=s;
-    if(w===6) c.classList.add("sa"); if(w===0) c.classList.add("so"); if(fe) c.classList.add("fe"); if(hn) c.classList.add("ho"); if(s===t) c.classList.add("now");
-    const vb=vacAt(s); if(vb && vacOnDay(vb,s)) c.classList.add("va");
-    c.append(el("span","ypd",d+" "+DOW[w]));
-    if(x2 && x2.kind!=="free"){ const o=x2.kind==="vac"?(ownShift(s)||x2):x2; const ch=el("span","yps",o.short); ch.style.background=o.color; ch.style.color=isDark(o.color)?"#16222B":"#fff"; c.append(ch); } else if(x2 || planKnown(s)){ const fr=el("span","yps free",(x2&&x2.short)||(S.types.find(t=>t.kind==="free")||{}).short||"F"); c.classList.add("fr"); c.append(fr); }
-    c.title=fmt(s)+(hn?" · "+hn:"")+(fe?" · "+fe[2]:"")+(x2?" · "+x2.name:"");
-    g.append(c); }
+    g.append(ypCell(y+"-"+pad(m+1)+"-"+pad(d),t,false)); }
   ov.append(g); markYP();
   const lg=el("div","yplg"); [["sa","Samstag"],["so","Sonntag"],["ho","Feiertag"],["fe","Schulferien"],["va","Urlaub"],["sel","Auswahl"]].forEach(([k,l])=>{ if(k==="fe"&&!(S.land==="NW"&&S.showFerien!==false)) return; const sp=el("span"); sp.append(el("i","ypc "+k), document.createTextNode(l)); lg.append(sp); }); { const sp=el("span"); sp.append(el("b","yps free","F"), document.createTextNode("Frei")); lg.prepend(sp); } ov.append(lg);
   const bar=el("div","ypbar"); bar.id="ypbar"; ov.append(bar); drawYPBar();
@@ -1962,6 +1956,15 @@ function drawYP(){ const ov=$("#yplan"); ov.innerHTML=""; const y=yp.y, m0=yp.h*
   g.addEventListener("pointermove",e=>{ if(!drag) return; const c=cellAt(e.clientX,e.clientY); if(!c) return; if(c.dataset.s!==yp.e){ const k=ypCap(yp.a,c.dataset.s); if(k.cut) ypWarn(); if(k.e!==yp.e){ yp.e=k.e; yp.tapped=false; markYP(); drawYPBar(); } } });
   const up=()=>{ if(!drag) return; drag=false; if(yp.a!==yp.e) yp.tapped=false; drawYPBar(); };
   g.addEventListener("pointerup",up); g.addEventListener("pointercancel",up); }
+/* Eine Tageszelle des Jahresplaners (Monate als Spalten, Tage als Zeilen). vacOnly: nur Urlaub zeigen (U), keine Schicht-Kürzel */
+function ypCell(s,t,vacOnly){ const d=+s.slice(8,10), w=parse(s).getDay(), x2=shiftOf(s), hn=holName(s), fe=ferien(s), c=el("div","ypc"); c.dataset.s=s;
+  if(w===6) c.classList.add("sa"); if(w===0) c.classList.add("so"); if(fe) c.classList.add("fe"); if(hn) c.classList.add("ho"); if(s===t) c.classList.add("now");
+  const vb=vacAt(s), va=!!(vb && vacOnDay(vb,s)); if(va) c.classList.add("va");
+  c.append(el("span","ypd",d+" "+DOW[w]));
+  if(vacOnly){ if(va){ const ch=el("span","yps","U"); ch.style.background=vacColor(); ch.style.color="#fff"; c.append(ch); } }
+  else if(x2 && x2.kind!=="free"){ const o=x2.kind==="vac"?(ownShift(s)||x2):x2; const ch=el("span","yps",o.short); ch.style.background=o.color; ch.style.color=isDark(o.color)?"#16222B":"#fff"; c.append(ch); } else if(x2 || planKnown(s)){ const fr=el("span","yps free",(x2&&x2.short)||(S.types.find(t=>t.kind==="free")||{}).short||"F"); c.classList.add("fr"); c.append(fr); }
+  c.title=fmt(s)+(hn?" · "+hn:"")+(fe?" · "+fe[2]:"")+(vacOnly?(va?" · Urlaub":""):(x2?" · "+x2.name:""));
+  return c; }
 /* Begrenzt die Auswahl auf das Urlaubskontingent: läuft vom ersten Tag in Richtung Ende und hält an, bevor es zu viele werden */
 function ypCap(a,e){ if(yp.mode==="shift") return {e,cut:false}; const st=e>=a?1:-1, used={}; let last=a;
   for(let d=a;; d=addD(d,st)){ if(!vacAt(d) && vacDayCounts(d)){ const y=+d.slice(0,4); used[y]=(used[y]||0)+1; if(used[y]>vacRest(y)) return {e:last,cut:true}; } last=d; if(d===e) break; }
@@ -2604,7 +2607,7 @@ function finishOnb(){
 /* ---------- Urlaub-Ansicht ---------- */
 let uY=new Date().getFullYear();
 function vacBlocks(y){ const ys=y+"-01-01", ye=y+"-12-31"; return vacList().filter(v=>v.a<=ye && v.e>=ys).sort((x,z)=>x.a<z.a?-1:1).map(v=>({id:v.id,a:v.a,e:v.e,n:vacDaysOf(v).filter(d=>d>=ys&&d<=ye).length,fixed:!!v.fixed})); }
-let uView="jahr", uM=null, uAll=false, uEdit=false, uMore=false, uSel=null, uMsg="";
+let uView="jahr", uM=null, uAll=false, uEdit=false, uMore=false, uSel=null, uMsg="", uWall=null;
 /* Antippen im Jahreskalender: erster Tag, letzter Tag = Urlaub; Urlaubstag antippen = entfernen */
 function uTap(s){
   if(!uSel){ if(vacAt(s)&&dayKind(s)==="v"){ const r=vacRemoveRange(s,s); toast("Urlaubstag entfernt · noch "+vacRest(+s.slice(0,4))+" übrig","Rückgängig",()=>{ S.vacs=r.old; save(); render(); }); return; } uSel=s; renderUrlaub(); return; }
@@ -2629,15 +2632,16 @@ function renderUrlaub(){
   const big=el("button","btn pri bigvac uwide","☀ Urlaub eintragen"); big.type="button"; big.onclick=()=>openVac(uY); box.append(big);
   { const yc=el("div","card sec ucal"); const h=el("div","mhead"); const pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Jahr zurück"); nx.setAttribute("aria-label","Jahr vor");
     pv.onclick=()=>{ uY--; renderUrlaub(); }; nx.onclick=()=>{ uY++; renderUrlaub(); }; h.append(pv,el("h2",null,"Jahr "+uY),nx); yc.append(h);
-    yc.append(el("p","hint",uSel?"Ab "+vsRange(uSel,uSel)+" – jetzt den letzten Urlaubstag antippen.":"Ersten und letzten Urlaubstag antippen. Urlaubstag nochmal antippen = entfernen."));
-    /* Jahresansicht aus „Urlaub eintragen“ (wiederhergestellt): 12 Monatsblöcke, nur Urlaub markiert */
-    const grid=el("div","vsgrid vsyear"), t=TODAY();
-    for(let m=0;m<12;m++){ const blk=el("div","vsm"), hb=el("button","vsmh",MONF_[m]); hb.type="button"; hb.onclick=()=>openVac(uY,m); const mg=el("div","vsmg"); ["M","D","M","D","F","S","S"].forEach(w=>mg.append(el("span","dw",w)));
-      const f=uY+"-"+pad(m+1)+"-01", l=lastOfMonth(f); for(let k=(parse(f).getDay()+6)%7;k>0;k--) mg.append(el("span"));
-      for(let s=f;s<=l;s=addD(s,1)){ const b=el("button",null,String(+s.slice(8,10))); b.type="button"; b.dataset.s=s; const w=parse(s).getDay(); if(w===0||w===6||holName(s)) b.classList.add("we"); if(vacAt(s)) b.classList.add("has"); if(s===t) b.classList.add("isnow"); if(s===uSel) b.classList.add("sel","s0","s1"); mg.append(b); }
-      blk.append(hb,mg); grid.append(blk); }
-    grid.addEventListener("click",ev=>{ const x=ev.target.closest("button[data-s]"); if(!x) return; uTap(x.dataset.s); });
-    yc.append(grid); if(uMsg){ yc.append(el("p","vsmsg",uMsg)); uMsg=""; } box.append(yc); }
+    yc.append(el("p","hint",uSel?"Ab "+vsRange(uSel,uSel)+" – jetzt den letzten Urlaubstag antippen.":"Ersten und letzten Urlaubstag antippen. Urlaubstag (U) nochmal antippen = entfernen. Mit dem Finger verschieben, um alle Monate zu sehen."));
+    /* Jahresplaner wie ein Wandkalender (dieselben Zellen wie im Jahresplaner): 12 Monate als Spalten, Tage 1–31 als Zeilen, nur Urlaub */
+    const wall=el("div","ypwall"), g=el("div","ypgrid"), t=TODAY(); g.style.gridTemplateColumns="repeat(12,minmax(86px,1fr))"; g.style.gridTemplateRows="auto";
+    for(let m=0;m<12;m++) g.append(el("div","yph",MONF_[m]));
+    for(let d=1; d<=31; d++) for(let m=0;m<12;m++){ if(d>new Date(uY,m+1,0).getDate()){ g.append(el("div","ypc none")); continue; } const c=ypCell(uY+"-"+pad(m+1)+"-"+pad(d),t,true); if(c.dataset.s===uSel) c.classList.add("sel"); g.append(c); }
+    g.addEventListener("click",ev=>{ const x=ev.target.closest(".ypc[data-s]"); if(!x) return; uWall={l:wall.scrollLeft,t:wall.scrollTop}; uTap(x.dataset.s); });
+    wall.append(g); yc.append(wall); if(uMsg){ yc.append(el("p","vsmsg",uMsg)); uMsg=""; }
+    const lg=el("div","yplg"); [["sa","Samstag"],["so","Sonntag"],["ho","Feiertag"],["fe","Schulferien"],["va","Urlaub"],["sel","Erster Tag gewählt"]].forEach(([k,l])=>{ if(k==="fe"&&!(S.land==="NW"&&S.showFerien!==false)) return; const sp=el("span"); sp.append(el("i","ypc "+k), document.createTextNode(l)); lg.append(sp); }); yc.append(lg);
+    box.append(yc);
+    requestAnimationFrame(()=>{ if(uWall){ wall.scrollLeft=uWall.l; wall.scrollTop=uWall.t; uWall=null; } else if(uY===new Date().getFullYear()){ const hd=g.children[new Date().getMonth()]; if(hd) wall.scrollLeft=Math.max(0,hd.offsetLeft-8); const c=g.querySelector(".ypc.now"); if(c) wall.scrollTop=Math.max(0,c.offsetTop-120); } }); }
   const lc=el("div","card ulist"); lc.append(el("h2",null,"Deine Urlaube")); const bl=vacBlocks(uY);
   if(!bl.length) lc.append(el("p","muted","Noch kein Urlaub eingetragen."));
   (uAll?bl:bl.slice(0,4)).forEach(b=>{ const it=el("button","urow"); it.type="button"; const tx=el("span","grow",vsRange(b.a,b.e)); it.append(tx, el("b",null,b.n+(b.n===1?" Tag":" Tage")), el("span","chev","›")); if(b.id===vacHL) it.classList.add("hl"); it.onclick=()=>openVacChoice(b); lc.append(it); });
@@ -2765,7 +2769,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.06-55";
+const APP_VERSION="2026.10.06-56";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
