@@ -1115,7 +1115,9 @@ let editRot=null;
 function renderSet(){
   const box=$("#v-set"); box.innerHTML="";
   { const dl=el("button","btn pri","📲 App runterladen"); dl.type="button"; dl.id="appdl"; dl.style.width="100%";
-    if(isInstalled()){ dl.textContent="✓ App ist schon installiert"; dl.disabled=true; } else dl.onclick=appInstall; box.append(dl); }
+    const mob=/iphone|ipad|ipod|android|mobile/i.test(navigator.userAgent);
+    if(isInstalled()){ dl.textContent="✓ App ist schon installiert"; dl.disabled=true; } else dl.onclick=mob?appInstall:shortcutFile;
+    box.append(dl, el("p","hint",mob?"Legt die App als Verknüpfung auf deinen Startbildschirm.":"Lädt eine Verknüpfung herunter – auf den Desktop ziehen, Doppelklick öffnet die App.")); }
   appLinkCard(box);
   if(CFG.localMode){ const kc=el("div","card sec"); kc.append(el("h2",null,"Deine Daten"), el("p","hint","Deine Daten sind auf diesem Handy gespeichert, eine Anmeldung brauchst du nicht. Teile ab und zu unten eine Sicherung, z. B. an dich selbst per WhatsApp oder Mail."));
     const l=el("label","f","Vorname"), i=el("input"); i.type="text"; i.id="myname"; i.value=S.name||""; i.onchange=()=>{ S.name=i.value.trim().slice(0,40); save(); $("#who").textContent=S.name||""; }; l.append(i); kc.append(l); box.append(kc); }
@@ -1329,13 +1331,16 @@ function appLinkCard(box){ const c=el("div","card sec"); c.append(el("h2",null,"
   const copy=async()=>{ try{ await navigator.clipboard.writeText(APP_URL); toast("Link kopiert"); }catch(e){ toast("Kopieren hat nicht geklappt."); } };
   const cp=el("button","btn","📋 Kopieren"); cp.type="button"; cp.onclick=copy; r.append(sh,cp); c.append(r); box.append(c); }
 /* Computer: Verknüpfung auf dem Desktop */
+/* Verknüpfung als Datei herunterladen (Windows .url, Mac .webloc) – Doppelklick öffnet die App */
+function shortcutFile(){ const mac=/mac/i.test(navigator.platform||navigator.userAgent), url=APP_URL;
+  const txt=mac?'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict><key>URL</key><string>'+url+'</string></dict></plist>\n':"[InternetShortcut]\r\nURL="+url+"\r\n";
+      const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([txt],{type:"application/octet-stream"})); a.download=mac?"Schicht & Urlaub.webloc":"Schicht & Urlaub.url"; document.body.append(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+      toast("Heruntergeladen – jetzt aus „Downloads“ auf den Desktop ziehen."); }
 function desktopShortcut(){ const mac=/mac/i.test(navigator.platform||navigator.userAgent), url=location.href.split("#")[0].split("?")[0];
   openSheet(p=>{ sheetTop(p,"Verknüpfung auf dem Desktop");
     p.append(el("p","hint","Am einfachsten: Datei herunterladen und auf den Desktop legen. Doppelklick öffnet die App."));
     const b=el("button","btn pri",mac?"⬇ Verknüpfung für Mac herunterladen":"⬇ Verknüpfung für Windows herunterladen"); b.type="button";
-    b.onclick=()=>{ const txt=mac?'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict><key>URL</key><string>'+url+'</string></dict></plist>\n':"[InternetShortcut]\r\nURL="+url+"\r\n";
-      const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([txt],{type:"application/octet-stream"})); a.download=mac?"Schicht & Urlaub.webloc":"Schicht & Urlaub.url"; document.body.append(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
-      toast("Heruntergeladen – jetzt aus „Downloads“ auf den Desktop ziehen."); };
+    b.onclick=shortcutFile;
     p.append(b);
     p.append(el("h3",null,"Oder als App im Browser"));
     const ol=el("ol","inststeps"); ["Chrome oder Edge: rechts in der Adressleiste auf das Symbol „Installieren“ (Bildschirm mit Pfeil) klicken.","Oder Menü ⋮ → „Streamen, speichern und teilen“ → „Seite als App installieren“ (Edge: „Apps“ → „Diese Website als App installieren“).","Danach liegt „Schicht & Urlaub“ im Startmenü – mit Rechtsklick auch auf dem Desktop."].forEach(t=>ol.append(el("li",null,t))); p.append(ol); }); }
@@ -2622,7 +2627,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.06-42";
+const APP_VERSION="2026.10.06-43";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
