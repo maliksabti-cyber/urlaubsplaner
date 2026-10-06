@@ -665,43 +665,45 @@ body:has(.ypfix) .toast{bottom:calc(200px + env(safe-area-inset-bottom,0px))!imp
 :root{--navy:#17325C}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--navy:#A9C4F0} } :root[data-theme="dark"]{--navy:#A9C4F0}
 body .seg.pseg3{grid-template-columns:repeat(3,1fr)}
-.jhead{display:grid;gap:14px}.jhead h2{color:var(--navy);font-size:26px;margin:0}.jsub{margin:2px 0 0;color:var(--soft);font-size:16px}
-.jrest{display:flex;align-items:center;gap:12px;background:color-mix(in srgb,var(--ok) 12%,var(--card));border:2px solid color-mix(in srgb,var(--ok) 45%,var(--card));border-radius:14px;padding:12px 16px}.jri{font-size:30px}.jrest b{display:block;font-size:22px;color:var(--navy)}.jrest small{font-size:16px;color:var(--soft)}
-.jyear{display:flex;align-items:center;gap:10px}.jyear b{font-size:22px;min-width:64px;text-align:center;color:var(--navy)}.jyear .icon-btn{width:48px;height:48px}.jtoday{margin-left:auto;min-height:48px}
-.jlegend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:16px}.jlegend span{display:inline-flex;align-items:center;gap:6px}.jsw{width:20px;height:20px;border-radius:6px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(128,128,128,.6)}.jsw.jfe{background:#FFE066}.jsw.jho{background:#fff;box-shadow:inset 0 0 0 3px #D62828}
-.jhint{text-align:left;font-size:17px}
-.jtip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-left:5px solid #E0A100;font-size:17px}.jtip .btn{min-height:48px}
+#v-jahr{display:grid;gap:22px}#v-jahr[hidden]{display:none}
+.jhead{display:grid;gap:12px;padding:4px 2px 0}.jhead h2{color:var(--navy);font-size:26px;margin:0}.jsub{margin:-6px 0 0;color:var(--soft);font-size:17px}
+.jkpi{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:17px;color:var(--soft)}.jk{display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap}.jk b{font-size:20px;color:var(--ink)}.jki{font-size:18px}
+.jyear{display:flex;align-items:center;justify-content:center;gap:12px}.jyear b{font-size:24px;min-width:70px;text-align:center;color:var(--navy)}.jyear .icon-btn{width:52px;height:52px;font-size:24px}.jtoday{min-height:48px;margin-left:8px}
 .jgrid{display:grid;grid-template-columns:1fr;gap:16px}
-@media (min-width:560px){.jgrid{grid-template-columns:repeat(2,minmax(0,1fr))}} @media (min-width:900px){.jgrid{grid-template-columns:repeat(3,minmax(0,1fr))}} @media (min-width:1200px){.jgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.jmon{display:grid;gap:10px;padding:14px;border-radius:16px;scroll-margin-top:80px;align-content:start}
-.jmh{display:flex;align-items:center;justify-content:space-between;min-height:48px;border:0;background:none;font:inherit;color:var(--navy);cursor:pointer;padding:0 2px;text-align:left}.jmh b{font-size:20px}.jchev{font-size:26px;color:var(--soft)}
-.jinfo{display:grid;gap:2px;font-size:16px}.jfer{color:#7A5A00}.jhol{color:#B42318}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .jfer{color:#F2C14E} :root:not([data-theme="light"]) .jhol{color:#FF7B6E} }
-.jg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.jw{font-size:15px;font-weight:700;color:var(--soft);text-align:center}
-.jd{min-height:46px;border:0;border-radius:10px;font:inherit;font-size:17px;font-weight:700;color:var(--ink);background:var(--tint);cursor:pointer;padding:0;position:relative;font-variant-numeric:tabular-nums;min-width:0}
-.jd.jlt{color:#fff}.jd.jdk{color:#16222B}.jd.jv{color:#fff}.jd.jfr{background:var(--free-bg);color:var(--free-ink)}
-.jd.jfe{box-shadow:inset 0 -6px 0 #FFD43B}.jd.jho{box-shadow:inset 0 0 0 3px #D62828}.jd.jfe.jho{box-shadow:inset 0 0 0 3px #D62828,inset 0 -7px 0 #FFD43B}
-.jd.jnow{outline:3px solid var(--ink);outline-offset:1px}
-.jd.jsel{outline:3px solid #D9480F;outline-offset:-3px}.jd.js0,.jd.js1{background:#D9480F!important;color:#fff!important;outline:3px solid #8A2A00}
-.jsum{display:grid;gap:14px}.jsum h3{color:var(--navy);font-size:20px;margin:0}.jstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.jstats div{background:var(--tint);border-radius:12px;padding:10px;text-align:center}.jstats small{display:block;font-size:16px;color:var(--soft)}.jstats b{font-size:20px;color:var(--navy)}
-.jbig{width:100%;min-height:60px;font-size:20px}
-@media (min-width:560px){.jd{min-height:40px;font-size:15px}}
-
-/* ===== Feinschliff: Kennzahlen, kompakte Monate am Handy, Heute ===== */
-.jkpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media (min-width:560px){.jkpi{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.jk{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;background:var(--tint);border-radius:14px;padding:10px 12px}.jk .jki{grid-row:span 2;font-size:24px}.jk b{font-size:24px;color:var(--navy);line-height:1.1}.jk small{font-size:15px;color:var(--soft)}
-.jk.k1{background:color-mix(in srgb,var(--ok) 16%,var(--card));border:2px solid color-mix(in srgb,var(--ok) 50%,var(--card))}
-@media (max-width:559px){ .jgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .jmon.jsmall{padding:10px 8px;gap:6px;cursor:pointer}.jsmall .jmh{min-height:40px}.jsmall .jmh b{font-size:18px}.jsmall .jchev{font-size:22px}
-  .jsmall .jg{gap:2px}.jsmall .jw{font-size:11px}.jsmall .jd{min-height:20px;font-size:12px;border-radius:5px;font-weight:600;pointer-events:none}
-  .jsmall .jd.jfe{box-shadow:inset 0 -3px 0 #FFD43B}.jsmall .jd.jho{box-shadow:inset 0 0 0 2px #D62828}.jsmall .jd.jnow{outline-width:2px}
-  .jtags{display:flex;flex-wrap:wrap;gap:4px}.jtag{font-size:13px;font-weight:700;border-radius:99px;padding:2px 8px;background:var(--tint)}.jtf{color:#7A5A00}.jth{color:#B42318} }
+@media (min-width:370px){.jgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}}
+@media (min-width:700px){.jgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}} @media (min-width:1100px){.jgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.jmon{display:grid;gap:8px;padding:12px 10px 14px;border-radius:18px;align-content:start;background:var(--card);border:1px solid var(--line,rgba(128,128,128,.25));font:inherit;color:inherit;text-align:left;cursor:pointer;min-width:0;scroll-margin-top:90px}
+.jmon:active{transform:scale(.98)}.jmon:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.jmh{display:flex;align-items:center;justify-content:space-between;color:var(--navy);padding:0 4px}.jmh b{font-size:20px}.jchev{font-size:26px;line-height:1;color:var(--soft)}
+.jg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.jw{font-size:12px;font-weight:700;color:var(--soft);text-align:center}
+.jd{display:flex;align-items:center;justify-content:center;aspect-ratio:1;min-width:0;border-radius:7px;font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.jd.jsh{background:color-mix(in srgb,var(--c) 26%,transparent)}
+.jd.jv{background:var(--c);color:#fff;font-weight:800}
+.jd.jfe{box-shadow:inset 0 -4px 0 #FFD43B}.jd.jho{box-shadow:inset 0 0 0 2px #D62828}.jd.jfe.jho{box-shadow:inset 0 0 0 2px #D62828,inset 0 -5px 0 #FFD43B}
+.jd.jnow{outline:2px solid var(--accent);outline-offset:1px;font-weight:800}
+@media (max-width:369px){.jd{font-size:17px;border-radius:9px}.jw{font-size:15px}.jg{gap:4px}.jmh b{font-size:22px}}
+@media (min-width:700px){.jd{font-size:15px}}
+.jlegend{display:flex;flex-wrap:wrap;gap:10px 18px;font-size:16px;color:var(--soft);padding:0 2px}.jlegend span{display:inline-flex;align-items:center;gap:7px}.jsw{width:18px;height:18px;border-radius:5px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(160,160,160,.7)}.jsw.jfe{background:#FFE066}.jsw.jho{background:transparent;box-shadow:inset 0 0 0 3px #D62828}
+.jtip{font:inherit;font-size:17px;text-align:left;color:var(--ink);background:none;border:0;border-left:4px solid #E0A100;padding:6px 12px;cursor:pointer;min-height:48px}
+/* Großer Monat: Schichten, Urlaub, Ferien, Feiertage in den Tagen */
+.vsgrid{column-gap:4px}.vsgrid.vpick{touch-action:none}.vs.vlook .vsgrid{touch-action:auto}
+.vsgrid button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:12px;line-height:1.1}
+.vsgrid button b{font-size:inherit}.vsgrid button small{font-size:14px;font-weight:800;min-height:15px;opacity:.9}
+.vsgrid button.sh{background:color-mix(in srgb,var(--c) 26%,transparent)}.vsgrid button.vac{background:var(--c);color:#fff}
+.vsgrid button.we:not(.sh):not(.vac){color:var(--soft)}.vsgrid button.ho{box-shadow:inset 0 0 0 3px #D62828}.vsgrid button.fe{box-shadow:inset 0 -5px 0 #FFD43B}.vsgrid button.fe.ho{box-shadow:inset 0 0 0 3px #D62828,inset 0 -6px 0 #FFD43B}
+.vsgrid button.isnow{outline:3px solid var(--accent);outline-offset:-1px;text-decoration:none}
+.vsgrid button.sel{background:#C2410C!important;color:#fff!important}
+.vsinfo{display:grid;gap:4px;font-size:17px}.vsinfo .jfer{color:#7A5A00}.vsinfo .jhol{color:#B42318}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .vsinfo .jfer{color:#F2C14E} :root:not([data-theme="light"]) .vsinfo .jhol{color:#FF7B6E} }
+:root[data-theme="dark"] .vsinfo .jfer{color:#F2C14E} :root[data-theme="dark"] .vsinfo .jhol{color:#FF7B6E}
+body:has(#sheet:not([hidden])) .wrap .ypfix{display:none}
+.vscancel{width:100%;min-height:52px;font-size:19px;margin-top:-10px}.vs .vsum .vsn{display:none}
 .hlab{display:block;font-size:17px;color:var(--soft);font-weight:600;margin-bottom:2px}
 .hfer{font-size:18px;font-weight:600;border-left:5px solid #FFD43B}
 
 /* ===== Radikal einfach: Kopfzeile nur Seitenname, ein Kalender, ein Knopf unten ===== */
 #gear,#hundo,#help,.bar .logo,#who{display:none!important}
-body[data-v="heute"] #hback,body[data-v="kal"] #hback,body[data-v="urlaub"] #hback,body[data-v="mehr"] #hback{display:none!important}
+body[data-v="heute"] #hback,body[data-v="kal"] #hback,body[data-v="jahr"] #hback,body[data-v="urlaub"] #hback,body[data-v="mehr"] #hback{display:none!important}
 
 body .pseg{max-width:420px;margin:0 auto;width:100%}body .pseg button{min-height:48px;font-size:18px}
 .urline{display:grid;gap:8px}.urltxt{margin:0;font-size:22px;font-weight:800;text-align:center}.urmeter{height:10px;margin:0}
@@ -744,7 +746,7 @@ body:has(.ypfix) .wrap{padding-bottom:240px}
 
 <nav class="tabs" role="tablist"><div class="tabs-in">
   <button role="tab" data-v="heute" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Heute</button>
-  <button role="tab" data-v="kal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Plan</button>
+  <button role="tab" data-v="jahr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Plan</button>
   <button role="tab" data-v="mehr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>Mehr</button>
 </div></nav>
 </div>
@@ -943,7 +945,7 @@ function toast(msg,btn,fn,btn2,fn2){ const t=$("#toast"); if(typeof toastPre!=="
   t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true, btn2?9000:btn?6000:2600); }
 function setBarH(){ const h=document.querySelector("header.bar"); if(h) document.documentElement.style.setProperty("--barh",h.offsetHeight+"px"); }
 window.addEventListener("resize",setBarH);
-function show(v){ if(v==="jahr") v="kal"; setTimeout(setBarH,0); view=v; document.body.dataset.v=v; if(v==="kal") ypK.jumped=false; if(v==="urlaub") ypU.jumped=false; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",jahr:"Plan",kal:"Plan",urlaub:"Plan",mehr:"Mehr",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="kal" && v==="urlaub") || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","jahr","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
+function show(v){ setTimeout(setBarH,0); view=v; document.body.dataset.v=v; if(v==="kal") ypK.jumped=false; if(v==="urlaub") ypU.jumped=false; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",jahr:"Plan",kal:"Plan",urlaub:"Plan",mehr:"Mehr",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="jahr" && (v==="kal"||v==="urlaub")) || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","jahr","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.v));
 function render(){ if(!S) return; { const k=S.types.find(x=>x.kind==="sick"&&(x.color==="#C2185B"||x.color==="#8E6C88")); if(k){ k.color="#7E57C2"; histMute=true; save(); histMute=false; } } applyTheme(); if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="jahr") renderJahr(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); if(view==="mehr") renderMehr(); if(view==="team" && typeof renderTeam==="function") renderTeam(); const vr=$("#v-"+view); if(vr) drRestore(vr,"v:v-"+view); }
 function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("div","banner"); const t=el("span","grow"); t.innerHTML="<b>Beispiel-Rhythmus.</b> Stell unter Einstellungen deinen eigenen Schichtrhythmus ein."; const go=el("button","btn","Jetzt einstellen"); go.type="button"; go.onclick=()=>show("set"); b.append(t,go); box.append(b); }
@@ -1011,60 +1013,42 @@ function vacTip(y){ const t=TODAY(), from=+t.slice(0,4)===y?addD(t,1):y+"-01-01"
       let a=d, e=last; while(off(addD(a,-1))&&diffD(addD(a,-1),d)<20) a=addD(a,-1); while(off(addD(e,1))&&diffD(last,addD(e,1))<20) e=addD(e,1);
       const span=diffD(a,e)+1, gain=span-k; if(gain>=3 && (!best || gain/k>best.gain/best.k || (gain/k===best.gain/best.k && span>best.span))) best={d,last,a,e,k,span,gain}; } }
   if(!best || vacRest(y)<best.k) return null; return best; }
-const narrowJ=()=>window.innerWidth<560;
 function renderJahr(){ const box=$("#v-jahr"); box.innerHTML=""; exampleBanner(box); planSeg(box,"jahr");
   const t=TODAY(); if(!jSt.y) jSt.y=+t.slice(0,4); const y=jSt.y, tot=vacTotal(y), used=vacUsed(y), rest=tot-used;
-  /* Kopf: Titel, Resturlaub, Jahr */
-  const hd=el("div","card jhead"); const l=el("div","grow"); l.append(el("h2",null,"Jahresübersicht"), el("p","jsub","Schichten, Urlaub, Ferien und Feiertage auf einen Blick"));
+  /* Kopf: Titel, kurze Zusammenfassung, Jahr */
+  const hd=el("div","jhead"); hd.append(el("h2",null,"Jahresübersicht"), el("p","jsub","Schichten, Urlaub, Ferien und Feiertage auf einen Blick"));
   const rc=el("div","jkpi"); { let fd=0, hd2=0; for(let d=y+"-01-01"; d<=y+"-12-31"; d=addD(d,1)){ if(ferien(d)) fd++; if(holName(d)) hd2++; }
-    [["🏖️",Math.max(0,rest),"Urlaubstage übrig","k1"],["📅",used,"Tage verplant","k2"],...(hasFerien()?[["🟡",fd,"Ferientage","k3"]]:[]),["🔴",hd2,"Feiertage","k4"]].forEach(([i,n,l,k])=>{ const d=el("div","jk "+k); d.append(el("span","jki",i), el("b",null,String(n)), el("small",null,l)); rc.append(d); }); }
-  const yn=el("div","jyear"); const pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"), td=el("button","btn ghost jtoday","Heute"); pv.type=nx.type=td.type="button"; pv.setAttribute("aria-label","Jahr zurück"); nx.setAttribute("aria-label","Jahr vor");
-  pv.onclick=()=>{ jSt.y--; jSt.a=jSt.e=null; renderJahr(); }; nx.onclick=()=>{ jSt.y++; jSt.a=jSt.e=null; renderJahr(); };
+    [["🏖️",Math.max(0,rest),"Urlaub übrig"],["📅",used,"geplant"],...(hasFerien()?[["🟡",fd,"Ferientage"]]:[]),["🔴",hd2,"Feiertage"]].forEach(([i,n,l])=>{ const d=el("span","jk"); d.append(el("span","jki",i), el("b",null,String(n)), document.createTextNode(" "+l)); rc.append(d); }); }
+  const yn=el("div","jyear"); const pv=el("button","icon-btn","←"), nx=el("button","icon-btn","→"), td=el("button","btn ghost jtoday","Heute"); pv.type=nx.type=td.type="button"; pv.setAttribute("aria-label","Jahr zurück"); nx.setAttribute("aria-label","Jahr vor");
+  pv.onclick=()=>{ jSt.y--; renderJahr(); }; nx.onclick=()=>{ jSt.y++; renderJahr(); };
   td.onclick=()=>{ jSt.y=+TODAY().slice(0,4); jSt.scrolled=false; renderJahr(); };
-  yn.append(pv, el("b",null,String(y)), nx, td); hd.append(l, rc, yn); box.append(hd);
-  /* Legende */
-  const lg=el("div","jlegend"); const add=(sw,tx)=>{ const sp=el("span"); sp.append(sw,document.createTextNode(tx)); lg.append(sp); };
-  S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const sw=el("i","jsw"); sw.style.background=x.kind==="free"?"var(--free-bg)":x.color; if(x.kind==="free") sw.style.border="1px solid var(--free-bd)"; add(sw,x.name); });
-  { const sw=el("i","jsw"); sw.style.background=vacColor(); add(sw,"Urlaub"); } if(hasFerien()) add(el("i","jsw jfe"),"Schulferien"); add(el("i","jsw jho"),"Feiertag"); box.append(lg);
-  /* Hinweis und Urlaubstipp */
-  box.append(el("p","yphint2 jhint",jSt.a&&!jSt.e?"② Endtag auswählen (Start: "+ddm(jSt.a)+")":jSt.a&&jSt.e?"③ Prüfe unten und bestätige.":(narrowJ()?"Monat antippen – dort Urlaub eintragen: ① Starttag ② Endtag ③ bestätigen.":"Urlaub eintragen: ① Starttag ② Endtag ③ bestätigen. Monatsname = Monat groß.")));
-  { const tp=vacTip(y); if(tp){ const c=el("div","card jtip"); const tx=el("div","grow"); tx.append(el("b",null,"💡 Urlaubstipp: "), document.createTextNode("Mit "+tp.k+(tp.k===1?" Urlaubstag":" Urlaubstagen")+" am "+(tp.k===1?ddm(tp.d):ddRange(tp.d,tp.last))+" hast du "+tp.span+" Tage frei am Stück ("+ddRange(tp.a,tp.e)+")."));
-      const b=el("button","btn","Ansehen"); b.type="button"; b.onclick=()=>{ if(narrowJ()){ openVac(+tp.d.slice(0,4),+tp.d.slice(5,7)-1); return; } jSt.a=tp.d; jSt.e=tp.last; renderJahr(); const c2=$("#v-jahr").querySelector('.jd[data-s="'+tp.d+'"]'); if(c2) c2.scrollIntoView({block:"center"}); }; c.append(tx,b); box.append(c); } }
-  /* 12 Monatskarten */
-  const g=el("div","jgrid"), r=jSt.a?[jSt.a,jSt.e||jSt.a]:null;
-  for(let m=0;m<12;m++){ const c=el("div","card jmon"); c.dataset.m=m; const f=y+"-"+pad(m+1)+"-01", lst=lastOfMonth(f);
-    const h=el("button","jmh"); h.type="button"; h.append(el("b",null,narrowJ()?MONF_[m]:MONF_[m]+" "+y), el("span","jchev","›")); h.onclick=()=>openVac(y,m); c.append(h);
-    if(narrowJ()){ c.classList.add("jsmall"); c.onclick=ev=>{ if(!ev.target.closest(".jmh")) openVac(y,m); };
-      const fe=curFerien().filter(x=>hasFerien()&&x[0]<=lst&&x[1]>=f), hc=(()=>{ let n=0; for(let d=f; d<=lst; d=addD(d,1)) if(holName(d)) n++; return n; })();
-      if(fe.length||hc){ const tg=el("div","jtags"); if(fe.length) tg.append(el("span","jtag jtf","🟡 "+fe[0][2].replace("ferien",""))); if(hc) tg.append(el("span","jtag jth","🔴 "+hc+(hc===1?" Feiertag":" Feiertage"))); c.append(tg); } }
-    const info=el("div","jinfo"); if(narrowJ()) info.hidden=true;
-    curFerien().filter(fe=>hasFerien()&&fe[0]<=lst&&fe[1]>=f).forEach(fe=>info.append(el("div","jfer","🟡 "+fe[2]+" "+ddm(fe[0])+" – "+ddm(fe[1]))));
-    for(let d=f; d<=lst; d=addD(d,1)){ const hn=holName(d); if(hn) info.append(el("div","jhol","🔴 "+ddm(d)+" "+hn)); }
-    if(info.children.length) c.append(info);
-    const gr=el("div","jg"); WDS.forEach(w=>gr.append(el("span","jw",w)));
+  yn.append(pv, el("b",null,String(y)), nx, td); hd.append(rc, yn); box.append(hd);
+  /* 12 Monatskarten – antippen öffnet den großen Monat */
+  const g=el("div","jgrid");
+  for(let m=0;m<12;m++){ const c=el("button","jmon"); c.type="button"; c.dataset.m=m; c.setAttribute("aria-label",MONF_[m]+" "+y+" öffnen"); const f=y+"-"+pad(m+1)+"-01", lst=lastOfMonth(f);
+    const h=el("span","jmh"); h.append(el("b",null,MONF_[m]), el("span","jchev","›")); c.append(h);
+    const gr=el("span","jg"); WDS.forEach(w=>gr.append(el("span","jw",w.slice(0,2))));
     for(let k=(parse(f).getDay()+6)%7;k>0;k--) gr.append(el("span","je"));
-    for(let d=f; d<=lst; d=addD(d,1)){ const x=shiftOf(d), dk=dayKind(d), b=el("button","jd",String(+d.slice(8,10))); b.type="button"; b.dataset.s=d;
-      if(dk==="v"){ b.classList.add("jv"); b.style.background=vacColor(); }
-      else if(x && x.kind!=="free" && dk!=="f"){ b.style.background=x.color; b.classList.add(isDark(x.color)?"jdk":"jlt"); }
-      else if(dk==="f" || (x&&x.kind==="free") || planKnown(d)) b.classList.add("jfr");
+    for(let d=f; d<=lst; d=addD(d,1)){ const x=shiftOf(d), dk=dayKind(d), b=el("span","jd",String(+d.slice(8,10)));
+      if(dk==="v"){ b.classList.add("jv"); b.style.setProperty("--c",vacColor()); }
+      else if(x && x.kind!=="free" && dk!=="f"){ b.classList.add("jsh"); b.style.setProperty("--c",x.color); }
       if(ferien(d)) b.classList.add("jfe"); if(holName(d)) b.classList.add("jho"); if(d===t) b.classList.add("jnow");
-      if(r && d>=r[0] && d<=r[1]){ b.classList.add("jsel"); if(d===r[0]) b.classList.add("js0"); if(d===r[1]) b.classList.add("js1"); }
-      b.title=fmt(d)+(holName(d)?" · "+holName(d):"")+(ferien(d)?" · "+ferien(d)[2]:"")+(dk==="v"?" · Urlaub":x?" · "+x.name:"");
-      if(narrowJ()) b.tabIndex=-1; gr.append(b); }
-    c.append(gr); g.append(c); }
-  g.addEventListener("click",ev=>{ if(narrowJ()) return; const b=ev.target.closest(".jd[data-s]"); if(!b) return; const d=b.dataset.s;
-    if(!jSt.a || jSt.e){ const v=vacAt(d); if(!jSt.a && v && dayKind(d)==="v"){ openVacChoice({id:v.id,a:v.a,e:v.e,n:vacDaysOf(v).length}); return; } jSt.a=d; jSt.e=null; }
-    else if(d<jSt.a){ jSt.e=jSt.a; jSt.a=d; } else jSt.e=d;
-    const sy=window.scrollY; renderJahr(); window.scrollTo(0,sy); });
+      gr.append(b); }
+    c.append(gr); c.onclick=()=>openVac(y,m,{look:true}); g.append(c); }
   box.append(g);
-  /* Zusammenfassung + Hauptknopf */
-  const sm=el("div","card jsum"); sm.append(el("h3",null,"🏖️ Urlaub "+y)); const st3=el("div","jstats");
-  [["Verplant",used],["Verfügbar",Math.max(0,rest)],["Gesamt",tot]].forEach(([k,v])=>{ const d=el("div"); d.append(el("small",null,k), el("b",null,v+(v===1?" Tag":" Tage"))); st3.append(d); }); sm.append(st3);
-  const big=el("button","btn pri jbig","+ Urlaub eintragen"); big.type="button"; big.onclick=()=>openVac(y,y===+t.slice(0,4)?new Date().getMonth():0); sm.append(big); box.append(sm);
-  if(jSt.a && jSt.e) box.append(ypFixBar(jSt));
-  if(!jSt.scrolled && y===+t.slice(0,4)){ jSt.scrolled=true; requestAnimationFrame(()=>{ const c=box.querySelector('.jmon[data-m="'+new Date().getMonth()+'"]'); if(c && new Date().getMonth()>0) c.scrollIntoView({block:"start"}); }); } }
+  /* Legende unter dem Kalender */
+  const lg=el("div","jlegend"); const add=(sw,tx)=>{ const sp=el("span"); sp.append(sw,document.createTextNode(tx)); lg.append(sp); };
+  { const sw=el("i","jsw"); sw.style.background=vacColor(); add(sw,"Urlaub"); }
+  S.types.filter(x=>x.kind==="work").forEach(x=>{ const sw=el("i","jsw"); sw.style.background=x.color; add(sw,x.name); });
+  if(hasFerien()) add(el("i","jsw jfe"),"Schulferien"); add(el("i","jsw jho"),"Feiertag"); box.append(lg);
+  /* Urlaubstipp (klein) */
+  { const tp=vacTip(y); if(tp){ const c=el("button","jtip"); c.type="button"; c.append(el("b",null,"💡 Tipp: "), document.createTextNode(tp.k+(tp.k===1?" Urlaubstag":" Urlaubstage")+" am "+(tp.k===1?ddm(tp.d):ddRange(tp.d,tp.last))+" = "+tp.span+" Tage frei am Stück."));
+      c.onclick=()=>openVac(+tp.d.slice(0,4),+tp.d.slice(5,7)-1,{look:true}); box.append(c); } }
+  /* Ein Hauptknopf unten: öffnet den aktuellen Monat zum Eintragen */
+  const fx=el("div","ypfix ypmain"), big=el("button","btn pri","Urlaub eintragen"); big.type="button"; big.onclick=()=>openVac(y,y===+t.slice(0,4)?new Date().getMonth():0); fx.append(big); box.append(fx);
+  if(!jSt.scrolled && y===+t.slice(0,4)){ jSt.scrolled=true; requestAnimationFrame(()=>{ const c=box.querySelector('.jmon[data-m="'+new Date().getMonth()+'"]'); if(c && new Date().getMonth()>1) c.scrollIntoView({block:"center"}); }); } }
 /* Reiter „Plan“: oben Schalter Schichten | Urlaub – beide mit demselben Kalender */
-function planSeg(box,cur){ const seg=el("div","seg full kseg pseg"); [["kal","Schichten"],["urlaub","Urlaub"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(cur===k)); b.onclick=()=>{ if(cur!==k) show(k); }; seg.append(b); }); box.append(seg); }
+function planSeg(box,cur){ const seg=el("div","seg full kseg pseg pseg3"); [["jahr","Jahr"],["kal","Schichten"],["urlaub","Urlaub"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(cur===k)); b.onclick=()=>{ if(cur!==k) show(k); }; seg.append(b); }); box.append(seg); }
 function renderKal(){
   const box=$("#v-kal"); box.innerHTML=""; exampleBanner(box); planSeg(box,"kal"); kalMode="jahr"; if(selMode) setSel(false);
   mountYP(box,ypK,ypK.y||new Date().getFullYear(),()=>{ curY=ypK.y; renderKal(); });
@@ -1289,44 +1273,56 @@ function vsDays(a,e){ const out=[]; for(let s=a;s<=e;s=addD(s,1)){ if(vacAt(s)) 
 function vsRange(a,e){ const da=+a.slice(8,10), de=+e.slice(8,10), ma=+a.slice(5,7)-1, me=+e.slice(5,7)-1;
   if(a===e) return da+". "+MONF_[ma]; if(a.slice(0,7)===e.slice(0,7)) return da+". bis "+de+". "+MONF_[me];
   return da+". "+MONF_[ma]+(a.slice(0,4)!==e.slice(0,4)?" "+a.slice(0,4):"")+" bis "+de+". "+MONF_[me]+(a.slice(0,4)!==e.slice(0,4)?" "+e.slice(0,4):""); }
-function openVac(y0,m0){ const t=TODAY(), st={y:y0||+t.slice(0,4),m:m0!=null?m0:y0&&y0!==+t.slice(0,4)?0:+t.slice(5,7)-1,a:null,e:null,view:"monat"}; let drag=null;
-  openSheet(p=>{ p.dataset.sheet="vsimple"; sheetTop(p,"Urlaub eintragen"); const box=el("div","vs"); p.append(box);
-    const rest=el("p","vsrest"), nav=el("div","vsnav"), grid=el("div","vsgrid"), line=el("p","vsline"), sumb=el("div"), msg=el("p","vsmsg"), go=el("button","btn pri vsgo","Urlaub bestätigen"); go.type="button";
-    const prev=el("button",null,"‹"), next=el("button",null,"›"), mn=el("h3"); prev.type=next.type="button"; prev.setAttribute("aria-label","Monat zurück"); next.setAttribute("aria-label","Monat vor");
+function openVac(y0,m0,o){ const t=TODAY(), look=!!(o&&o.look), st={y:y0||+t.slice(0,4),m:m0!=null?m0:y0&&y0!==+t.slice(0,4)?0:+t.slice(5,7)-1,a:null,e:null,view:"monat",pick:!look}; let drag=null;
+  openSheet(p=>{ p.dataset.sheet="vsimple"; sheetTop(p,look?"Monatskalender":"Urlaub eintragen"); const box=el("div","vs"+(look?" vlook":"")); p.append(box);
+    const rest=el("p","vsrest"), nav=el("div","vsnav"), grid=el("div","vsgrid"), info=el("div","vsinfo"), line=el("p","vsline"), sumb=el("div"), msg=el("p","vsmsg"), go=el("button","btn pri vsgo","Urlaub bestätigen"), start=el("button","btn pri vsgo","Urlaub eintragen"), cancel=el("button","btn ghost vscancel","Abbrechen"); go.type=start.type=cancel.type="button";
+    const prev=el("button",null,"←"), next=el("button",null,"→"), mn=el("h3"); prev.type=next.type="button"; prev.setAttribute("aria-label","Monat zurück"); next.setAttribute("aria-label","Monat vor");
     const mv=k=>{ if(st.view==="jahr"){ st.y+=k; draw(); return; } st.m+=k; if(st.m<0){ st.m=11; st.y--; } if(st.m>11){ st.m=0; st.y++; } draw(); }; prev.onclick=()=>mv(-1); next.onclick=()=>mv(1); nav.append(prev,mn,next);
     /* Jahreskalender (alle 12 Monate mit Schicht-Kürzeln) – Zurück führt zum Monatskalender */
     const yb=el("button","btn vsybtn","📅 Jahreskalender"); yb.type="button"; yb.onclick=()=>{ st.view="jahr"; draw(); };
     const back=el("button","btn vsback","‹ Zurück zum Monat"); back.type="button"; back.onclick=()=>{ st.view="monat"; draw(); };
     const yw=el("div","vsyw");
+    start.onclick=()=>{ st.pick=true; st.a=st.e=null; draw(); };
+    cancel.onclick=()=>{ st.a=st.e=null; if(look){ st.pick=false; draw(); } else closeSheet(); };
     const sel=()=>st.a?[st.a,st.e||st.a]:null;
     const paint=()=>{ const r=sel(); grid.querySelectorAll("button[data-s]").forEach(b=>{ const s=b.dataset.s, on=r&&s>=r[0]&&s<=r[1]; b.classList.toggle("sel",!!on); b.classList.toggle("s0",!!on&&(s===r[0]||parse(s).getDay()===1)); b.classList.toggle("s1",!!on&&(s===r[1]||parse(s).getDay()===0)); });
-      msg.hidden=true; go.disabled=true; sumb.innerHTML="";
-      if(!r){ line.textContent="① Starttag auswählen"; return; }
-      if(!st.e){ line.textContent="② Endtag auswählen (Start: "+vsRange(r[0],r[0])+")"; }
-      const days=vsDays(r[0],r[1]); if(st.e){ line.textContent="③ Prüfen und bestätigen"; if(days.length) sumb.append(vacSummary(r[0],r[1],days)); }
+      msg.hidden=true; go.hidden=true; sumb.innerHTML=""; line.hidden=!st.pick; start.hidden=st.pick; cancel.hidden=!st.pick;
+      if(!st.pick) return;
+      if(!r){ line.textContent="1. Starttag auswählen"; return; }
+      if(!st.e){ line.textContent="2. Endtag auswählen (Start: "+vsRange(r[0],r[0])+")"; return; }
+      const days=vsDays(r[0],r[1]); line.textContent="Du planst "+days.length+(days.length===1?" Urlaubstag.":" Urlaubstage."); if(days.length) sumb.append(vacSummary(r[0],r[1],days));
       if(!days.length){ msg.textContent="An diesen Tagen hast du sowieso frei."; msg.hidden=false; return; }
       if(vacOver(days).length){ msg.textContent="Dafür reichen deine Urlaubstage leider nicht."; msg.hidden=false; return; }
-      go.disabled=!st.e; };
+      go.hidden=false; };
     const draw=()=>{ const n=vacRest(st.y); rest.innerHTML=""; rest.append(document.createTextNode("Noch "), el("b",null,String(Math.max(0,n))), document.createTextNode(n===1?" Urlaubstag übrig":" Urlaubstage übrig"));
       if(st.y!==+t.slice(0,4)) rest.append(el("small",null,"im Jahr "+st.y));
-      const yr=st.view==="jahr"; [yb,grid,line,go].forEach(x=>x.hidden=yr); back.hidden=yr===false; yw.hidden=!yr; if(yr) msg.hidden=true;
+      const yr=st.view==="jahr"; [grid,info,line,go,start,cancel].forEach(x=>x.hidden=yr); yb.hidden=yr||look; back.hidden=yr===false; yw.hidden=!yr; if(yr) msg.hidden=true;
       prev.setAttribute("aria-label",yr?"Jahr zurück":"Monat zurück"); next.setAttribute("aria-label",yr?"Jahr vor":"Monat vor");
       if(yr){ mn.textContent="Jahr "+st.y; yw.innerHTML=""; yw.append(yearGrid(st.y,m=>{ st.m=m; st.view="monat"; draw(); }), el("p","hint","T = Tagschicht · S = Spätschicht · N = Nachtschicht · F = frei · Urlaub grün. Monat antippen, um dort Urlaub einzutragen.")); return; }
-      grid.className="vsgrid";
+      grid.className="vsgrid"+(st.pick?" vpick":"");
       mn.textContent=MONF_[st.m]+" "+st.y; grid.innerHTML=""; WDS.forEach(w=>grid.append(el("span","dw",w)));
       const f=st.y+"-"+pad(st.m+1)+"-01", l=lastOfMonth(f); for(let k=(parse(f).getDay()+6)%7;k>0;k--) grid.append(el("span"));
-      for(let s=f;s<=l;s=addD(s,1)){ const b=el("button",null,String(+s.slice(8,10))); b.type="button"; b.dataset.s=s; const w=parse(s).getDay();
-        if(w===0||w===6||holName(s)) b.classList.add("we"); if(vacAt(s)) b.classList.add("has"); if(s===t) b.classList.add("isnow"); grid.append(b); }
+      for(let s=f;s<=l;s=addD(s,1)){ const b=el("button"); b.type="button"; b.dataset.s=s; const w=parse(s).getDay(), x=shiftOf(s), dk=dayKind(s);
+        b.append(el("b",null,String(+s.slice(8,10))));
+        if(dk==="v"){ b.classList.add("vac"); b.style.setProperty("--c",vacColor()); b.append(el("small",null,"U")); }
+        else if(x && x.kind!=="free" && dk!=="f"){ b.classList.add("sh"); b.style.setProperty("--c",x.color); b.append(el("small",null,x.short)); }
+        else b.append(el("small",null,""));
+        if(w===0||w===6) b.classList.add("we"); if(holName(s)) b.classList.add("ho"); if(ferien(s)) b.classList.add("fe"); if(s===t) b.classList.add("isnow");
+        b.title=fmt(s)+(holName(s)?" · "+holName(s):"")+(ferien(s)?" · "+ferien(s)[2]:"")+(dk==="v"?" · Urlaub":x?" · "+x.name:""); grid.append(b); }
+      /* Ferien und Feiertage dieses Monats ausgeschrieben */
+      info.innerHTML=""; curFerien().filter(fe=>hasFerien()&&fe[0]<=l&&fe[1]>=f).forEach(fe=>info.append(el("div","jfer","🟡 "+fe[2]+": "+ddm(fe[0])+" – "+ddm(fe[1]))));
+      for(let d=f; d<=l; d=addD(d,1)){ const hn=holName(d); if(hn) info.append(el("div","jhol","🔴 "+ddm(d)+" "+hn)); }
+      info.hidden=!info.children.length;
       paint(); };
-    const at=ev=>{ const x=document.elementFromPoint(ev.clientX,ev.clientY); return x&&x.dataset&&x.dataset.s?x.dataset.s:null; };
-    grid.addEventListener("pointerdown",ev=>{ const s=at(ev); if(!s) return; drag={s0:s,moved:false}; try{ grid.setPointerCapture(ev.pointerId); }catch(e){} });
+    const at=ev=>{ const x=document.elementFromPoint(ev.clientX,ev.clientY), b=x&&x.closest&&x.closest("button[data-s]"); return b?b.dataset.s:null; };
+    grid.addEventListener("pointerdown",ev=>{ const s=at(ev); if(!s) return; if(!st.pick){ const v=vacAt(s); if(v && dayKind(s)==="v") openVacChoice({id:v.id,a:v.a,e:v.e,n:vacDaysOf(v).length}); return; } drag={s0:s,moved:false}; try{ grid.setPointerCapture(ev.pointerId); }catch(e){} });
     grid.addEventListener("pointermove",ev=>{ if(!drag) return; const s=at(ev); if(!s||(s===drag.s0&&!drag.moved)) return; drag.moved=true; st.a=s<drag.s0?s:drag.s0; st.e=s<drag.s0?drag.s0:s; paint(); });
     const up=()=>{ if(!drag) return; const s=drag.s0, mvd=drag.moved; drag=null; if(mvd) return;
-      if(st.a&&!st.e){ if(s<st.a){ st.e=st.a; st.a=s; } else st.e=s; } else { st.a=s; st.e=null; } paint(); if(st.e) setTimeout(()=>{ try{ go.scrollIntoView({behavior:"smooth",block:"end"}); }catch(e){} },50); };
+      if(st.a&&!st.e){ if(s<st.a){ st.e=st.a; st.a=s; } else st.e=s; } else { st.a=s; st.e=null; } paint(); if(st.e) setTimeout(()=>{ try{ cancel.scrollIntoView({behavior:"smooth",block:"end"}); }catch(e){} },50); };
     grid.addEventListener("pointerup",up); grid.addEventListener("pointercancel",()=>{ drag=null; });
     go.onclick=()=>{ const r=sel(); if(!r||!st.e) return; const days=vsDays(r[0],r[1]); if(vacOver(days).length){ msg.textContent="Dafür reichen deine Urlaubstage leider nicht."; msg.hidden=false; return; }
-      vacSave(r[0],r[1],days); st.a=st.e=null; draw(); render(); };
-    box.append(rest,yb,back,nav,grid,yw,line,sumb,msg,go); draw(); }); }
+      vacSave(r[0],r[1],days); st.a=st.e=null; if(look) st.pick=false; draw(); render(); };
+    box.append(rest,yb,back,nav,grid,yw,info,start,line,sumb,msg,go,cancel); draw(); }); }
 
 /* ---------- Statistik ---------- */
 /* Zeitraum für die Statistik: Kalendermonat, Abrechnungszeitraum (z. B. 16.–15.) oder frei von–bis */
@@ -2993,7 +2989,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.07-66";
+const APP_VERSION="2026.10.07-67";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
