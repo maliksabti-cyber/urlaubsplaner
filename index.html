@@ -699,6 +699,7 @@ body .seg.pseg3{grid-template-columns:repeat(3,1fr)}
   <button class="icon-btn" type="button" id="gear" aria-label="Einstellungen"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
 </div></header>
 
+<noscript><p style="padding:24px;font:18px system-ui">Schicht &amp; Urlaub braucht JavaScript. Bitte im Browser einschalten.</p></noscript>
 <main class="wrap">
   <section id="v-heute" class="sec"></section>
   <section id="v-jahr" class="sec" hidden></section>
@@ -710,11 +711,8 @@ body .seg.pseg3{grid-template-columns:repeat(3,1fr)}
   <section id="v-mehr" class="sec" hidden></section>
 </main>
 
-<button class="fab" id="fab" type="button">+ Urlaub</button>
-<div class="selbar" id="selbar" hidden><div class="in">
-  <div class="row"><b class="grow" id="selcount">Tage antippen</b><button class="btn" type="button" id="selrep">↻ Wiederholen</button><button class="btn" type="button" id="selundo" aria-label="Rückgängig">↶</button><button class="btn" type="button" id="selend">Fertig</button></div>
-  <div class="chips" id="selchips"></div>
-</div></div>
+<button class="fab" id="fab" type="button"></button>
+<div class="selbar" id="selbar" hidden><div class="in"></div></div>
 
 <nav class="tabs" role="tablist"><div class="tabs-in">
   <button role="tab" data-v="heute" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Heute</button>
@@ -722,28 +720,17 @@ body .seg.pseg3{grid-template-columns:repeat(3,1fr)}
   <button role="tab" data-v="mehr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>Mehr</button>
 </div></nav>
 </div>
-<div class="auth" id="auth" hidden><div class="acard">
-  <span class="logo big" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M7 13h4v4H7z"/></svg></span>
-  <h1>Schicht &amp; Urlaub</h1>
-  <p class="muted">Dein Schichtplan mit Rhythmus, Urlaub und PDF zum Teilen.</p>
-  <div id="aload" class="aload" hidden><span id="aloadt">Lade …</span><button class="btn" type="button" id="aretry" hidden>Erneut versuchen</button></div>
-  <form id="aform" autocomplete="on" hidden>
-    <div class="seg full" role="tablist"><button type="button" id="a-login" aria-selected="true">Anmelden</button><button type="button" id="a-new" aria-selected="false">Konto erstellen</button></div>
-    <label class="f" id="aname-w" hidden>Vorname<input type="text" id="aname" autocomplete="given-name" placeholder="z. B. Malik"></label>
-    <label class="f">E-Mail<input type="email" id="amail" autocomplete="email" inputmode="email" placeholder="name@beispiel.de"></label>
-    <label class="f">Passwort<input type="password" id="apw" autocomplete="current-password" placeholder="mindestens 6 Zeichen"></label>
-    <div class="amsg" id="amsg" role="status"></div>
-    <button class="btn pri" type="submit" id="ago">Anmelden</button>
-    <button class="linkbtn" type="button" id="aforgot">Passwort vergessen?</button>
-  </form>
-  <p class="afoot">Mit der Anmeldung akzeptierst du die <a href="#" onclick="return false">Datenschutzerklärung</a>.</p>
-</div></div>
+<div class="auth" id="auth" hidden><div class="acard"></div></div>
 <div class="onb" id="onb" hidden><div class="acard" id="onbbox"></div></div>
 
 <div class="sheet" id="sheet" hidden><div class="bg" id="sheetbg"></div><div class="pan" id="pan" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" hidden role="status" aria-live="polite"><span id="toastt"></span><button type="button" id="toastb" hidden></button></div>
 
 <script>
+/* Anmelde- und Malleisten-Bausteine erst per Skript einsetzen: Wer die Seite nur als Text liest (ohne die App zu starten), sieht so keine versteckten Knöpfe wie „Lade …“ oder die Anmeldung. */
+document.querySelector("#auth .acard").innerHTML="\n  <span class=\"logo big\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4.5\" width=\"18\" height=\"16.5\" rx=\"2\"/><path d=\"M3 9.5h18M8 2.5v4M16 2.5v4\"/><path d=\"M7 13h4v4H7z\"/></svg></span>\n  <h1>Schicht &amp; Urlaub</h1>\n  <p class=\"muted\">Dein Schichtplan mit Rhythmus, Urlaub und PDF zum Teilen.</p>\n  <div id=\"aload\" class=\"aload\" hidden><span id=\"aloadt\"></span><button class=\"btn\" type=\"button\" id=\"aretry\" hidden></button></div>\n  <form id=\"aform\" autocomplete=\"on\" hidden>\n    <div class=\"seg full\" role=\"tablist\"><button type=\"button\" id=\"a-login\" aria-selected=\"true\">Anmelden</button><button type=\"button\" id=\"a-new\" aria-selected=\"false\">Konto erstellen</button></div>\n    <label class=\"f\" id=\"aname-w\" hidden>Vorname<input type=\"text\" id=\"aname\" autocomplete=\"given-name\" placeholder=\"z. B. Malik\"></label>\n    <label class=\"f\">E-Mail<input type=\"email\" id=\"amail\" autocomplete=\"email\" inputmode=\"email\" placeholder=\"name@beispiel.de\"></label>\n    <label class=\"f\">Passwort<input type=\"password\" id=\"apw\" autocomplete=\"current-password\" placeholder=\"mindestens 6 Zeichen\"></label>\n    <div class=\"amsg\" id=\"amsg\" role=\"status\"></div>\n    <button class=\"btn pri\" type=\"submit\" id=\"ago\">Anmelden</button>\n    <button class=\"linkbtn\" type=\"button\" id=\"aforgot\">Passwort vergessen?</button>\n  </form>\n  <p class=\"afoot\">Mit der Anmeldung akzeptierst du die <a href=\"#\" onclick=\"return false\">Datenschutzerklärung</a>.</p>\n";
+document.querySelector("#selbar .in").innerHTML="\n  <div class=\"row\"><b class=\"grow\" id=\"selcount\">Tage antippen</b><button class=\"btn\" type=\"button\" id=\"selrep\">↻ Wiederholen</button><button class=\"btn\" type=\"button\" id=\"selundo\" aria-label=\"Rückgängig\">↶</button><button class=\"btn\" type=\"button\" id=\"selend\">Fertig</button></div>\n  <div class=\"chips\" id=\"selchips\"></div>\n";
+document.querySelector("#fab").textContent="+ Urlaub";
 /* ===================== Grundlagen ===================== */
 const $=s=>document.querySelector(s);
 function el(tag,cls,txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; }
@@ -1601,7 +1588,7 @@ function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; installCard(box
    ["👥","Team","Team erstellen oder beitreten, Team-Kalender",()=>show("team")],["📊","Statistik","Stunden und Überstunden",()=>show("stat")],["🧮","Urlaubsrechner","Wann lohnt sich Urlaub? (Brückentage)",()=>{ agState.year=planYear(); openAgent(); }],
    ["📆","Mit Apple/Google Kalender verbinden","Schichten und Urlaub in deinen Handy-Kalender",()=>ask("Kalender verbinden?","Deine Schichten und dein Urlaub werden als Kalender-Datei übergeben.\nApple: Datei öffnen → „Alle hinzufügen“.\nGoogle: calendar.google.com → Einstellungen → Importieren.",[{label:"Ja, verbinden",pri:true,fn:()=>calSave()},{label:"Nein"}])],["🔄","App aktualisieren","Neueste Version laden",()=>appUpdate()]].filter(Boolean).forEach(([i,t,d,fn])=>{
     const b=el("button","vrow mrow"); b.type="button"; const tx=el("div","grow"); tx.append(el("b",null,t), el("small",null,d)); b.append(el("span","qi",i), tx, el("span","muted","›")); b.onclick=fn; c.append(b); });
-  box.append(c); newsCard(box); }
+  box.append(c); newsCard(box); box.append(el("p","hint mver","Version "+APP_VERSION)); }
 /* Rhythmus und einzelne Schichten an einem Ort */
 function openRhythm(){ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }
 function rhythmDaysCard(){ const c=el("div","card sec"); c.append(el("h3",null,"Einzelne Tage ändern"), el("p","hint","Tausch, Extra-Schicht oder frei: im Jahreskalender die Schicht wählen und mit dem Finger über die Tage ziehen."));
@@ -2765,7 +2752,7 @@ async function bootInner(){ lsSet("su_team",null); lsSet("su_team_cache",null);
   if(!S || !S.onboarded){ S=S||defaults(); openOnboarding(); return; }
   enterApp(); pull();
 }
-$("#aretry").onclick=()=>boot();
+$("#aretry").onclick=()=>boot(); $("#aretry").textContent="Erneut versuchen";
 $("#help").onclick=()=>openHelp();
 /* Link angetippt, während die App schon offen ist */
 window.addEventListener("hashchange",()=>{ if(!S || !S.onboarded || $("#appui").hidden) return; const h=location.hash;
@@ -2977,7 +2964,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.07-62";
+const APP_VERSION="2026.10.07-63";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
