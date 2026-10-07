@@ -2203,7 +2203,7 @@ function drawYPOne(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypv
     const s=y+"-"+pad(m+1)+"-"+pad(d), c=ypCell(s,t,true,sh), sm=c.querySelector(".ypd small"); if(sm) sm.textContent=WDF[parse(s).getDay()];
     if(r&&s>=r[0]&&s<=r[1]){ c.classList.add("sel"); if(s===r[0]) c.classList.add("s0"); if(s===r[1]) c.classList.add("s1"); } g.append(c); }
   ov.append(g);
-  requestAnimationFrame(()=>{ const fx=document.querySelector("#v-urlaub .ypfix"); if(!fx) return; const top2=g.getBoundingClientRect().top+window.scrollY, h=Math.max(40,Math.floor((fx.getBoundingClientRect().top-top2-6)/16)); g.style.setProperty("--yprow",h+"px"); });
+  requestAnimationFrame(()=>{ const fx=document.querySelector("#v-urlaub .ypfix"); if(!fx) return; const top2=g.getBoundingClientRect().top+window.scrollY, h=Math.max(26,Math.floor((fx.getBoundingClientRect().top-top2-6)/16)); g.style.setProperty("--yprow",h+"px"); });
   if(st.paint && st.a && st.e) ov.append(ypFixBar(st));
   else { const fb=el("div","ypfix ypmain");
     if(!st.paint){ const b=el("button","btn pri","Urlaub eintragen"); b.type="button"; b.onclick=()=>{ st.paint=true; st.a=st.e=null; drawYP(st); }; fb.append(b); }
