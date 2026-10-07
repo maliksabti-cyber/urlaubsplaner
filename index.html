@@ -754,6 +754,20 @@ body[data-v="urlaub"] header.bar{display:none}body[data-v="urlaub"] .urrow,body[
 body[data-v="urlaub"] .wrap{padding-top:2px}body[data-v="urlaub"] .urline{gap:0}body[data-v="urlaub"] .urmeter{height:3px}#v-urlaub{gap:2px}.yplan.inline.ypvac{gap:2px}.yplan.inline.ypvac .yph{line-height:1.25}
 .yplan.inline.ypvac .yptop h2{font-size:16px;white-space:normal;line-height:1.15;text-align:center;min-width:0}.yplan.inline.ypvac .yptop{gap:6px}
 .ypleg{font-size:13px;gap:8px}.ypleg .yps{min-width:16px;height:16px;line-height:16px;font-size:11px}.ypleg .ypc{width:14px!important;height:14px!important}.ypshbtn{font-size:14px;padding:6px 10px}
+/* Monatsbalken: Pfeile, Schatten, Hinweis */
+.ypwin{position:relative}
+.ypmarr{position:absolute;top:0;z-index:4;height:20px;width:30px;border:0;padding:0;font:800 22px/1 var(--f-body);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ypml{left:0;background:linear-gradient(90deg,var(--ink) 65%,transparent)}.ypmr{right:0;background:linear-gradient(270deg,var(--ink) 65%,transparent)}
+.ypmarr.off{opacity:.3;cursor:default}
+.yplan.inline.ypvac .yph{font-size:13px;line-height:20px;padding:0 6px}
+.ypwin::before,.ypwin::after{content:"";position:absolute;top:20px;bottom:0;width:12px;z-index:3;pointer-events:none}
+.ypwin::before{left:0;background:linear-gradient(90deg,rgba(0,0,0,.22),transparent)}.ypwin::after{right:0;background:linear-gradient(270deg,rgba(0,0,0,.22),transparent)}
+.ypwin.noL::before,.ypwin.noR::after{display:none}
+.ypswhint{position:absolute;top:30px;left:8px;right:8px;z-index:6;background:var(--ink);color:var(--paper);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.ypswhint p{margin:0;font-size:17px;font-weight:700;flex:1}.ypswhint .btn{min-height:48px;flex:none;background:var(--paper);color:var(--ink)}
+@keyframes ypnudge{0%,100%{transform:translateX(-33.3333%)}35%,55%{transform:translateX(calc(-33.3333% - 36px))}}
+.yplan.inline.ypvac .ypwin .ypgrid.ypnudge{animation:ypnudge 1s ease-in-out}
+.yplan.inline.ypvac .yph.yphl{padding-left:26px}.yplan.inline.ypvac .yph.yphr{padding-right:26px}
 .hlab{display:block;font-size:17px;color:var(--soft);font-weight:600;margin-bottom:2px}
 .hfer{font-size:18px;font-weight:600;border-left:5px solid #FFD43B}
 
@@ -2027,6 +2041,7 @@ function openGuide(gid){ gid=gid||activeGoal(); const g=goalById(gid); if(!g){ o
 function goKal(){ closeSheet(); show("kal"); }
 function goSettings(id){ closeSheet(); show("set"); if(id) setTimeout(()=>{ const e=$("#"+id); if(e){ e.scrollIntoView({block:"center"}); e.focus(); } },150); }
 const HELP=[
+  ["↔","Andere Monate ansehen","Andere Monate ansehen: Wische auf dem schwarzen Monatsbalken oder tippe auf die Pfeile.",()=>{ closeSheet(); show("urlaub"); }],
   ["📅","Schichten eintragen","Schichtplan → „Schichten eintragen“. Rechts eine Schicht antippen (z. B. T), dann im Kalender auf die Tage tippen oder mit dem Finger darüberwischen. Fertig mit „Fertig“.",()=>{ closeSheet(); show("kal"); setSel(true); }],
   ["↻","Mein Rhythmus","Wiederholt sich dein Plan? Unter „Mein Rhythmus“ einmal eintragen – z. B. eine fertige Vorlage wie 2-2-2 wählen – dann füllt die App den Kalender automatisch.",()=>{ tplList().length||(S.rots||[]).length?openRotations():openTpl(null); }],
   ["☀","Urlaub eintragen","Startseite → „Urlaub eintragen“: im Jahreskalender ersten und letzten Tag antippen (oder eine Linie ziehen) und „Urlaub eintragen“ tippen. Gezählt werden nur Tage, an denen du laut Plan arbeiten würdest – Feiertage und freie Tage nicht. Mehr als dein Jahresanspruch geht nicht.",()=>openYearPlanner()],
@@ -2156,7 +2171,8 @@ const ypShifts=()=>lsGet("su_ushift")==="1";
 function drawYPVac(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypvac"); const t=TODAY(), n=new Date(), first="Tippe den ersten Urlaubstag an.", sh=ypShifts();
   if(st.s==null) st.s=st.y===n.getFullYear()?st.y*12+n.getMonth():st.y*12;
   const s0=st.s, lab=k=>MONK[((k%12)+12)%12]+" "+Math.floor(k/12), ttl=Math.floor(s0/12)===Math.floor((s0+5)/12)?MONK[s0%12]+" – "+lab(s0+5):lab(s0)+" – "+lab(s0+5);
-  const go=k=>{ st.s=k; st.y=Math.floor(k/12); if(!st.paint) st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); };
+  const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+6; /* Kalender: Januar letztes Jahr bis Dezember übernächstes Jahr */
+  const go=k=>{ k=Math.max(sMin,Math.min(sMax,k)); st.s=k; st.y=Math.floor(k/12); if(!st.paint) st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); };
   const top=el("div","yptop"), pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Sechs Monate zurück"); nx.setAttribute("aria-label","Sechs Monate vor");
   pv.onclick=()=>go(s0-6); nx.onclick=()=>go(s0+6);
   const hb=el("button","btn ghost yptoday","Heute"); hb.type="button"; hb.onclick=()=>go(n.getFullYear()*12+n.getMonth());
@@ -2173,7 +2189,7 @@ function drawYPVac(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypv
   /* 18 Spalten: 6 davor, 6 sichtbar, 6 danach – damit das Wischen echte Monate zeigt */
   const win=el("div","ypwin"), g=el("div","ypgrid"); g.style.gridTemplateColumns="repeat(18,minmax(0,1fr))"; g.style.gridTemplateRows="auto"; win.append(g);
   const ms=[]; for(let k=s0-6;k<s0+12;k++) ms.push([Math.floor(k/12),((k%12)+12)%12]);
-  ms.forEach(([yy,m])=>{ const h=el("div","yph",MONS[m]); if(m===0) h.classList.add("ypny"); h.title=MONF_[m]+" "+yy; g.append(h); });
+  ms.forEach(([yy,m],i)=>{ const h=el("div","yph",MONS[m]); if(i===6) h.classList.add("yphl"); if(i===11) h.classList.add("yphr"); if(m===0) h.classList.add("ypny"); h.title=MONF_[m]+" "+yy; g.append(h); });
   const r=st.a?[st.a,st.e||st.a]:null;
   for(let d=1; d<=31; d++) ms.forEach(([yy,m])=>{ if(d>new Date(yy,m+1,0).getDate()){ g.append(el("div","ypc none")); return; }
     const s=yy+"-"+pad(m+1)+"-"+pad(d), c=ypCell(s,t,true,sh); if(r&&s>=r[0]&&s<=r[1]){ c.classList.add("sel"); if(s===r[0]) c.classList.add("s0"); if(s===r[1]) c.classList.add("s1"); } g.append(c); });
@@ -2182,7 +2198,15 @@ function drawYPVac(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypv
   let drag=null; const W=()=>win.clientWidth, setX=(dx,anim)=>{ g.style.transition=anim?"transform .22s ease-out":"none"; g.style.transform="translateX(calc(-33.3333% + "+dx+"px))"; };
   g.addEventListener("pointerdown",ev=>{ if(!ev.target.closest(".yph")) return; drag={x:ev.clientX,dx:0,id:ev.pointerId}; try{ g.setPointerCapture(ev.pointerId); }catch(e){} setX(0,false); });
   g.addEventListener("pointermove",ev=>{ if(!drag) return; drag.dx=Math.max(-W(),Math.min(W(),ev.clientX-drag.x)); setX(drag.dx,false); });
-  const end=()=>{ if(!drag) return; const cw=W()/6, k=Math.max(-6,Math.min(6,Math.round(-drag.dx/cw))); drag=null; setX(-k*cw,true); if(k) setTimeout(()=>go(s0+k),230); };
+  const end=()=>{ if(!drag) return; const cw=W()/6; let k=Math.max(-6,Math.min(6,Math.round(-drag.dx/cw))); k=Math.max(sMin-s0,Math.min(sMax-s0,k)); drag=null; setX(-k*cw,true); if(k) setTimeout(()=>go(s0+k),230); };
+  /* Pfeile im Monatsbalken: je ein Monat; Schatten an der Seite mit weiteren Monaten */
+  const step=k=>{ if(s0+k<sMin||s0+k>sMax) return; setX(-k*W()/6,true); setTimeout(()=>go(s0+k),230); };
+  [["‹",-1,"ypml","Einen Monat zurück"],["›",1,"ypmr","Einen Monat vor"]].forEach(([tx,k,cl,al])=>{ const b=el("button","ypmarr "+cl,tx); b.type="button"; b.setAttribute("aria-label",al); if(s0+k<sMin||s0+k>sMax) b.classList.add("off"); b.onclick=()=>step(k); win.append(b); });
+  win.classList.toggle("noL",s0<=sMin); win.classList.toggle("noR",s0>=sMax);
+  /* einmaliger Hinweis + kleine Bewegung */
+  if(!lsGet("su_swipehint")){ const hn=el("div","ypswhint"), ok=el("button","btn","Verstanden"); ok.type="button"; ok.onclick=()=>{ lsSet("su_swipehint","1"); hn.remove(); };
+    hn.append(el("p",null,"Wische oder tippe auf die Pfeile, um andere Monate zu sehen."), ok); win.append(hn);
+    if(!st.nudged){ st.nudged=true; setTimeout(()=>{ g.classList.add("ypnudge"); setTimeout(()=>g.classList.remove("ypnudge"),1100); },400); } }
   g.addEventListener("pointerup",end); g.addEventListener("pointercancel",end);
   /* EIN Knopf fest unten */
   if(st.paint && st.a && st.e) ov.append(ypFixBar(st));
@@ -3105,7 +3129,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.07-70";
+const APP_VERSION="2026.10.07-71";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
