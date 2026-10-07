@@ -814,6 +814,58 @@ body:has(.ypfix) .wrap{padding-bottom:240px}
 .hsave2{font-size:17px;color:var(--soft);text-align:center;margin:8px 0 0}.hsave2 .linkbtn{display:inline;min-height:48px;padding:0 6px!important;color:var(--ink)!important;font-weight:700}
 .mico{width:40px;display:grid;place-items:center;color:var(--ink);flex:none}
 .thseg{width:100%}.thseg button{min-height:52px;font-size:18px}
+
+/* ===== Design: runder, weicher, hochwertiger (nur Optik) ===== */
+:root{--paper:#F6F5F1;--card:#FFFFFF;--ink:#1F2A33;--rule:#D3D9DD;--tint:#EEF0F0;--line:#E6E9EB;--bar:#2D353C;--barink:#F4F6F7;--vgreen:#2F9E5F;--fer-y:#FFF0A6;--hol-r:#E0574B;--sh-soft:0 2px 6px rgba(31,42,51,.06),0 8px 24px rgba(31,42,51,.08)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--paper:#14191D;--card:#1C2328;--ink:#EDF1F3;--rule:#37424A;--tint:#232B31;--line:#2C353C;--bar:#323C44;--barink:#F4F6F7;--fer-y:#5C5320;--hol-r:#F07468;--sh-soft:0 2px 10px rgba(0,0,0,.35)} }
+:root[data-theme="dark"]{--paper:#14191D;--card:#1C2328;--ink:#EDF1F3;--rule:#37424A;--tint:#232B31;--line:#2C353C;--bar:#323C44;--barink:#F4F6F7;--fer-y:#5C5320;--hol-r:#F07468;--sh-soft:0 2px 10px rgba(0,0,0,.35)}
+body{font-family:Figtree,system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3,.bar h1{font-weight:800}.hint,.muted{opacity:.9}
+/* Formen */
+.card,.pan,.sheet .pan,.ulist,.vsum,.ypswhint,.ask,.toast{border-radius:18px!important}
+.card{border-color:var(--line);box-shadow:var(--sh-soft)}
+.btn,.linkbtn.btn,.yptoday,.ypshbtn,.ypallbtn,.seg,.seg button{border-radius:999px!important}
+.icon-btn,.yptop .icon-btn{border-radius:50%!important}
+.btn,.icon-btn,.ypobtn,.ypmarr,nav.tabs button{transition:transform .15s ease,background-color .15s ease,box-shadow .15s ease}
+.btn:active,.icon-btn:active,.ypobtn:active,.ypmarr:active{transform:scale(.96)}
+/* fester Hauptknopf und Leiste */
+.ypfix{border-radius:22px!important;border:1px solid var(--line)!important;box-shadow:var(--sh-soft),0 10px 30px rgba(31,42,51,.12)!important;left:12px!important;right:12px!important}
+.ypfix .btn.pri{box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
+body[data-v="urlaub"] .ypfix.ypmain .btn.pri{min-height:54px;font-size:21px}
+/* Navigation: runde Ecken oben, aktiver Reiter mit oranger Pille */
+nav.tabs{border-top:0;border-radius:22px 22px 0 0;box-shadow:0 -6px 24px rgba(31,42,51,.10)}
+.tabs button svg{width:24px;height:24px;padding:4px 16px;box-sizing:content-box;border-radius:999px;transition:background-color .18s ease}
+.tabs button[aria-selected="true"] svg{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+/* Monatsbalken: Anthrazit, runde Ecken, Pfeile in runden Flächen */
+.yplan.inline.ypvac .ypwin{border-radius:12px;box-shadow:var(--sh-soft)}
+.yplan.inline.ypvac .yph{background:var(--bar)!important;color:var(--barink)!important;text-align:center}
+.ypmarr{background:transparent!important;width:30px}.ypmarr::before{content:"";position:absolute;inset:1px 5px;border-radius:50%;background:rgba(255,255,255,.16);z-index:-1}
+.ypmarr{color:#fff;font-size:18px;isolation:isolate}
+.ypobar{background:var(--bar)!important;color:var(--barink)!important;border-radius:14px!important;margin-bottom:4px}
+.ypobtn{position:relative;isolation:isolate}.ypobtn::before{content:"";position:absolute;width:38px;height:38px;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:rgba(255,255,255,.14);z-index:-1}
+/* Zellen: dünne helle Linien, leicht gerundet */
+.yplan.inline.ypvac .ypgrid{background:var(--card)!important}
+.yplan.inline.ypvac .ypc{border-right:1px solid var(--line)!important;border-bottom:1px solid var(--line)!important;border-radius:5px}
+.yplan.inline.ypvac .ypc.sa,.yplan.inline.ypvac .ypc.so{background:color-mix(in srgb,var(--soft) 8%,var(--card))}
+.yplan.inline.ypvac .ypc.fe{background:var(--fer-y)}
+.yplan.inline.ypvac .ypc.ho{box-shadow:inset 0 0 0 2px var(--hol-r);border-radius:6px}
+.yplan.inline.ypvac .ypc.va{background:color-mix(in srgb,var(--vgreen) 22%,var(--card));box-shadow:inset 0 -3px 0 var(--vgreen)}
+.yplan.inline.ypvac .ypc.now{outline:2.5px solid var(--ink);outline-offset:-2.5px;border-radius:6px}
+.yplan.inline.ypvac .ypc.s0,.yplan.inline.ypvac .ypc.s1{border-radius:6px}
+.yplan.inline.ypvac .ypc.none{background:color-mix(in srgb,var(--soft) 14%,var(--card))}
+/* Badges rund */
+.yps{border-radius:999px!important}.yplan.inline.ypvac .ypc .yps{filter:saturate(.88)}
+.ypleg .ypc.fe,.ypstat .ypc.fe{background:var(--fer-y)!important;border-radius:4px}.ypleg .ypc.ho{box-shadow:inset 0 0 0 2px var(--hol-r)!important;border-radius:4px}
+/* Meldungen: sanft einblenden */
+@keyframes tIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.toast:not([hidden]){animation:tIn .18s ease-out;box-shadow:0 10px 28px rgba(0,0,0,.22)}
+.ypswhint{animation:fadeIn .18s ease-out}@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+/* Abstände */
+.wrap{padding-left:16px;padding-right:16px}.mlist,.card+.card{margin-top:0}
+#v-mehr,#v-heute,#v-set{gap:12px}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .ypc .yps{box-shadow:0 0 0 1px rgba(255,255,255,.28)} }
+:root[data-theme="dark"] .ypc .yps{box-shadow:0 0 0 1px rgba(255,255,255,.28)}
+.ypshbtn[aria-pressed="true"]{background:var(--bar)!important;color:var(--barink)!important;border-color:var(--bar)!important}
 </style>
 </head>
 <body>
@@ -3203,7 +3255,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.07-73";
+const APP_VERSION="2026.10.07-74";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
