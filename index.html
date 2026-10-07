@@ -768,6 +768,14 @@ body[data-v="urlaub"] .wrap{padding-top:2px}body[data-v="urlaub"] .urline{gap:0}
 @keyframes ypnudge{0%,100%{transform:translateX(-33.3333%)}35%,55%{transform:translateX(calc(-33.3333% - 36px))}}
 .yplan.inline.ypvac .ypwin .ypgrid.ypnudge{animation:ypnudge 1s ease-in-out}
 .yplan.inline.ypvac .yph.yphl{padding-left:26px}.yplan.inline.ypvac .yph.yphr{padding-right:26px}
+/* Einzelner Monat */
+.ypallbtn{min-height:48px;font-size:17px;font-weight:800;padding:6px 14px}
+.ypobar{display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:var(--paper);border-radius:10px 10px 0 0;min-height:48px;touch-action:pan-y;user-select:none}
+.ypobar b{font-size:21px}.ypobtn{width:56px;min-height:48px;border:0;background:none;color:#fff;font:800 28px/1 var(--f-body);cursor:pointer}.ypobtn.off{opacity:.3}
+.yplan.inline.ypvac .ypgrid.ypone{grid-template-columns:1fr 1fr!important;grid-template-rows:repeat(16,var(--yprow,40px))!important;grid-auto-flow:column;gap:0;width:100%}
+.yplan.inline.ypvac .ypone .ypc{height:var(--yprow,40px);justify-content:space-between;padding:0 10px;font-size:18px}
+.yplan.inline.ypvac .ypone .ypd b{font-size:19px;min-width:24px;text-align:right}.yplan.inline.ypvac .ypone .ypd small{font-size:16px;opacity:.9}
+.yplan.inline.ypvac .ypone .ypc .yps{min-width:24px;height:24px;line-height:24px;font-size:15px;border-radius:6px}
 .hlab{display:block;font-size:17px;color:var(--soft);font-weight:600;margin-bottom:2px}
 .hfer{font-size:18px;font-weight:600;border-left:5px solid #FFD43B}
 
@@ -2168,7 +2176,43 @@ function ypHome(st){ const n=new Date(); st.y=n.getFullYear(); st.h=n.getMonth()
    st.s = erster sichtbarer Monat als Zahl (Jahr*12+Monat). Schichten ein/aus wird gemerkt (su_ushift). */
 const MONK=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 const ypShifts=()=>lsGet("su_ushift")==="1";
-function drawYPVac(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypvac"); const t=TODAY(), n=new Date(), first="Tippe den ersten Urlaubstag an.", sh=ypShifts();
+/* Einzelner Monat (Tipp auf Monatsnamen): ganze Breite, zwei Spalten (1.–16. | 17.–31.), höhere Zeilen, Wochentag ausgeschrieben */
+const WDF=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+function ypSetView(st,one){ if(one==null){ st.one=null; lsSet("su_uview","six"); if(st.six!=null) st.s=st.six; } else { if(st.one==null) st.six=st.s; st.one=one; lsSet("su_uview","one:"+one); }
+  const k=st.one!=null?st.one:st.s; st.y=Math.floor(k/12); if(!st.paint) st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); }
+function drawYPOne(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypvac"); const t=TODAY(), n=new Date(), first="Tippe den ersten Urlaubstag an.", sh=ypShifts();
+  const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+11, k=st.one, y=Math.floor(k/12), m=k%12;
+  const go=x=>{ x=Math.max(sMin,Math.min(sMax,x)); ypSetView(st,x); };
+  const top=el("div","yptop"), all=el("button","btn ypallbtn","‹ Alle Monate"), hb=el("button","btn ghost yptoday","Heute"); all.type=hb.type="button";
+  all.onclick=()=>ypSetView(st,null); hb.onclick=()=>go(n.getFullYear()*12+n.getMonth()); top.append(all, el("div","grow"), hb); ov.append(top);
+  const sl=el("div","ypstat");
+  if(st.paint){ const D=x=>DOW[parse(x).getDay()]+" "+ddm(x); sl.classList.add("on"); sl.textContent=!st.a?first:!st.e?"Start: "+D(st.a):D(st.a)+" – "+D(st.e); }
+  else { const lg=el("div","ypleg"), add=(nd,tx)=>{ const sp=el("span"); sp.append(nd,document.createTextNode(tx)); lg.append(sp); };
+    { const b=el("b","yps","U"); b.style.background=vacColor(); b.style.color="#fff"; add(b,"Urlaub"); } if(hasFerien()) add(el("i","ypc fe"),"Ferien"); add(el("i","ypc ho"),"Feiertag");
+    if(sh) S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const b=el("b","yps"+(x.kind==="free"?" free":""),x.short); if(x.kind!=="free"){ b.style.background=x.color; b.style.color=isDark(x.color)?"#16222B":"#fff"; } add(b,x.name); });
+    const tg=el("button","btn ghost ypshbtn",sh?"Schichten: ein":"Schichten: aus"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); drawYP(st); };
+    sl.append(lg,tg); }
+  ov.append(sl);
+  /* schwarzer Balken: ‹ November 2026 › – Wischen wechselt den Monat */
+  const bar=el("div","ypobar"), pv=el("button","ypobtn","‹"), nx=el("button","ypobtn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Voriger Monat"); nx.setAttribute("aria-label","Nächster Monat");
+  if(k<=sMin) pv.classList.add("off"); if(k>=sMax) nx.classList.add("off"); pv.onclick=()=>go(k-1); nx.onclick=()=>go(k+1);
+  bar.append(pv, el("b",null,MONF_[m]+" "+y), nx); ov.append(bar);
+  let sx=null; bar.addEventListener("pointerdown",ev=>{ sx=ev.clientX; }); bar.addEventListener("pointerup",ev=>{ if(sx==null) return; const dx=ev.clientX-sx; sx=null; if(Math.abs(dx)>40) go(k+(dx<0?1:-1)); });
+  const g=el("div","ypgrid ypone"), days=new Date(y,m+1,0).getDate(), r=st.a?[st.a,st.e||st.a]:null;
+  for(let d=1; d<=32; d++){ if(d>days){ if(d<=32) g.append(el("div","ypc none")); continue; }
+    const s=y+"-"+pad(m+1)+"-"+pad(d), c=ypCell(s,t,true,sh), sm=c.querySelector(".ypd small"); if(sm) sm.textContent=WDF[parse(s).getDay()];
+    if(r&&s>=r[0]&&s<=r[1]){ c.classList.add("sel"); if(s===r[0]) c.classList.add("s0"); if(s===r[1]) c.classList.add("s1"); } g.append(c); }
+  ov.append(g);
+  requestAnimationFrame(()=>{ const fx=document.querySelector("#v-urlaub .ypfix"); if(!fx) return; const top2=g.getBoundingClientRect().top+window.scrollY, h=Math.max(40,Math.floor((fx.getBoundingClientRect().top-top2-6)/16)); g.style.setProperty("--yprow",h+"px"); });
+  if(st.paint && st.a && st.e) ov.append(ypFixBar(st));
+  else { const fb=el("div","ypfix ypmain");
+    if(!st.paint){ const b=el("button","btn pri","Urlaub eintragen"); b.type="button"; b.onclick=()=>{ st.paint=true; st.a=st.e=null; drawYP(st); }; fb.append(b); }
+    else { const b=el("button","btn","Abbrechen"); b.type="button"; b.onclick=()=>{ st.paint=false; st.a=st.e=null; drawYP(st); }; fb.append(el("div","grow ypstep",!st.a?first:"Tippe jetzt den letzten Tag an."), b); }
+    ov.append(fb); }
+  g.addEventListener("click",ev=>{ const c=ev.target.closest(".ypc[data-s]"); if(!c) return; ypTap(st,c.dataset.s); });
+  if(!st.jumped){ st.jumped=true; window.scrollTo(0,0); } }
+function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uview")||""; if(v.startsWith("one:")&&st.one==null){ st.one=+v.slice(4); st.y=Math.floor(st.one/12); } }
+  if(st.one!=null) return drawYPOne(st); const ov=st.root; ov.innerHTML=""; ov.classList.add("ypvac"); const t=TODAY(), n=new Date(), first="Tippe den ersten Urlaubstag an.", sh=ypShifts();
   if(st.s==null) st.s=st.y===n.getFullYear()?st.y*12+n.getMonth():st.y*12;
   const s0=st.s, lab=k=>MONK[((k%12)+12)%12]+" "+Math.floor(k/12), ttl=Math.floor(s0/12)===Math.floor((s0+5)/12)?MONK[s0%12]+" – "+lab(s0+5):lab(s0)+" – "+lab(s0+5);
   const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+6; /* Kalender: Januar letztes Jahr bis Dezember übernächstes Jahr */
@@ -2189,16 +2233,16 @@ function drawYPVac(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypv
   /* 18 Spalten: 6 davor, 6 sichtbar, 6 danach – damit das Wischen echte Monate zeigt */
   const win=el("div","ypwin"), g=el("div","ypgrid"); g.style.gridTemplateColumns="repeat(18,minmax(0,1fr))"; g.style.gridTemplateRows="auto"; win.append(g);
   const ms=[]; for(let k=s0-6;k<s0+12;k++) ms.push([Math.floor(k/12),((k%12)+12)%12]);
-  ms.forEach(([yy,m],i)=>{ const h=el("div","yph",MONS[m]); if(i===6) h.classList.add("yphl"); if(i===11) h.classList.add("yphr"); if(m===0) h.classList.add("ypny"); h.title=MONF_[m]+" "+yy; g.append(h); });
+  ms.forEach(([yy,m],i)=>{ const h=el("div","yph",MONS[m]); h.dataset.k=s0-6+i; if(i===6) h.classList.add("yphl"); if(i===11) h.classList.add("yphr"); if(m===0) h.classList.add("ypny"); h.title=MONF_[m]+" "+yy; g.append(h); });
   const r=st.a?[st.a,st.e||st.a]:null;
   for(let d=1; d<=31; d++) ms.forEach(([yy,m])=>{ if(d>new Date(yy,m+1,0).getDate()){ g.append(el("div","ypc none")); return; }
     const s=yy+"-"+pad(m+1)+"-"+pad(d), c=ypCell(s,t,true,sh); if(r&&s>=r[0]&&s<=r[1]){ c.classList.add("sel"); if(s===r[0]) c.classList.add("s0"); if(s===r[1]) c.classList.add("s1"); } g.append(c); });
   ov.append(win); ypFit(st,g);
   /* Wischen nur auf dem Monatsbalken */
   let drag=null; const W=()=>win.clientWidth, setX=(dx,anim)=>{ g.style.transition=anim?"transform .22s ease-out":"none"; g.style.transform="translateX(calc(-33.3333% + "+dx+"px))"; };
-  g.addEventListener("pointerdown",ev=>{ if(!ev.target.closest(".yph")) return; drag={x:ev.clientX,dx:0,id:ev.pointerId}; try{ g.setPointerCapture(ev.pointerId); }catch(e){} setX(0,false); });
+  g.addEventListener("pointerdown",ev=>{ const hh=ev.target.closest(".yph"); if(!hh) return; drag={x:ev.clientX,dx:0,id:ev.pointerId,k:+hh.dataset.k}; try{ g.setPointerCapture(ev.pointerId); }catch(e){} setX(0,false); });
   g.addEventListener("pointermove",ev=>{ if(!drag) return; drag.dx=Math.max(-W(),Math.min(W(),ev.clientX-drag.x)); setX(drag.dx,false); });
-  const end=()=>{ if(!drag) return; const cw=W()/6; let k=Math.max(-6,Math.min(6,Math.round(-drag.dx/cw))); k=Math.max(sMin-s0,Math.min(sMax-s0,k)); drag=null; setX(-k*cw,true); if(k) setTimeout(()=>go(s0+k),230); };
+  const end=()=>{ if(!drag) return; if(Math.abs(drag.dx)<8){ const kk=drag.k; drag=null; setX(0,false); lsSet("su_monthhint","1"); ypSetView(st,kk); return; } const cw=W()/6; let k=Math.max(-6,Math.min(6,Math.round(-drag.dx/cw))); k=Math.max(sMin-s0,Math.min(sMax-s0,k)); drag=null; setX(-k*cw,true); if(k) setTimeout(()=>go(s0+k),230); };
   /* Pfeile im Monatsbalken: je ein Monat; Schatten an der Seite mit weiteren Monaten */
   const step=k=>{ if(s0+k<sMin||s0+k>sMax) return; setX(-k*W()/6,true); setTimeout(()=>go(s0+k),230); };
   [["‹",-1,"ypml","Einen Monat zurück"],["›",1,"ypmr","Einen Monat vor"]].forEach(([tx,k,cl,al])=>{ const b=el("button","ypmarr "+cl,tx); b.type="button"; b.setAttribute("aria-label",al); if(s0+k<sMin||s0+k>sMax) b.classList.add("off"); b.onclick=()=>step(k); win.append(b); });
@@ -2207,6 +2251,8 @@ function drawYPVac(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypv
   if(!lsGet("su_swipehint")){ const hn=el("div","ypswhint"), ok=el("button","btn","Verstanden"); ok.type="button"; ok.onclick=()=>{ lsSet("su_swipehint","1"); hn.remove(); };
     hn.append(el("p",null,"Wische oder tippe auf die Pfeile, um andere Monate zu sehen."), ok); win.append(hn);
     if(!st.nudged){ st.nudged=true; setTimeout(()=>{ g.classList.add("ypnudge"); setTimeout(()=>g.classList.remove("ypnudge"),1100); },400); } }
+  else if(!lsGet("su_monthhint")){ const hn=el("div","ypswhint"), ok=el("button","btn","Verstanden"); ok.type="button"; ok.onclick=()=>{ lsSet("su_monthhint","1"); hn.remove(); };
+    hn.append(el("p",null,"Tippe auf einen Monat, um ihn einzeln zu sehen."), ok); win.append(hn); }
   g.addEventListener("pointerup",end); g.addEventListener("pointercancel",end);
   /* EIN Knopf fest unten */
   if(st.paint && st.a && st.e) ov.append(ypFixBar(st));
@@ -3129,7 +3175,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.07-71";
+const APP_VERSION="2026.10.07-72";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
