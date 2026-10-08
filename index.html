@@ -980,6 +980,15 @@ html[data-hc] .yplan.inline.ypvac .ypc.now{outline:4px solid var(--ink)!importan
 html[data-hc] .yplan.inline.ypvac .ypc.s0,html[data-hc] .yplan.inline.ypvac .ypc.s1{outline-width:4px!important}
 html[data-hc] .yplan.inline.ypvac .ypc{border-color:var(--line)!important}
 html[data-hc] .btn{border-width:2px!important}
+/* Große Schrift: nichts abschneiden */
+html:not([data-fs="n"]) .ypctl{grid-template-columns:1fr}
+html:not([data-fs="n"]) body[data-v="urlaub"] .ypfix.yptwo .btn,html:not([data-fs="n"]) body[data-v="urlaub"] .ypfix.yptwo .btn.pri{white-space:normal!important;line-height:1.1;text-overflow:clip}
+html:not([data-fs="n"]) body[data-v="urlaub"] .urrow .urltxt{white-space:normal;overflow:visible}
+html:not([data-fs="n"]) .ypleg2{flex-wrap:wrap;overflow:visible;row-gap:2px}
+html:not([data-fs="n"]) .ypobar b{font-size:18px;white-space:normal;line-height:1.1}
+html:not([data-fs="n"]) .ypobar .yptoday.ypobh{padding:4px 8px;font-size:14px}
+html:not([data-fs="n"]) .yplan.inline.ypvac .yptop h2{font-size:15px}
+html:not([data-fs="n"]) body[data-v="urlaub"] .urrow .urltxt{font-size:15px}html:not([data-fs="n"]) .ypctl .ypshbtn{min-height:44px}
 </style>
 </head>
 <body>
@@ -2439,20 +2448,21 @@ function ypShiftBar(st){ const a=st.a, e=st.e, tp=typeOf(st.brush), n=diffD(a,e)
 function openDayChoice(st,s){ const x=shiftOf(s), dk=dayKind(s), isVac=dk==="v", hasOv=Object.prototype.hasOwnProperty.call(S.ov,s);
   const snap=()=>({ov:JSON.parse(JSON.stringify(S.ov)),v:JSON.parse(JSON.stringify(vacList()))}), back=o=>()=>{ S.ov=o.ov; S.vacs=o.v; save(); render(); };
   const done=(o,msg)=>{ save(); closeSheet(); render(); ypToast(msg,back(o)); };
-  const setTo=id=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); } const tp=typeOf(id), base=baseShift(s), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":id; if(baseId===tg) delete S.ov[s]; else S.ov[s]=tg; done(o,"Gespeichert: "+(tp?tp.name:"Frei")+" am "+ddm(s)+"."); };
+  const setTo=id=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); } const tp=typeOf(id), base=baseShift(s), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":id; if(baseId===tg) delete S.ov[s]; else S.ov[s]=tg; done(o,"Gespeichert: "+(tp?tp.name:"Frei")+" am "+ddm(s)); };
   openSheet(p=>{ sheetTop(p,"Ein Tag"); p.append(el("p","daybig",fmt(s)));
     p.append(el("p","daynow",isVac?"Eingetragen: Urlaub":x?"Eingetragen: "+x.name+(x.kind==="work"&&x.start?", "+x.start+" bis "+x.end+" Uhr":""):"Noch nichts eingetragen."));
     const grid=el("div","daygrid"), sub=el("div","ypbrushrow daysub"); sub.hidden=true;
     const big=(l,cls,fn)=>{ const b=el("button","daybtn "+cls,l); b.type="button"; b.onclick=fn; grid.append(b); return b; };
     big("Urlaub","dv",()=>{ if(isVac){ toast("Dieser Tag ist schon Urlaub."); return; } const days=vsDays(s,s); if(!days.length){ toast("Dafür brauchst du keinen Urlaub. Der Tag ist frei."); return; } if(vacOver(days).length){ toast("Dafür reichen deine Urlaubstage leider nicht."); return; }
-      const o=snap(); if(!planKnown(s)){ vacList().push({id:uid(),a:s,e:s,fixed:[s]}); normVacs(); } else addVac(s,s); done(o,"Gespeichert: Urlaub am "+ddm(s)+". Noch "+vacRest(+s.slice(0,4))+" Tage übrig."); });
+      const o=snap(); if(!planKnown(s)){ vacList().push({id:uid(),a:s,e:s,fixed:[s]}); normVacs(); } else addVac(s,s); done(o,"Gespeichert: Urlaub am "+ddm(s)+" Noch "+vacRest(+s.slice(0,4))+" Tage übrig."); });
     big("Schicht","ds",()=>{ sub.hidden=!sub.hidden; });
     const sick=S.types.find(t=>t.kind==="sick"), free=S.types.find(t=>t.kind==="free");
     big("Krank","dk",()=>{ if(sick) setTo(sick.id); }); big("Frei","df",()=>setTo(free?free.id:""));
     S.types.filter(t=>t.kind==="work").forEach(t=>{ const b=el("button","ypbr"+(x&&x.id===t.id?" on":"")); b.type="button"; const k=el("b","yps",t.short); k.style.background=t.color; k.style.color=isDark(t.color)?"#16222B":"#fff"; b.append(k, el("small",null,t.name.replace(/schicht$/i,""))); b.setAttribute("aria-label",t.name); b.onclick=()=>setTo(t.id); sub.append(b); });
     p.append(grid, sub);
-    if(isVac||hasOv){ const dl=el("button","btn ghost uwide daydel","Löschen"); dl.type="button";
-      dl.onclick=()=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); } else delete S.ov[s]; done(o,"Gelöscht. Der Tag folgt wieder deinem Rhythmus."); }; p.append(dl); } }); }
+    if(isVac||hasOv||(x&&x.kind!=="free")){ const dl=el("button","btn ghost uwide daydel","Löschen"); dl.type="button";
+      dl.onclick=()=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); done(o,"Urlaub gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; }
+        if(hasOv){ delete S.ov[s]; done(o,"Gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; } const fr=S.types.find(t=>t.kind==="free"); if(fr){ S.ov[s]=""; } done(o,"Gelöscht. Der Tag ist jetzt frei."); }; p.append(dl); } }); }
 function drawYPOne(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypvac"); const t=TODAY(), n=new Date(), first="Tippe den ersten Urlaubstag an.", sh=ypShifts()||ypSK(st);
   const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+11, k=st.one, y=Math.floor(k/12), m=k%12;
   const go=x=>{ x=Math.max(sMin,Math.min(sMax,x)); ypSetView(st,x); };
@@ -2471,7 +2481,7 @@ function drawYPOne(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypv
     if(r&&s>=r[0]&&s<=r[1]){ c.classList.add("sel"); if(s===r[0]) c.classList.add("s0"); if(s===r[1]) c.classList.add("s1"); } g.append(c); }
   for(let i=off+days;i<weeks*7;i++) g.append(el("div","ypc none"));
   ov.append(g, ypLegend(sh)); { const np=ypNoPlan(sh); if(np) ov.append(np); } { const tl=ypTipLine(st,x=>go(x)); if(tl) ov.append(tl); }
-  requestAnimationFrame(()=>{ const fx=document.querySelector("#v-urlaub .ypfix"); if(!fx) return; const th=ypBelow(ov,g), wd=g.querySelector(".ypwd"), top2=(wd?wd.getBoundingClientRect().bottom:g.getBoundingClientRect().top)+window.scrollY, h=Math.max(44,Math.min(84,Math.floor(((fx.getBoundingClientRect().top-top2-th-6)/weeks-3)/uiZ()))); g.style.setProperty("--yprow",h+"px"); });
+  requestAnimationFrame(()=>{ const fx=document.querySelector("#v-urlaub .ypfix"); if(!fx) return; const th=ypBelow(ov,g), wd=g.querySelector(".ypwd"), top2=(wd?wd.getBoundingClientRect().bottom:g.getBoundingClientRect().top)+window.scrollY, h=Math.max(52,Math.min(84,Math.floor(((fx.getBoundingClientRect().top-top2-th-6)/weeks-3)/uiZ()))); g.style.setProperty("--yprow",h+"px"); });
   let gx=null; g.addEventListener("pointerdown",ev=>{ gx=ev.clientX; }); g.addEventListener("pointerup",ev=>{ if(gx==null) return; const dx=ev.clientX-gx; gx=null; if(Math.abs(dx)>60) go(k+(dx<0?1:-1)); });
   ov.append(ypBottom(st,first)); ypSelColor(st,g);
   g.addEventListener("click",ev=>{ const c=ev.target.closest(".ypc[data-s]"); if(!c) return; ypTap(st,c.dataset.s); });
