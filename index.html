@@ -2329,8 +2329,8 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   const s0=st.s, lab=k=>MONK[((k%12)+12)%12]+" "+Math.floor(k/12), ttl=Math.floor(s0/12)===Math.floor((s0+3)/12)?MONK[s0%12]+" – "+lab(s0+3):lab(s0)+" – "+lab(s0+3);
   const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+8; /* Kalender: Januar letztes Jahr bis Dezember übernächstes Jahr */
   const go=k=>{ k=Math.max(sMin,Math.min(sMax,k)); st.s=k; st.y=Math.floor(k/12); if(!st.paint) st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); };
-  const top=el("div","yptop"), pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Vier Monate zurück"); nx.setAttribute("aria-label","Vier Monate vor");
-  pv.onclick=()=>go(s0-4); nx.onclick=()=>go(s0+4);
+  const top=el("div","yptop"), pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Einen Monat zurück"); nx.setAttribute("aria-label","Einen Monat vor");
+  pv.onclick=()=>step(-1); nx.onclick=()=>step(1); if(s0<=sMin) pv.disabled=true; if(s0>=sMax) nx.disabled=true;
   const hb=el("button","btn ghost yptoday","Heute"); hb.type="button"; hb.onclick=()=>go(n.getFullYear()*12+n.getMonth());
   top.append(pv, el("h2","grow",ttl), hb, nx); ov.append(top);
   /* beim Eintragen: große Anzeige der Auswahl */
@@ -2338,7 +2338,7 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   /* 12 Spalten: 4 davor, 4 sichtbar, 4 danach – damit das Wischen echte Monate zeigt */
   const win=el("div","ypwin"), g=el("div","ypgrid"); g.style.gridTemplateColumns="repeat(12,minmax(0,1fr))"; g.style.gridTemplateRows="auto"; win.append(g);
   const ms=[]; for(let k=s0-4;k<s0+8;k++) ms.push([Math.floor(k/12),((k%12)+12)%12]);
-  ms.forEach(([yy,m],i)=>{ const h=el("div","yph",MONS[m]); h.dataset.k=s0-4+i; if(i===4) h.classList.add("yphl"); if(i===7) h.classList.add("yphr"); if(m===0) h.classList.add("ypny"); h.title=MONF_[m]+" "+yy; g.append(h); });
+  ms.forEach(([yy,m],i)=>{ const h=el("div","yph",MONS[m]); h.dataset.k=s0-4+i;  if(m===0) h.classList.add("ypny"); h.title=MONF_[m]+" "+yy; g.append(h); });
   const r=st.a?[st.a,st.e||st.a]:null;
   for(let d=1; d<=31; d++) ms.forEach(([yy,m])=>{ if(d>new Date(yy,m+1,0).getDate()){ g.append(el("div","ypc none")); return; }
     const s=yy+"-"+pad(m+1)+"-"+pad(d), c=ypCell(s,t,true,sh); if(r&&s>=r[0]&&s<=r[1]){ c.classList.add("sel"); if(s===r[0]) c.classList.add("s0"); if(s===r[1]) c.classList.add("s1"); } g.append(c); });
@@ -2350,11 +2350,10 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   const end=()=>{ if(!drag) return; if(Math.abs(drag.dx)<8){ const kk=drag.k; drag=null; setX(0,false); lsSet("su_monthhint","1"); ypSetView(st,kk); return; } const cw=W()/4; let k=Math.max(-4,Math.min(4,Math.round(-drag.dx/cw))); k=Math.max(sMin-s0,Math.min(sMax-s0,k)); drag=null; setX(-k*cw,true); if(k) setTimeout(()=>go(s0+k),230); };
   /* Pfeile im Monatsbalken: je ein Monat; Schatten an der Seite mit weiteren Monaten */
   const step=k=>{ if(s0+k<sMin||s0+k>sMax) return; setX(-k*W()/4,true); setTimeout(()=>go(s0+k),230); };
-  [["‹",-1,"ypml","Einen Monat zurück"],["›",1,"ypmr","Einen Monat vor"]].forEach(([tx,k,cl,al])=>{ const b=el("button","ypmarr "+cl,tx); b.type="button"; b.setAttribute("aria-label",al); if(s0+k<sMin||s0+k>sMax) b.classList.add("off"); b.onclick=()=>step(k); win.append(b); });
   win.classList.toggle("noL",s0<=sMin); win.classList.toggle("noR",s0>=sMax);
   /* einmaliger Hinweis + kleine Bewegung */
   if(!lsGet("su_swipehint")){ const hn=el("div","ypswhint"), ok=el("button","btn","Verstanden"); ok.type="button"; ok.onclick=()=>{ lsSet("su_swipehint","1"); hn.remove(); };
-    hn.append(el("p",null,"Wische oder tippe auf die Pfeile, um andere Monate zu sehen."), ok); win.append(hn);
+    hn.append(el("p",null,"Wische auf dem Monatsbalken oder tippe auf die Pfeile oben, um andere Monate zu sehen."), ok); win.append(hn);
     if(!st.nudged){ st.nudged=true; setTimeout(()=>{ g.classList.add("ypnudge"); setTimeout(()=>g.classList.remove("ypnudge"),1100); },400); } }
   else if(!lsGet("su_monthhint")){ const hn=el("div","ypswhint"), ok=el("button","btn","Verstanden"); ok.type="button"; ok.onclick=()=>{ lsSet("su_monthhint","1"); hn.remove(); };
     hn.append(el("p",null,"Tippe auf einen Monat, um ihn einzeln zu sehen."), ok); win.append(hn); }
@@ -3298,7 +3297,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.08-76";
+const APP_VERSION="2026.10.08-77";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
