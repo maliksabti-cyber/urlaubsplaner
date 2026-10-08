@@ -907,6 +907,8 @@ nav.tabs{border-top:0;border-radius:22px 22px 0 0;box-shadow:0 -6px 24px rgba(31
 .yplan.inline.ypvac .ypwin .ypd b{font-size:var(--ypfs,18px)}.yplan.inline.ypvac .ypwin .ypd small{font-size:calc(var(--ypfs,18px)*.8)!important}
 #v-urlaub{gap:8px!important}.yplan.inline.ypvac{gap:8px!important}
 body[data-v="urlaub"] .urrow,body[data-v="urlaub"] .urlink{min-height:36px}
+/* Frei = ruhiger Strich, ohne Kreis */
+.yps.free,.chip.free,.yplan.inline.ypvac .ypc .yps.free,.ypleg2 .yps.free{background:transparent!important;color:var(--soft)!important;box-shadow:none!important;border:0!important;font-weight:800}
 </style>
 </head>
 <body>
@@ -1004,12 +1006,12 @@ function defaults(){
   const t=TODAY();
   return { v:1, example:true, land:"NW", holFree:false, showFerien:true, vacPerYear:30, carry:{},
     types:[
-      {id:"F",name:"Tagschicht",short:"T",color:"#1C6DD0",start:"06:00",end:"14:00",pause:30,kind:"work"},
+      {id:"F",name:"Frühschicht",short:"F",color:"#0FA3B1",start:"06:00",end:"14:00",pause:30,kind:"work"},
       {id:"S",name:"Spätschicht",short:"S",color:"#E8590C",start:"14:00",end:"22:00",pause:30,kind:"work"},
       {id:"N",name:"Nachtschicht",short:"N",color:"#111111",start:"22:00",end:"06:00",pause:30,kind:"work"},
       {id:"U",name:"Urlaub",short:"U",color:"#2E8B57",start:"",end:"",pause:0,kind:"vac"},
       {id:"K",name:"Krank",short:"K",color:"#7E57C2",start:"",end:"",pause:0,kind:"sick"},
-      {id:"X",name:"Frei",short:"F",color:"#6B7A85",start:"",end:"",pause:0,kind:"free"}],
+      {id:"X",name:"Frei",short:"–",color:"#6B7A85",start:"",end:"",pause:0,kind:"free"}],
     rots:[{id:"r1",name:"Wechselschicht 2-2-2 / 4 frei",start:addD(mondayOnOrBefore(t),-360),pattern:["F","F","S","S","N","N",null,null,null,null]}],
     ov:{}, notes:{}, vacs:[], tpls:[] };
 }
@@ -1026,8 +1028,10 @@ function baseShift(s){ const r=rotAt(s); if(!r) return null; const n=r.pattern.l
   if(t && t.kind==="work" && S.holFree && holName(s)) return null;
   if(t && t.kind==="work" && S.weekendFree){ const w=parse(s).getDay(); if(w===0||w===6) return null; } return t; }
 function cleanTypes(){ if(!S.tagMig){ S.tagMig=1; const f=S.types.find(t=>t.id==="F"&&/^Frühschicht$/i.test(t.name)); if(f){ f.name="Tagschicht"; if(f.short==="F") f.short="T"; if(/^#E0A100$/i.test(f.color)) f.color="#1C6DD0"; }
-    const n=S.types.find(t=>t.id==="N"&&/^#4A3FB5$/i.test(t.color)); if(n) n.color="#111111"; const x=S.types.find(t=>t.kind==="free"&&t.short==="X"); if(x) x.short="F"; }
+    const n=S.types.find(t=>t.id==="N"&&/^#4A3FB5$/i.test(t.color)); if(n) n.color="#111111"; const x=S.types.find(t=>t.kind==="free"&&t.short==="X"); if(x) x.short="–"; }
   const fx=S.types.find(t=>t.id==="X"&&t.name==="Frei (getauscht)"); if(fx) fx.name="Frei";
+  if(!S.fruehMig){ S.fruehMig=1; S.types.filter(t=>t.kind==="free"&&t.short==="F").forEach(t=>t.short="–");
+    const f=S.types.find(t=>t.id==="F"&&t.kind==="work"&&/^(Tagschicht|Frühschicht)$/i.test(t.name)); if(f){ f.name="Frühschicht"; if(f.short==="T"||f.short==="F") f.short="F"; if(/^#(1C6DD0|E0A100)$/i.test(f.color)) f.color="#0FA3B1"; } }
   const T=S.types.find(t=>t.id==="T"&&t.name==="Tagschicht"); if(T){ const used=(S.rots||[]).some(r=>r.pattern.includes("T"))||Object.values(S.ov).includes("T")||(S.tpls||[]).some(x=>x.weeks.flat().includes("T")); if(!used){ S.types=S.types.filter(t=>t!==T); } } }
 /* Schichtart löschen – mit Nachfrage */
 function deleteType(t,after){
@@ -1491,7 +1495,7 @@ function openVac(y0,m0,o){ const t=TODAY(), look=!!(o&&o.look), st={y:y0||+t.sli
       if(st.y!==+t.slice(0,4)) rest.append(el("small",null,"im Jahr "+st.y));
       const yr=st.view==="jahr"; [grid,info,line,go,start,cancel].forEach(x=>x.hidden=yr); yb.hidden=yr||look; back.hidden=yr===false; yw.hidden=!yr; if(yr) msg.hidden=true;
       prev.setAttribute("aria-label",yr?"Jahr zurück":"Monat zurück"); next.setAttribute("aria-label",yr?"Jahr vor":"Monat vor");
-      if(yr){ mn.textContent="Jahr "+st.y; yw.innerHTML=""; yw.append(yearGrid(st.y,m=>{ st.m=m; st.view="monat"; draw(); }), el("p","hint","T = Tagschicht · S = Spätschicht · N = Nachtschicht · F = frei · Urlaub grün. Monat antippen, um dort Urlaub einzutragen.")); return; }
+      if(yr){ mn.textContent="Jahr "+st.y; yw.innerHTML=""; yw.append(yearGrid(st.y,m=>{ st.m=m; st.view="monat"; draw(); }), el("p","hint","F = Frühschicht · S = Spätschicht · N = Nachtschicht · – = frei · Urlaub grün. Monat antippen, um dort Urlaub einzutragen.")); return; }
       grid.className="vsgrid"+(st.pick?" vpick":"");
       mn.textContent=MONF_[st.m]+" "+st.y; grid.innerHTML=""; WDS.forEach(w=>grid.append(el("span","dw",w)));
       const f=st.y+"-"+pad(st.m+1)+"-01", l=lastOfMonth(f); for(let k=(parse(f).getDay()+6)%7;k>0;k--) grid.append(el("span"));
@@ -1573,9 +1577,9 @@ function renderRange(box){ let a,e;
 const PRESETS=[
   ["2-2-2 + 4 frei",["F","F","S","S","N","N",null,null,null,null]],
   ["3-3-3 + 3 frei",["F","F","F","S","S","S","N","N","N",null,null,null]],
-  ["Tag/Spät wöchentlich (Mo–Fr)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],
-  ["Tag/Spät/Nacht wöchentlich",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],
-  ["Mo–Fr Tagschicht",["F","F","F","F","F",null,null]],
+  ["Früh/Spät wöchentlich (Mo–Fr)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],
+  ["Früh/Spät/Nacht wöchentlich",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],
+  ["Mo–Fr Frühschicht",["F","F","F","F","F",null,null]],
   ["4 Tage an, 4 frei",["F","F","F","F",null,null,null,null]]];
 let editRot=null;
 function renderSet(){
@@ -1849,7 +1853,7 @@ function openTpl(t){
       const x=el("button","wx","✕"); x.type="button"; x.setAttribute("aria-label",(wi+1)+". Woche entfernen"); x.disabled=d.weeks.length<2; x.onclick=()=>{ d.weeks.splice(wi,1); draw(); }; g.append(x); });
     p.append(g, el("div","hint",tplStats(d.weeks)));
     const r=el("div","row"); const aw=el("button","btn","+ Woche"); aw.type="button"; aw.disabled=d.weeks.length>=12; aw.onclick=()=>{ d.weeks.push([null,null,null,null,null,null,null]); draw(); };
-    const fw=el("button","btn ghost","Mo–Fr füllen"); fw.type="button"; fw.onclick=()=>{ const w=d.weeks[d.weeks.length-1]; for(let i=0;i<5;i++) w[i]=br; draw(); }; r.append(aw,fw); p.append(r, el("p","hint","Wechselt dein Plan wöchentlich (z. B. eine Woche Tagschicht, eine Woche Spätschicht)? Dann mit „+ Woche“ weitere Wochen anlegen."));
+    const fw=el("button","btn ghost","Mo–Fr füllen"); fw.type="button"; fw.onclick=()=>{ const w=d.weeks[d.weeks.length-1]; for(let i=0;i<5;i++) w[i]=br; draw(); }; r.append(aw,fw); p.append(r, el("p","hint","Wechselt dein Plan wöchentlich (z. B. eine Woche Frühschicht, eine Woche Spätschicht)? Dann mit „+ Woche“ weitere Wochen anlegen."));
     // Uhrzeiten
     const dt=el("details"); dt.append(el("summary",null,"Uhrzeiten der Schichten ändern")); p.append(dt);
     const tl=el("div","tlist"); S.types.filter(x=>x.kind==="work").forEach(x=>{ const it=el("div","trow"); const a=el("input"), b=el("input"); a.type=b.type="time"; a.value=x.start||""; b.value=x.end||""; a.setAttribute("aria-label",x.name+" Beginn"); b.setAttribute("aria-label",x.name+" Ende");
@@ -2087,7 +2091,7 @@ function planImport(code){ let d=null; try{ d=JSON.parse(b64d(code)); }catch(e){
   const P=planClean(d); if(!P){ toast("Der Link ist leider beschädigt."); return; }
   ask("Plan von "+P.name+" hinzufügen?","Dann siehst du im Schichtplan, wann ihr beide frei habt (♥).",[{label:"Ja, hinzufügen",pri:true,fn:()=>{ const L=partners(); const i=L.findIndex(x=>tKey(x.name)===tKey(P.name)); if(i>=0) L[i]=P; else L.push(P); save(); render(); toast("Plan von "+P.name+" hinzugefügt"); }},{label:"Nein",fn:()=>{}}]); }
 /* Fertige Rhythmus-Vorlagen */
-const RHYTHM_PRESETS=[["2-2-2 + 4 frei","Konti-Schicht, 10 Tage",["F","F","S","S","N","N",null,null,null,null]],["3-3-3 + 3 frei","12-Tage-Rhythmus",["F","F","F","S","S","S","N","N","N",null,null,null]],["4 Tage an, 4 frei","8-Tage-Rhythmus",["F","F","F","F",null,null,null,null]],["Tag/Spät im Wochenwechsel","eine Woche Tag-, eine Woche Spätschicht",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],["Tag/Spät/Nacht wöchentlich","3-Wochen-Wechsel",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],["Mo–Fr Tagschicht","Wochenende frei",["F","F","F","F","F",null,null]]];
+const RHYTHM_PRESETS=[["2-2-2 + 4 frei","Konti-Schicht, 10 Tage",["F","F","S","S","N","N",null,null,null,null]],["3-3-3 + 3 frei","12-Tage-Rhythmus",["F","F","F","S","S","S","N","N","N",null,null,null]],["4 Tage an, 4 frei","8-Tage-Rhythmus",["F","F","F","F",null,null,null,null]],["Tag/Spät im Wochenwechsel","eine Woche Früh-, eine Woche Spätschicht",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null]],["Früh/Spät/Nacht wöchentlich","3-Wochen-Wechsel",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null]],["Mo–Fr Frühschicht","Wochenende frei",["F","F","F","F","F",null,null]]];
 /* ===================== Schritt für Schritt ===================== */
 function gFlag(k){ return !!(S.guide&&S.guide[k]); }
 function gSet(k){ if(!S.guide) S.guide={}; if(S.guide[k]) return; S.guide[k]=true; histMute=true; save(); histMute=false; }
@@ -2222,7 +2226,7 @@ async function yearPNG(y){ const C=12, cw=118, rh=24, M=24, top=96, hh=30, W=M*2
       if(v){ g.font="600 10px "+F; g.fillText("Urlaub",x+46,yy+16); }
       const o=v?ownShift(s):t; if(o&&o.kind!=="free"){ g.fillStyle=o.color; g.fillRect(x+cw-30,yy+3,24,rh-8); if(v){ g.strokeStyle="#fff"; g.lineWidth=1.5; g.strokeRect(x+cw-30,yy+3,24,rh-8); g.lineWidth=1; }
         g.fillStyle=isDark(o.color)?"#16222B":"#fff"; g.font="800 12px "+F; g.textAlign="center"; g.fillText(o.short,x+cw-18,yy+16); g.textAlign="left"; }
-      else if(fr){ g.fillStyle="#17663A"; g.font="800 12px "+F; g.textAlign="center"; g.fillText((t&&t.short)||"F",x+cw-18,yy+16); g.textAlign="left"; } } }
+      else if(fr){ g.fillStyle="#17663A"; g.font="800 12px "+F; g.textAlign="center"; g.fillText((t&&t.short)||"–",x+cw-18,yy+16); g.textAlign="left"; } } }
   let ly=top+hh+31*rh+30, lx=M; g.font="13px "+F;
   S.types.forEach((t,i)=>{ if(i&&i%3===0){ ly+=22; lx=M; } const lab=t.short+" = "+t.name+(t.kind==="work"&&t.start?"  "+t.start+"–"+t.end+" · "+hStr(minutes(t)):"");
     g.fillStyle=t.kind==="free"?"#DDF1E3":t.color; g.fillRect(lx,ly-12,14,14); g.fillStyle="#16222B"; g.fillText(lab,lx+20,ly); lx+=Math.round(W/3)-10; });
@@ -2499,9 +2503,9 @@ function ypCell(s,t,vacOnly,withShift){ const d=+s.slice(8,10), w=parse(s).getDa
   const vb=vacAt(s), va=!!(vb && vacOnDay(vb,s)); if(va) c.classList.add("va");
   if(vacOnly){ const sp=el("span","ypd"); sp.append(el("b",null,String(d)), el("small",null,DOW[w])); c.append(sp); } else c.append(el("span","ypd",d+" "+DOW[w]));
   if(vacOnly && withShift && !va && x2){ const o=x2.kind==="vac"?(ownShift(s)||x2):x2, ch=el("span","yps"+(o.kind==="free"?" free":""),o.short); if(o.kind!=="free"){ ch.style.background=o.color; ch.style.color=isDark(o.color)?"#16222B":"#fff"; } c.append(ch); }
-  else if(vacOnly && withShift && !va && planKnown(s)){ c.classList.add("fr"); c.append(el("span","yps free",(S.types.find(t=>t.kind==="free")||{}).short||"F")); }
+  else if(vacOnly && withShift && !va && planKnown(s)){ c.classList.add("fr"); c.append(el("span","yps free",(S.types.find(t=>t.kind==="free")||{}).short||"–")); }
   else if(va||vacOnly){ if(va){ const ch=el("span","yps","U"); ch.style.background=vacColor(); ch.style.color="#fff"; c.append(ch); } }
-  else if(x2 && x2.kind!=="free"){ const o=x2.kind==="vac"?(ownShift(s)||x2):x2; const ch=el("span","yps",o.short); ch.style.background=o.color; ch.style.color=isDark(o.color)?"#16222B":"#fff"; c.append(ch); } else if(x2 || planKnown(s)){ const fr=el("span","yps free",(x2&&x2.short)||(S.types.find(t=>t.kind==="free")||{}).short||"F"); c.classList.add("fr"); c.append(fr); }
+  else if(x2 && x2.kind!=="free"){ const o=x2.kind==="vac"?(ownShift(s)||x2):x2; const ch=el("span","yps",o.short); ch.style.background=o.color; ch.style.color=isDark(o.color)?"#16222B":"#fff"; c.append(ch); } else if(x2 || planKnown(s)){ const fr=el("span","yps free",(x2&&x2.short)||(S.types.find(t=>t.kind==="free")||{}).short||"–"); c.classList.add("fr"); c.append(fr); }
   c.title=fmt(s)+(hn?" · "+hn:"")+(fe?" · "+fe[2]:"")+(vacOnly?(va?" · Urlaub":""):(x2?" · "+x2.name:""));
   return c; }
 /* Begrenzt die Auswahl auf das Urlaubskontingent: läuft vom ersten Tag in Richtung Ende und hält an, bevor es zu viele werden */
@@ -3106,9 +3110,9 @@ function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").
 /* ---------- Einrichtung (3 Schritte) ---------- */
 const ONB_MODELS=[
   ["Selbst eintragen – ohne festen Rhythmus",[],"Du malst deinen Plan im Kalender selbst, Tag für Tag"],
-  ["Mo–Fr, Wochenende frei",["F","F","F","F","F",null,null],"Tagschicht, feste Arbeitstage"],
-  ["Tag/Spät im Wechsel (wöchentlich)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null],"eine Woche Tag-, eine Woche Spätschicht"],
-  ["Tag/Spät/Nacht (wöchentlich)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null],"3-Wochen-Wechsel"],
+  ["Mo–Fr, Wochenende frei",["F","F","F","F","F",null,null],"Frühschicht, feste Arbeitstage"],
+  ["Früh/Spät im Wechsel (wöchentlich)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null],"eine Woche Früh-, eine Woche Spätschicht"],
+  ["Früh/Spät/Nacht (wöchentlich)",["F","F","F","F","F",null,null,"S","S","S","S","S",null,null,"N","N","N","N","N",null,null],"3-Wochen-Wechsel"],
   ["2-2-2 + 4 frei",["F","F","S","S","N","N",null,null,null,null],"Konti-Schicht, 10 Tage"],
   ["3-3-3 + 3 frei",["F","F","F","S","S","S","N","N","N",null,null,null],"12-Tage-Rhythmus"],
   ["4 Tage an, 4 frei",["F","F","F","F",null,null,null,null],"8-Tage-Rhythmus"]];
@@ -3297,7 +3301,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.08-77";
+const APP_VERSION="2026.10.08-78";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
