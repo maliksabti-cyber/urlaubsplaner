@@ -921,6 +921,9 @@ body[data-v="urlaub"] .ypfix.yptwo .btn{min-height:54px;font-size:18px;padding-i
 .yplan.inline.ypvac .ypshsel .ypc.sel{background:color-mix(in srgb,var(--selc) 30%,var(--card))!important;color:var(--ink)!important;outline:none}
 .yplan.inline.ypvac .ypshsel .ypc.s0,.yplan.inline.ypvac .ypshsel .ypc.s1{background:var(--selc)!important;color:#fff!important;outline:3px solid color-mix(in srgb,var(--selc) 60%,#000)!important}
 .yplan.inline.ypvac .ypshsel .ypc.s0 .ypd small,.yplan.inline.ypvac .ypshsel .ypc.s1 .ypd small{color:#fff}
+body:has(#sheet:not([hidden])) .wrap .ypfix,body:has(#ask:not([hidden])) .wrap .ypfix{display:none!important}
+.ypbr small{font-size:11px!important;letter-spacing:-.2px;overflow-wrap:anywhere}nav.tabs button{font-size:15px!important}
+html body .ypbrushrow .ypbr small{font-size:11px!important;line-height:1.15!important;white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%}
 </style>
 </head>
 <body>
@@ -954,7 +957,7 @@ body[data-v="urlaub"] .ypfix.yptwo .btn{min-height:54px;font-size:18px;padding-i
 <nav class="tabs" role="tablist"><div class="tabs-in">
   <button role="tab" data-v="heute" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Heute</button>
   <button role="tab" data-v="urlaub" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Plan</button>
-  <button role="tab" data-v="mehr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>Mehr</button>
+  <button role="tab" data-v="mehr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Einstellungen</button>
 </div></nav>
 </div>
 <div class="auth" id="auth" hidden><div class="acard"></div></div>
@@ -1154,10 +1157,10 @@ function toast(msg,btn,fn,btn2,fn2){ const t=$("#toast"); if(typeof toastPre!=="
   t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true, btn2?9000:btn?6000:2600); }
 function setBarH(){ const h=document.querySelector("header.bar"); if(h) document.documentElement.style.setProperty("--barh",h.offsetHeight+"px"); }
 window.addEventListener("resize",setBarH);
-function show(v){ setTimeout(setBarH,0); view=v; document.body.dataset.v=v; if(v==="kal") ypK.jumped=false; if(v==="urlaub") ypU.jumped=false; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",jahr:"Plan",kal:"Plan",urlaub:"Plan",mehr:"Mehr",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="mehr" && (v==="kal"||v==="jahr")) || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","jahr","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
+function show(v){ setTimeout(setBarH,0); view=v; document.body.dataset.v=v; if(v==="kal") ypK.jumped=false; if(v==="urlaub") ypU.jumped=false; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",jahr:"Plan",kal:"Plan",urlaub:"Plan",mehr:"Einstellungen",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="mehr" && (v==="kal"||v==="jahr")) || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","jahr","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.v));
 function render(){ if(!S) return; { const k=S.types.find(x=>x.kind==="sick"&&(x.color==="#C2185B"||x.color==="#8E6C88")); if(k){ k.color="#7E57C2"; histMute=true; save(); histMute=false; } } applyTheme(); if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="jahr") renderJahr(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); if(view==="mehr") renderMehr(); if(view==="team" && typeof renderTeam==="function") renderTeam(); const vr=$("#v-"+view); if(vr) drRestore(vr,"v:v-"+view); }
-function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("div","banner"); const t=el("span","grow"); t.innerHTML="<b>Beispiel-Rhythmus.</b> Stell unter Einstellungen deinen eigenen Schichtrhythmus ein."; const go=el("button","btn","Jetzt einstellen"); go.type="button"; go.onclick=()=>show("set"); b.append(t,go); box.append(b); }
+function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("div","banner"); const t=el("span","grow"); t.innerHTML="<b>Beispiel-Rhythmus.</b> Stell deinen eigenen Schichtrhythmus ein."; const go=el("button","btn","Jetzt einstellen"); go.type="button"; go.onclick=()=>FEATURES.fullSettings?show("set"):openRhythm(); b.append(t,go); box.append(b); }
 
 /* ---------- Heute ---------- */
 /* Live-Zeile: läuft die Schicht gerade, wann beginnt sie, wann ist Feierabend (auch Nachtschicht von gestern) */
@@ -1182,23 +1185,23 @@ function renderHeute(){
   const box=$("#v-heute"); box.innerHTML=""; exampleBanner(box);
   const t=TODAY(), sh=shiftOf(t), hn=holName(t), d=parse(t), work=sh&&sh.kind==="work", free=!sh||sh.kind==="free"||dayKind(t)==="f";
   // 1) Große Karte in der Farbe der heutigen Schicht
-  const hc=el("button","hcard"); hc.type="button"; hc.onclick=()=>openDay(t);
+  const hc=el("button","hcard"); hc.type="button"; hc.onclick=()=>FEATURES.shiftPage?openDay(t):openDayChoice(ypU,t);
   if(free){ hc.classList.add("free"); } else { hc.style.background=sh.color; if(isDark(sh.color)) hc.classList.add("dark"); }
   hc.append(el("p","hd","Heute, "+WDL[d.getDay()]+" "+d.getDate()+". "+MONL[d.getMonth()]+(hn?" · "+hn:"")), el("p","hn",sh&&!free?sh.name:"Frei"));
   if(work && sh.start) hc.append(el("p","ht",sh.start+" bis "+sh.end+" Uhr"));
   const lv=homeLive(t); if(lv){ const l=el("p","hl",lv); l.id="live"; hc.append(l); }
   if(S.notes[t]) hc.append(el("p","ht","📝 "+S.notes[t])); box.append(hc);
   // 2) Morgen und Übermorgen als kleine Zeilen
-  { const nb=el("div","card hnext"); [[1,"Morgen"],[2,"Übermorgen"]].forEach(([k,l])=>{ const s=addD(t,k), x=shiftOf(s), dk=dayKind(s), r=el("button","hnrow"); r.type="button"; r.onclick=()=>openDay(s);
+  { const nb=el("div","card hnext"); [[1,"Morgen"],[2,"Übermorgen"]].forEach(([k,l])=>{ const s=addD(t,k), x=shiftOf(s), dk=dayKind(s), r=el("button","hnrow"); r.type="button"; r.onclick=()=>FEATURES.shiftPage?openDay(s):openDayChoice(ypU,s);
       const nm=dk==="v"?"Urlaub":(!x||x.kind==="free"||dk==="f")?"Frei":x.name+(x.kind==="work"&&x.start?", "+x.start+" bis "+x.end+" Uhr":"");
       const tx=el("span","grow"); tx.append(el("b",null,l+": "),document.createTextNode(nm)); r.append(tx); nb.append(r); }); box.append(nb); }
   // 3) Urlaub
   { const y=+t.slice(0,4), r=vacRest(y); const uc=el("button","card hrow"); uc.type="button"; uc.onclick=()=>show("urlaub"); const tx=el("span","grow");
     tx.append(el("b",null,r<0?(-r)+" Urlaubstage zu viel":"Noch "+r+(r===1?" Urlaubstag":" Urlaubstage")+" übrig")); uc.append(tx,el("span","hchev","›")); box.append(uc); }
-  if(typeof teamUnread==="function" && TEAM.data){ const n=teamUnread(); if(n){ const b=el("button","banner tbanner"); b.type="button"; b.append(el("span","grow","📬 "+n+(n===1?" neue Team-Nachricht":" neue Team-Nachrichten"))); b.onclick=()=>show("team"); box.append(b); } }
+  if(FEATURES.team && typeof teamUnread==="function" && TEAM.data){ const n=teamUnread(); if(n){ const b=el("button","banner tbanner"); b.type="button"; b.append(el("span","grow","📬 "+n+(n===1?" neue Team-Nachricht":" neue Team-Nachrichten"))); b.onclick=()=>show("team"); box.append(b); } }
   // 4) Einrichtungs-Lotse (nur solange er läuft), sonst Sicherungs-Hinweis
-  const gOn=activeGoal()?lotseCard(box):false;
-  if(!activeGoal() && backupDue() && dlNs){ const b=el("p","hsave2"); b.append(document.createTextNode(S.lastBackup?"Letzte Sicherung vor "+diffD(S.lastBackup,TODAY())+" Tagen. ":"Deine Daten sind noch nicht gesichert. ")); const go=el("button","linkbtn","Sichern"); go.type="button"; go.onclick=async()=>{ await jsonSave(); renderHeute(); }; b.append(go); box.append(b); }
+  const gOn=FEATURES.help&&activeGoal()?lotseCard(box):false;
+  if(FEATURES.backup && !activeGoal() && backupDue() && dlNs){ const b=el("p","hsave2"); b.append(document.createTextNode(S.lastBackup?"Letzte Sicherung vor "+diffD(S.lastBackup,TODAY())+" Tagen. ":"Deine Daten sind noch nicht gesichert. ")); const go=el("button","linkbtn","Sichern"); go.type="button"; go.onclick=async()=>{ await jsonSave(); renderHeute(); }; b.append(go); box.append(b); }
 }
 
 /* ---------- Kalender ---------- */
@@ -1829,7 +1832,19 @@ function desktopShortcut(){ const mac=/mac/i.test(navigator.platform||navigator.
     const ol=el("ol","inststeps"); ["Chrome oder Edge: rechts in der Adressleiste auf das Symbol „Installieren“ (Bildschirm mit Pfeil) klicken.","Oder Menü ⋮ → „Streamen, speichern und teilen“ → „Seite als App installieren“ (Edge: „Apps“ → „Diese Website als App installieren“).","Danach liegt „Schicht & Urlaub“ im Startmenü – mit Rechtsklick auch auf dem Desktop."].forEach(t=>ol.append(el("li",null,t))); p.append(ol); }); }
 /* „Mehr“: alles, was nicht jeden Tag gebraucht wird */
 const MICON={cal:'<rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7 14h4M7 17h7"/>',year:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',set:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',vac:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',rot:'<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>',pdf:'<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.5"/>',priv:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'};
-function renderMehr(){ const box=$("#v-mehr"); box.innerHTML=""; const c=el("div","card sec mlist");
+function renderMehr(){ if(!FEATURES.fullSettings) return renderSetLite(); renderMehrFull(); }
+/* Einstellungen (nur das Nötige): Name, Bundesland, Urlaubstage, Schichtrhythmus, Schichtzeiten, Hell/Dunkel */
+function renderSetLite(){ const box=$("#v-mehr"); box.innerHTML="";
+  { const c=el("div","card sec"); c.append(el("h2",null,"Name")); const l=el("label","f","Vorname"), i=el("input"); i.type="text"; i.id="myname"; i.value=S.name||""; i.autocomplete="given-name"; i.onchange=()=>{ S.name=i.value.trim().slice(0,40); save(); }; l.append(i); c.append(l); box.append(c); }
+  { const c=el("div","card sec"); c.append(el("h2",null,"Bundesland"), el("p","hint","Für Feiertage und Schulferien.")); const se=el("select"); se.id="land"; se.setAttribute("aria-label","Bundesland"); LAENDER.forEach(([k,n])=>{ const o=el("option",null,n); o.value=k; se.append(o); }); se.value=S.land; se.onchange=()=>{ S.land=se.value; save(); render(); }; c.append(se); box.append(c); }
+  { const y=new Date().getFullYear(), c=el("div","card sec"); c.append(el("h2",null,"Urlaubstage"), el("p","hint","Anspruch "+vacTotal(y)+" Tage · noch "+Math.max(0,vacRest(y))+" übrig ("+y+")")); const b=el("button","btn pri","Urlaubstage einstellen"); b.type="button"; b.onclick=()=>openVacSettings(y); c.append(b); box.append(c); }
+  { const c=el("div","card sec"); c.append(el("h2",null,"Schichtrhythmus"), el("p","hint",S.rots.length?"Eingetragen: "+S.rots.map(r=>r.name||"Rhythmus").join(", "):"Noch kein Rhythmus eingetragen.")); const b=el("button","btn pri","Rhythmus ändern"); b.type="button"; b.onclick=()=>openRhythm(); c.append(b); box.append(c); }
+  { const c=el("div","card sec"); c.append(el("h2",null,"Schichtzeiten")); const tl=el("div","tlist");
+    S.types.filter(t=>t.kind==="work").forEach(t=>{ const it=el("div","titem"), mid=el("div","grow"); mid.append(el("b",null,t.name), el("div","muted",t.start?(t.start+" – "+t.end+" Uhr"):"")); const e=el("button","btn","Ändern"); e.type="button"; e.onclick=()=>openType(t); it.append(chip(t),mid,e); tl.append(it); });
+    c.append(tl); box.append(c); }
+  { const c=el("div","card sec"); c.append(el("h2",null,"Hell / Dunkel")); const sg=el("div","seg full3 thseg"); [["light","Hell"],["dark","Dunkel"],["auto","Automatisch"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; const cur=S.theme||"auto"; b.setAttribute("aria-pressed",String(cur===k)); b.onclick=()=>{ S.theme=k==="auto"?undefined:k; save(); applyTheme(); renderSetLite(); }; sg.append(b); }); c.append(sg); box.append(c); }
+  box.append(el("p","hint mver","Version "+APP_VERSION)); }
+function renderMehrFull(){ const box=$("#v-mehr"); box.innerHTML=""; const c=el("div","card sec mlist");
   [["set","Einstellungen","Name, Bundesland, Sicherung, Hell/Dunkel",()=>show("set")],["vac","Urlaubstage","Anspruch und Resturlaub",()=>openVacSettings(new Date().getFullYear())],["rot","Schichtrhythmus","Deinen Rhythmus ändern",()=>openRhythm()],["pdf","Urlaubsplan als PDF","Zum Teilen oder Drucken",()=>pdfVacPlan(new Date().getFullYear())],["cal","Schichtplan","Schichten eintragen und ändern",()=>show("kal")],["year","Jahresübersicht","Alle 12 Monate auf einen Blick",()=>show("jahr")],["help","Hilfe","So funktioniert die App",()=>openHelp()],["priv","Datenschutz","Was privat bleibt",()=>goSettings("consent")]].forEach(([k,t,d,fn])=>{
     const b=el("button","vrow mrow"); b.type="button"; const ic=el("span","mico"); ic.innerHTML='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+MICON[k]+'</svg>';
     const tx=el("div","grow"); tx.append(el("b",null,t), el("small",null,d)); b.append(ic, tx, el("span","muted","›")); b.onclick=fn; c.append(b); });
@@ -1841,7 +1856,7 @@ function rhythmDaysCard(){ const c=el("div","card sec"); c.append(el("h3",null,"
 function openRotations(){
   openSheet(p=>{ sheetTop(p,"Mein Rhythmus & Schichten");
     p.append(el("p","hint","Dein Schichtrhythmus wiederholt sich automatisch. Einmal anlegen, dann ab einem Datum in den Kalender eintragen."));
-    p.append(rhythmDaysCard());
+    if(FEATURES.shiftPage) p.append(rhythmDaysCard());
     const T=tplList(); if(!T.length) p.append(el("div","muted",(S.rots||[]).length?"Noch keine Vorlage gespeichert. Dein Rhythmus im Kalender steht unten – dort kannst du ihn ändern.":"Noch kein Rhythmus angelegt."));
     T.forEach(t=>{ const c=el("div","card tplcard"); const h=el("div","row"); h.append(el("b","grow",t.name)); const ed=el("button","btn","Bearbeiten"); ed.type="button"; ed.onclick=()=>openTpl(t); h.append(ed);
       c.append(h, weekGrid(t.weeks,true), el("div","hint",tplStats(t.weeks)));
@@ -2319,7 +2334,7 @@ const ypStop=st=>{ st.paint=false; st.kind=null; st.a=st.e=null; drawYP(st); };
 function ypTopPaint(st,ov,first){ if(!st.paint) return; const D=x=>DOW[parse(x).getDay()]+" "+ddm(x);
   if(st.kind==="shift"){ const row=el("div","ypbrushrow"); S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const b=el("button","ypbr"+(st.brush===x.id?" on":"")); b.type="button"; b.setAttribute("aria-pressed",String(st.brush===x.id));
       const k=el("b","yps"+(x.kind==="free"?" free":""),x.short); if(x.kind!=="free"){ k.style.background=x.color; k.style.color=isDark(x.color)?"#16222B":"#fff"; } if(st.brush===x.id&&x.kind!=="free") b.style.borderColor=x.color;
-      b.append(k, el("small",null,x.name)); b.onclick=()=>{ st.brush=x.id; drawYP(st); }; row.append(b); }); ov.append(row); return; }
+      b.append(k, el("small",null,x.name.replace(/schicht$/i,""))); b.setAttribute("aria-label",x.name); b.onclick=()=>{ st.brush=x.id; drawYP(st); }; row.append(b); }); ov.append(row); return; }
   const sl=el("div","ypstat on"); sl.textContent=!st.a?first:!st.e?"Start: "+D(st.a):D(st.a)+" – "+D(st.e); ov.append(sl); }
 /* Auswahlfarbe = Farbe der gewählten Schicht */
 function ypSelColor(st,g){ if(!ypSK(st)||!st.brush) return; const tp=typeOf(st.brush); if(tp&&tp.kind!=="free") g.style.setProperty("--selc",tp.color); else g.style.setProperty("--selc","#8A969E"); g.classList.add("ypshsel"); }
@@ -2328,16 +2343,16 @@ function ypBottom(st,first){ if(st.paint && st.a && st.e) return st.kind==="shif
   const bar=el("div","ypfix ypmain");
   if(!st.paint){ const u=el("button","btn pri","Urlaub eintragen"), sb=el("button","btn ypshbig","Schicht eintragen"); u.type=sb.type="button";
     u.onclick=()=>{ st.paint=true; st.kind="vac"; st.a=st.e=null; drawYP(st); };
-    sb.onclick=()=>{ st.paint=true; st.kind="shift"; st.brush=null; st.a=st.e=null; lsSet("su_ushift","1"); drawYP(st); }; bar.classList.add("yptwo"); bar.append(u,sb); return bar; }
+    sb.onclick=()=>{ st.paint=true; st.kind="shift"; st.brush=null; st.a=st.e=null; lsSet("su_ushift","1"); render(); }; bar.classList.add("yptwo"); bar.append(u,sb); return bar; }
   const b=el("button","btn","Abbrechen"); b.type="button"; b.onclick=()=>ypStop(st);
   const tx=st.kind==="shift"&&!st.brush?"Wähle zuerst die Schicht.":!st.a?(st.kind==="shift"?"Tippe den ersten Tag an.":first):"Tippe jetzt den letzten Tag an.";
   bar.append(el("div","grow ypstep",tx), b); return bar; }
 function ypShiftBar(st){ const a=st.a, e=st.e, tp=typeOf(st.brush), n=diffD(a,e)+1, bar=el("div","ypfix"), tx=el("div","grow"), sv=el("button","btn pri","Speichern"), no=el("button","linkbtn","Abbrechen"); sv.type=no.type="button";
-  tx.append(el("b",null,(tp?tp.name:"Schicht")+", "+n+(n===1?" Tag":" Tage")), el("small",null,ddRange(a,e))); no.onclick=()=>ypStop(st);
+  tx.append(el("b",null,tp?tp.name:"Schicht"), el("small",null,n+(n===1?" Tag":" Tage")+" · "+ddRange(a,e))); no.onclick=()=>ypStop(st);
   const doSave=()=>{ const oldOv=JSON.parse(JSON.stringify(S.ov)), oldV=JSON.parse(JSON.stringify(vacList()));
     for(let d=a;d<=e;d=addD(d,1)){ if(dayKind(d)==="v") removeVacDay(d); const base=baseShift(d), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":st.brush; if(baseId===tg) delete S.ov[d]; else S.ov[d]=tg; }
     S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); save(); const nm=tp?tp.name:"Schicht"; st.paint=false; st.kind=null; st.a=st.e=null; render();
-    ypToast("Gespeichert: "+nm+", "+ddRange(a,e)+".",()=>{ S.ov=oldOv; S.vacs=oldV; save(); render(); }); };
+    ypToast("Gespeichert: "+nm+", "+ddRange(a,e),()=>{ S.ov=oldOv; S.vacs=oldV; save(); render(); }); };
   sv.onclick=()=>{ let hv=false; for(let d=a;d<=e;d=addD(d,1)) if(dayKind(d)==="v"){ hv=true; break; }
     if(hv) ask("Urlaub ersetzen?","An diesen Tagen ist Urlaub eingetragen. Trotzdem ersetzen?",[{label:"Ersetzen",pri:true,fn:doSave},{label:"Abbrechen"}]); else doSave(); };
   bar.append(tx,no,sv); return bar; }
@@ -2345,7 +2360,7 @@ function ypShiftBar(st){ const a=st.a, e=st.e, tp=typeOf(st.brush), n=diffD(a,e)
 function openDayChoice(st,s){ const v=vacAt(s); if(v && dayKind(s)==="v"){ openVacChoice({id:v.id,a:v.a,e:v.e,n:vacDaysOf(v).length}); return; }
   const x=shiftOf(s); openSheet(p=>{ sheetTop(p,fmt(s)); const info=el("p","ubig2",x?(x.name+(x.start&&x.kind==="work"?", "+x.start+" bis "+x.end+" Uhr":"")):"Kein Eintrag"); p.append(info);
     const pick=el("div","ypbrushrow ypdaypick"); pick.hidden=true;
-    const setTo=id=>{ const old=JSON.parse(JSON.stringify(S.ov)), tp=typeOf(id), base=baseShift(s), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":id; if(baseId===tg) delete S.ov[s]; else S.ov[s]=tg; save(); closeSheet(); render(); ypToast("Gespeichert: "+(tp?tp.name:"Frei")+", "+ddm(s)+".",()=>{ S.ov=old; save(); render(); }); };
+    const setTo=id=>{ const old=JSON.parse(JSON.stringify(S.ov)), tp=typeOf(id), base=baseShift(s), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":id; if(baseId===tg) delete S.ov[s]; else S.ov[s]=tg; save(); closeSheet(); render(); ypToast("Gespeichert: "+(tp?tp.name:"Frei")+", "+ddm(s),()=>{ S.ov=old; save(); render(); }); };
     S.types.filter(t=>t.kind!=="vac").forEach(t=>{ const b=el("button","ypbr"+(x&&x.id===t.id?" on":"")); b.type="button"; const k=el("b","yps"+(t.kind==="free"?" free":""),t.short); if(t.kind!=="free"){ k.style.background=t.color; k.style.color=isDark(t.color)?"#16222B":"#fff"; } b.append(k, el("small",null,t.name)); b.onclick=()=>setTo(t.id); pick.append(b); });
     const ch=el("button","btn pri uwide","✎ Ändern"), dl=el("button","btn bad uwide","🗑 Löschen"); ch.type=dl.type="button"; ch.onclick=()=>{ pick.hidden=!pick.hidden; };
     dl.onclick=()=>ask("Eintrag löschen?",fmt(s)+": der Tag wird frei.",[{label:"Ja, löschen",pri:true,fn:()=>{ const fr=S.types.find(t=>t.kind==="free"); setTo(fr?fr.id:""); }},{label:"Abbrechen"}]);
@@ -2464,7 +2479,7 @@ function ypFit(st,g){ const set=h=>{ g.style.setProperty("--yprow",h+"px"); g.da
     const th=ypBelow(st.root,g);
     const topY=hd.getBoundingClientRect().bottom+window.scrollY, barY=fx.getBoundingClientRect().top, h=Math.max(14,Math.floor((barY-topY-th-6)/31)); st.rowH=h; set(h); }); }
 /* Brückentag-Tipp: eine kleine Zeile unter dem Kalender (nur wenn es einen gibt, ausblendbar) */
-function ypTipLine(st,goMonth){ if(lsGet("su_tiphide")) return null; const y=new Date().getFullYear(), tp=vacTip(y)||vacTip(y+1); if(!tp) return null;
+function ypTipLine(st,goMonth){ if(!FEATURES.tips || lsGet("su_tiphide")) return null; const y=new Date().getFullYear(), tp=vacTip(y)||vacTip(y+1); if(!tp) return null;
   const row=el("div","yptip"), b=el("button","yptipb","Tipp: Mit "+tp.k+(tp.k===1?" Urlaubstag":" Urlaubstagen")+" am "+(tp.k===1?ddm(tp.d):ddRange(tp.d,tp.last))+" hast du "+tp.span+" Tage frei."), x=el("button","yptipx","✕"); b.type=x.type="button"; x.setAttribute("aria-label","Tipp ausblenden");
   b.onclick=()=>goMonth(+tp.d.slice(0,4)*12+(+tp.d.slice(5,7)-1)); x.onclick=()=>{ lsSet("su_tiphide","1"); st.rowH=0; drawYP(st); }; row.append(b,x); return row; }
 window.addEventListener("resize",()=>{ if(view==="urlaub"){ ypU.rowH=0; render(); } });
@@ -3039,7 +3054,22 @@ function openShare(){ openSharePreview("list",planYear()); }
 
 $("#gear").onclick=()=>show("set");
 /* ===================== Konto & Cloud (Firebase, ohne SDK) ===================== */
-const CFG=Object.assign({localMode:true},window.APP_CONFIG||{});
+/* ===== ZENTRALER SCHALTER: Funktionen ein-/ausblenden (true = sichtbar). Nichts wird gelöscht, nur der Einstieg ist aus. ===== */
+const FEATURES=Object.assign({
+  login:false,        // Anmeldung, Konto, Cloud-Sicherung (Firebase)
+  team:false,         // Team, Team-Nachrichten, „Im Team sichtbar“
+  pdf:false,          // Urlaubsplan als PDF, Teilen
+  backup:false,       // Sichern/Übertragen, Sicherungs-Hinweis auf Heute, Kalender-Export (.ics)
+  help:false,         // Hilfe, Einrichtungs-Lotse
+  privacy:false,      // Datenschutz-Seite
+  tips:false,         // Brückentag-/Urlaubstipps
+  yearPage:false,     // Seite „Jahresübersicht“ (Monatskarten)
+  shiftPage:false,    // separate Seite „Schichtplan“ und alter Jahresplaner
+  stats:false,        // Statistik, Arbeitszeit/Soll-Stunden
+  appDownload:false,  // „App runterladen“
+  fullSettings:false  // alte, lange Einstellungsseite
+},window.APP_FEATURES||{});
+const CFG=Object.assign({localMode:true},window.APP_CONFIG||{}); if(!FEATURES.login) CFG.localMode=true;
 let sess=null, dirty=false, pushT=null;
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k,v){ try{ if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){} }
@@ -3284,10 +3314,10 @@ function openVacBlock(b){ const v0=vacList().find(x=>x.id===b.id); if(!v0){ toas
     sv.onclick=()=>{ const r=calc(); if(!r) return; if(r.over&&r.over.length){ toast(quotaMsg(r.over)); return; } const old=JSON.parse(JSON.stringify(vacList())); const v=vacList().find(x=>x.id===v0.id); if(!v) return;
       v.a=ia.value; v.e=ib.value; if(v.fixed || r.as) v.fixed=r.days.slice(); normVacs(); save(); closeSheet(); render();
       { const y=+ia.value.slice(0,4); toast("Urlaub geändert: "+fmtS(ia.value)+" – "+fmtS(ib.value)+" · noch "+vacRest(y)+" übrig","Rückgängig",()=>{ S.vacs=old; save(); render(); }); } };
-    { const l=el("label","sw"), cb=el("input"); cb.type="checkbox"; cb.id="ve_team"; cb.checked=shareVacGet(v0.id); cb.onchange=()=>{ shareVacSet(v0.id,cb.checked); save(); }; l.append(cb, el("span",null,"Im Team sichtbar (sobald die Team-Funktion aktiv ist)")); p.append(l); }
+    { const l=el("label","sw"), cb=el("input"); cb.type="checkbox"; cb.id="ve_team"; cb.checked=shareVacGet(v0.id); cb.onchange=()=>{ shareVacSet(v0.id,cb.checked); save(); }; l.append(cb, el("span",null,"Im Team sichtbar (sobald die Team-Funktion aktiv ist)")); if(FEATURES.team) p.append(l); }
     ia.oninput=()=>{ if(ib.value<ia.value) ib.value=ia.value; calc(); }; ib.oninput=calc; p.append(sv); calc();
     const r=el("div","row");
-    const cal=el("button","btn","Im Kalender zeigen"); cal.type="button"; cal.onclick=()=>{ curY=+v0.a.slice(0,4); curM=+v0.a.slice(5,7)-1; kalMode="monat"; closeSheet(); show("kal"); }; r.append(cal);
+    const cal=el("button","btn","Im Kalender zeigen"); cal.type="button"; cal.onclick=()=>{ curY=+v0.a.slice(0,4); curM=+v0.a.slice(5,7)-1; kalMode="monat"; closeSheet(); show("kal"); }; if(FEATURES.shiftPage) r.append(cal);
     const del=el("button","btn bad","Löschen"); del.type="button"; del.onclick=()=>{ const old=JSON.parse(JSON.stringify(vacList())); S.vacs=vacList().filter(x=>x.id!==v0.id); save(); closeSheet(); toast("Urlaub gelöscht","Rückgängig",()=>{ S.vacs=old; save(); render(); }); }; r.append(del); p.append(r);
     if(v0.fixed){ const un=el("button","btn ghost","Wieder automatisch an den Schichtplan anpassen"); un.type="button"; un.onclick=()=>{ const v=vacList().find(x=>x.id===v0.id); if(v){ delete v.fixed; save(); } closeSheet(); render(); }; p.append(un); } }); }
 
@@ -3344,7 +3374,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.08-79";
+const APP_VERSION="2026.10.08-80";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
