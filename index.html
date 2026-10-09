@@ -1009,6 +1009,21 @@ html:not([data-fs="n"]) .ypctl{grid-template-columns:minmax(0,1fr) auto!importan
 html:not([data-fs="n"]) .ypctl .ypshbtn{font-size:14px!important;padding:6px 10px!important}
 .ypshrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}.ypshpick{font-size:16px!important;padding:4px 10px!important;gap:6px}
 .ypqb{white-space:normal!important;line-height:1.1;font-size:14px!important;text-overflow:clip}
+/* Navigation zusammengefasst, Schichtrhythmus daneben */
+.ypnav2{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:stretch}
+.ypnavpill{display:flex;align-items:center;border:2px solid var(--ink);border-radius:999px;background:var(--card);min-height:56px;touch-action:pan-y;user-select:none;overflow:hidden}
+.ypnb{width:48px;align-self:stretch;border:0;background:none;color:var(--ink);font:800 26px/1 var(--f-body);cursor:pointer;flex:none}.ypnb:disabled{opacity:.3}
+.ypnmid{flex:1;min-width:0;border:0;background:none;color:var(--ink);cursor:pointer;display:grid;justify-items:center;line-height:1.1;padding:2px 0}
+.ypnmid b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.ypnmid small{font-size:13px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
+.ypnrh{min-height:56px!important;font-size:15px!important;padding:4px 14px!important;white-space:normal;line-height:1.1;max-width:132px}
+/* heutiger Tag: kräftig hervorgehoben */
+html body .yplan.inline.ypvac .ypc.now{background:var(--ink)!important;color:var(--paper)!important;outline:3px solid var(--accent)!important;outline-offset:-3px!important;z-index:2;font-weight:900}
+html body .yplan.inline.ypvac .ypc.now .ypd,html body .yplan.inline.ypvac .ypc.now .ypd small,html body .yplan.inline.ypvac .ypc.now .ypd b{color:var(--paper)!important}
+html body .yplan.inline.ypvac .ypc.now .ypd b::before{background:var(--accent)!important}
+html body .yplan.inline.ypvac .ypc.now .yps.free{color:var(--paper)!important}
+.ypnmid b{white-space:normal!important;font-size:15px!important;text-align:center;overflow:visible}
+.ypnrh{max-width:118px;font-size:14px!important;padding:4px 10px!important}
+html body .yplan.inline.ypvac .ypc.now{outline-offset:0!important;outline-width:3px!important;z-index:3;overflow:visible}
 </style>
 </head>
 <body>
@@ -2521,10 +2536,13 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   const s0=st.s, lab=k=>MONK[((k%12)+12)%12]+" "+Math.floor(k/12), ttl=Math.floor(s0/12)===Math.floor((s0+NM-1)/12)?MONK[s0%12]+" – "+lab(s0+NM-1):lab(s0)+" – "+lab(s0+NM-1);
   const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+12-NM; /* Kalender: Januar letztes Jahr bis Dezember übernächstes Jahr */
   const go=k=>{ k=Math.max(sMin,Math.min(sMax,k)); st.s=k; st.y=Math.floor(k/12); if(!st.paint) st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); };
-  const top=el("div","yptop"), pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Einen Monat zurück"); nx.setAttribute("aria-label","Einen Monat vor");
+  /* eine Zeile: [‹ Zeitraum · Heute ›] (auch wischbar) + „Schichtrhythmus“ */
+  const top=el("div","yptop ypnav2"), pill=el("div","ypnavpill"), pv=el("button","ypnb","‹"), nx=el("button","ypnb","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Einen Monat zurück"); nx.setAttribute("aria-label","Einen Monat vor");
   pv.onclick=()=>step(-1); nx.onclick=()=>step(1); if(s0<=sMin) pv.disabled=true; if(s0>=sMax) nx.disabled=true;
-  const hb=el("button","btn ghost yptoday","Heute"); hb.type="button"; hb.onclick=()=>go(n.getFullYear()*12+n.getMonth());
-  top.append(pv, el("h2","grow",ttl), hb, nx); ov.append(top);
+  const mid=el("button","ypnmid"); mid.type="button"; mid.setAttribute("aria-label","Zu heute springen"); mid.append(el("b",null,ttl), el("small",null,"Heute")); mid.onclick=()=>go(n.getFullYear()*12+n.getMonth());
+  pill.append(pv,mid,nx); { pill.addEventListener("pointerdown",ev=>{ const px=ev.clientX; const up=e2=>{ window.removeEventListener("pointerup",up); const dx=e2.clientX-px; if(Math.abs(dx)>40){ pill.dataset.sw="1"; setTimeout(()=>delete pill.dataset.sw,300); step(dx<0?1:-1); } }; window.addEventListener("pointerup",up); }); pill.addEventListener("click",ev=>{ if(pill.dataset.sw){ ev.stopPropagation(); ev.preventDefault(); } },true); }
+  const rh=el("button","btn ypquiet ypnrh","Schicht­rhythmus"); rh.type="button"; rh.onclick=()=>openRhythm();
+  top.append(pill,rh); ov.append(top);
   /* beim Eintragen: große Anzeige der Auswahl */
   ypTopPaint(st,ov,first);
   /* 12 Spalten: 4 davor, 4 sichtbar, 4 danach – damit das Wischen echte Monate zeigt */
@@ -3504,7 +3522,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.09-83";
+const APP_VERSION="2026.10.09-84";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
