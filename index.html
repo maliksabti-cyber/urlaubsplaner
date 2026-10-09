@@ -1043,6 +1043,15 @@ html body .yplan.inline.ypvac .ypc.now .ypd b::before{background:#fff!important}
 .yplan.inline.ypvac .ypwin .ypmarr{top:0;height:var(--yphh,34px);width:40px;display:flex;align-items:center;justify-content:center;font-size:26px}
 .yplan.inline.ypvac .ypwin .ypmarr::before{inset:3px 4px}
 .yplan.inline.ypvac .yph.yphl{padding-left:34px!important}.yplan.inline.ypvac .yph.yphr{padding-right:34px!important}
+/* große runde Pfeile links und rechts, Zeitraum mit Heute dazwischen */
+.ypr1{grid-template-columns:1fr!important}
+.ypr3 .ypnavslot{display:flex}
+.ypnavpill.ypbign{border:0!important;background:none!important;gap:8px;overflow:visible;min-height:56px}
+.ypbign .ypbigarr{width:56px!important;height:56px!important;flex:none;border-radius:50%!important;border:2px solid var(--rule)!important;background:var(--card)!important;color:var(--ink)!important;font-size:24px!important}
+.ypbign .ypbigarr:disabled{opacity:.3}
+.ypbign .ypnmid{border:2px solid var(--ink);border-radius:999px;background:var(--card);min-height:56px}
+.ypbign .ypnmid b{font-size:17px!important;white-space:nowrap!important}
+@media (max-width:380px){.ypbign .ypnmid b{font-size:15px!important}.ypbign .ypbigarr{width:50px!important;height:50px!important}}
 </style>
 </head>
 <body>
@@ -2556,9 +2565,9 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+12-NM; /* Kalender: Januar letztes Jahr bis Dezember übernächstes Jahr */
   const go=k=>{ k=Math.max(sMin,Math.min(sMax,k)); st.s=k; st.y=Math.floor(k/12); if(!st.paint) st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); };
   /* eine Zeile: [‹ Zeitraum · Heute ›] (auch wischbar) + „Schichtrhythmus“ */
-  const top=el("div","yptop ypnav2"), pill=el("div","ypnavpill"), pv=el("button","ypnb","‹"), nx=el("button","ypnb","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Einen Monat zurück"); nx.setAttribute("aria-label","Einen Monat vor");
+  const top=el("div","yptop ypnav2"), pill=el("div","ypnavpill ypbign"), pv=el("button","icon-btn ypbigarr","‹"), nx=el("button","icon-btn ypbigarr","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Einen Monat zurück"); nx.setAttribute("aria-label","Einen Monat vor");
   pv.onclick=()=>step(-1); nx.onclick=()=>step(1); if(s0<=sMin) pv.disabled=true; if(s0>=sMax) nx.disabled=true;
-  const mid=el("button","ypnmid"); mid.type="button"; mid.setAttribute("aria-label","Zu heute springen"); mid.setAttribute("title",ttl); mid.append(el("b",null,MONK[((s0%12)+12)%12]+" – "+MONK[((s0+NM-1)%12+12)%12]), el("small",null,"Heute")); mid.onclick=()=>go(n.getFullYear()*12+n.getMonth());
+  const mid=el("button","ypnmid"); mid.type="button"; mid.setAttribute("aria-label","Zu heute springen"); mid.setAttribute("title",ttl); mid.append(el("b",null,ttl), el("small",null,"Heute")); mid.onclick=()=>go(n.getFullYear()*12+n.getMonth());
   pill.append(pv,mid,nx); { pill.addEventListener("pointerdown",ev=>{ const px=ev.clientX; const up=e2=>{ window.removeEventListener("pointerup",up); const dx=e2.clientX-px; if(Math.abs(dx)>40){ pill.dataset.sw="1"; setTimeout(()=>delete pill.dataset.sw,300); step(dx<0?1:-1); } }; window.addEventListener("pointerup",up); }); pill.addEventListener("click",ev=>{ if(pill.dataset.sw){ ev.stopPropagation(); ev.preventDefault(); } },true); }
   const rh=el("button","btn ypquiet ypnrh","Schicht­rhythmus"); rh.type="button"; rh.onclick=()=>openRhythm();
   { const slot=document.getElementById("ypnavslot"); if(slot){ slot.innerHTML=""; slot.append(pill); } else { top.append(pill,rh); ov.append(top); } }
@@ -3425,7 +3434,7 @@ function renderUrlaub(){
     const sh=ypShifts(), tg=el("button","btn ypshbtn",sh?"✓ Schichten":"Schichten"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); render(); };
     /* Zeile 1: Jahr|Monat + Zeitraum/Heute · Zeile 2: Schichten + Schichtrhythmus */
     const r1=el("div","ypr1"), r2=el("div","ypr2"), ns=el("div","ypnavslot"), rh=el("button","btn ypquiet ypnrh","Schicht­rhythmus"); rh.type="button"; rh.onclick=()=>openRhythm(); ns.id="ypnavslot";
-    r1.append(sg,ns); r2.append(tg,rh); ctl.classList.add("ypctl2"); ctl.append(r1,r2); box.append(ctl); }
+    r1.append(sg); r2.append(tg,rh); ctl.append(r1,r2); { const r3=el("div","ypr3"); r3.append(ns); ctl.append(r3); } ctl.classList.add("ypctl2"); box.append(ctl); }
   mountYP(box,ypU,uY,()=>{ uY=ypU.y; renderUrlaub(); });
 }
 /* Liste „Mein Urlaub“ als eigenes Fenster (Zeitraum und Tage, antippen = Ändern/Löschen) */
