@@ -1024,6 +1024,21 @@ html body .yplan.inline.ypvac .ypc.now .yps.free{color:var(--paper)!important}
 .ypnmid b{white-space:normal!important;font-size:15px!important;text-align:center;overflow:visible}
 .ypnrh{max-width:118px;font-size:14px!important;padding:4px 10px!important}
 html body .yplan.inline.ypvac .ypc.now{outline-offset:0!important;outline-width:3px!important;z-index:3;overflow:visible}
+/* Zwei Zeilen oben; heutiger Tag rot */
+.ypctl.ypctl2{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;background:none!important;padding:0!important;border-radius:0!important}
+.ypr1{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:8px;align-items:stretch}
+.ypr1 .seg.ypjm{background:var(--bar)!important;padding:4px!important;border-radius:999px!important;min-height:56px}
+.ypr1 .seg.ypjm button{min-height:48px!important;font-size:16px!important;padding:4px 6px!important}
+.ypnavslot{display:flex;min-width:0}.ypnavslot .ypnavpill{flex:1;min-width:0}
+.ypnavslot:empty{display:none}.ypr1:has(.ypnavslot:empty){grid-template-columns:1fr}
+.ypnavslot .ypnb{width:38px;font-size:24px}.ypnavslot .ypnmid b{font-size:16px!important;white-space:nowrap!important}
+.ypr2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ypr2 .ypshbtn,.ypr2 .ypnrh{min-height:52px!important;max-width:none!important;width:100%;font-size:16px!important;border-radius:999px!important;margin:0!important}
+.ypctl2 .ypshbtn{background:var(--card)!important;color:var(--ink)!important;border:2px solid var(--rule)!important;padding:6px 10px!important}
+.ypctl2 .ypshbtn[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 14%,var(--card))!important;color:var(--ink)!important;border-color:var(--accent)!important}
+html body .yplan.inline.ypvac .ypc.now{background:#E03131!important;color:#fff!important;outline:3px solid #8E0E0E!important;outline-offset:0!important}
+html body .yplan.inline.ypvac .ypc.now .ypd,html body .yplan.inline.ypvac .ypc.now .ypd small,html body .yplan.inline.ypvac .ypc.now .ypd b,html body .yplan.inline.ypvac .ypc.now .yps.free{color:#fff!important}
+html body .yplan.inline.ypvac .ypc.now .ypd b::before{background:#fff!important}
 </style>
 </head>
 <body>
@@ -2539,10 +2554,10 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   /* eine Zeile: [‹ Zeitraum · Heute ›] (auch wischbar) + „Schichtrhythmus“ */
   const top=el("div","yptop ypnav2"), pill=el("div","ypnavpill"), pv=el("button","ypnb","‹"), nx=el("button","ypnb","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Einen Monat zurück"); nx.setAttribute("aria-label","Einen Monat vor");
   pv.onclick=()=>step(-1); nx.onclick=()=>step(1); if(s0<=sMin) pv.disabled=true; if(s0>=sMax) nx.disabled=true;
-  const mid=el("button","ypnmid"); mid.type="button"; mid.setAttribute("aria-label","Zu heute springen"); mid.append(el("b",null,ttl), el("small",null,"Heute")); mid.onclick=()=>go(n.getFullYear()*12+n.getMonth());
+  const mid=el("button","ypnmid"); mid.type="button"; mid.setAttribute("aria-label","Zu heute springen"); mid.setAttribute("title",ttl); mid.append(el("b",null,MONK[((s0%12)+12)%12]+" – "+MONK[((s0+NM-1)%12+12)%12]), el("small",null,"Heute")); mid.onclick=()=>go(n.getFullYear()*12+n.getMonth());
   pill.append(pv,mid,nx); { pill.addEventListener("pointerdown",ev=>{ const px=ev.clientX; const up=e2=>{ window.removeEventListener("pointerup",up); const dx=e2.clientX-px; if(Math.abs(dx)>40){ pill.dataset.sw="1"; setTimeout(()=>delete pill.dataset.sw,300); step(dx<0?1:-1); } }; window.addEventListener("pointerup",up); }); pill.addEventListener("click",ev=>{ if(pill.dataset.sw){ ev.stopPropagation(); ev.preventDefault(); } },true); }
   const rh=el("button","btn ypquiet ypnrh","Schicht­rhythmus"); rh.type="button"; rh.onclick=()=>openRhythm();
-  top.append(pill,rh); ov.append(top);
+  { const slot=document.getElementById("ypnavslot"); if(slot){ slot.innerHTML=""; slot.append(pill); } else { top.append(pill,rh); ov.append(top); } }
   /* beim Eintragen: große Anzeige der Auswahl */
   ypTopPaint(st,ov,first);
   /* 12 Spalten: 4 davor, 4 sichtbar, 4 danach – damit das Wischen echte Monate zeigt */
@@ -3402,7 +3417,9 @@ function renderUrlaub(){
     const ctl=el("div","ypctl"), sg=el("div","seg full ypjm"), isM=ypU.one!=null; [["Jahr",false],["Monat",true]].forEach(([l,mo])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(isM===mo));
       b.onclick=()=>{ if(isM===mo) return; if(mo){ const n=new Date(), cur=n.getFullYear()*12+n.getMonth(), s0=ypU.s!=null?ypU.s:cur; ypSetView(ypU,ypU.lastOne!=null&&ypU.lastOne>=s0&&ypU.lastOne<=s0+ypNM()-1?ypU.lastOne:(cur>=s0&&cur<=s0+ypNM()-1?cur:s0)); } else ypSetView(ypU,null); }; sg.append(b); });
     const sh=ypShifts(), tg=el("button","btn ypshbtn",sh?"✓ Schichten":"Schichten"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); render(); };
-    ctl.append(sg,tg); box.append(ctl); }
+    /* Zeile 1: Jahr|Monat + Zeitraum/Heute · Zeile 2: Schichten + Schichtrhythmus */
+    const r1=el("div","ypr1"), r2=el("div","ypr2"), ns=el("div","ypnavslot"), rh=el("button","btn ypquiet ypnrh","Schicht­rhythmus"); rh.type="button"; rh.onclick=()=>openRhythm(); ns.id="ypnavslot";
+    r1.append(sg,ns); r2.append(tg,rh); ctl.classList.add("ypctl2"); ctl.append(r1,r2); box.append(ctl); }
   mountYP(box,ypU,uY,()=>{ uY=ypU.y; renderUrlaub(); });
 }
 /* Liste „Mein Urlaub“ als eigenes Fenster (Zeitraum und Tage, antippen = Ändern/Löschen) */
@@ -3522,7 +3539,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.09-84";
+const APP_VERSION="2026.10.09-85";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
