@@ -2597,7 +2597,7 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   const tt=el("h2","ypn3t",ttl); grp.append(pv,tt,nx);
   { grp.addEventListener("pointerdown",ev=>{ const px=ev.clientX; const up=e2=>{ window.removeEventListener("pointerup",up); const dx=e2.clientX-px; if(Math.abs(dx)>40){ grp.dataset.sw="1"; setTimeout(()=>delete grp.dataset.sw,300); step(dx<0?1:-1); } }; window.addEventListener("pointerup",up); }); grp.addEventListener("click",ev=>{ if(grp.dataset.sw){ ev.stopPropagation(); ev.preventDefault(); } },true); }
   const hb=el("button","ypn3h","Heute"); hb.type="button"; hb.onclick=()=>go(n.getFullYear()*12+n.getMonth());
-  top.append(grp,hb); ov.append(top);
+  top.append(hb,grp); ov.append(top);
   /* beim Eintragen: große Anzeige der Auswahl */
   ypTopPaint(st,ov,first);
   /* 12 Spalten: 4 davor, 4 sichtbar, 4 danach – damit das Wischen echte Monate zeigt */
@@ -3579,7 +3579,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.09-87";
+const APP_VERSION="2026.10.09-88";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
