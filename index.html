@@ -2444,7 +2444,7 @@ function ypShiftPicker(st){ openSheet(p=>{ sheetTop(p,"Welche Schicht?"); const 
   S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const b=el("button","shpickbtn"+(st.brush===x.id?" on":"")); b.type="button"; const k=el("b","yps"+(x.kind==="free"?" free":""),x.short); if(x.kind!=="free"){ k.style.background=x.color; k.style.color=isDark(x.color)?"#16222B":"#fff"; b.style.borderColor=x.color; }
     b.append(k, el("span",null,x.name), el("small",null,x.kind==="work"&&x.start?x.start+" – "+x.end+" Uhr":"")); b.onclick=()=>{ st.brush=x.id; closeSheet(); }; g.append(b); });
   p.append(g); const rb=el("button","btn ypquiet uwide","Schichtrhythmus eintragen"); rb.type="button"; rb.onclick=()=>{ closeSheet(); openRhythm(); }; p.append(rb); }); }
-function ypTopPaint(st,ov,first){ if(!st.paint) return; const D=x=>DOW[parse(x).getDay()]+" "+ddm(x); if(st.kind!=="shift") ov.append(ypQuick(st));
+function ypTopPaint(st,ov,first){ if(!st.paint) return; const D=x=>DOW[parse(x).getDay()]+" "+ddm(x); if(st.kind==="shift") return;
   if(st.kind==="shift"){ /* eine Zeile: „Schicht wählen“ (öffnet Fenster) + „Schichtrhythmus eintragen“ */
     const row=el("div","ypshrow"), tp=st.brush?typeOf(st.brush):null, pk=el("button","ypshpick"+(tp?" on":"")); pk.type="button";
     if(tp){ const k=el("b","yps"+(tp.kind==="free"?" free":""),tp.short); if(tp.kind!=="free"){ k.style.background=tp.color; k.style.color=isDark(tp.color)?"#16222B":"#fff"; } pk.append(k, el("span",null,tp.name), el("small",null,"✎")); }
@@ -2461,7 +2461,8 @@ function ypBottom(st,first){ if(st.paint && st.a && st.e) return st.kind==="shif
     u.onclick=()=>{ st.paint=true; st.kind="vac"; st.a=st.e=null; drawYP(st); };
     sb.onclick=()=>{ st.paint=true; st.kind="shift"; st.brush=null; st.a=st.e=null; lsSet("su_ushift","1"); render(); ypShiftPicker(st); }; bar.classList.add("yptwo"); bar.append(u,sb); return bar; }
   const b=el("button","btn","Abbrechen"); b.type="button"; b.onclick=()=>ypStop(st);
-  const D=x=>DOW[parse(x).getDay()]+" "+ddm(x), tx=st.kind==="shift"&&!st.brush?"Wähle zuerst die Schicht.":!st.a?(st.kind==="shift"?"Tippe den ersten Tag an.":first):"Start: "+D(st.a)+" Tippe jetzt den letzten Tag an.";
+  const D=x=>DOW[parse(x).getDay()]+" "+ddm(x), nm=st.kind==="shift"&&st.brush&&typeOf(st.brush)?typeOf(st.brush).name+": ":"", tx=st.kind==="shift"&&!st.brush?"Wähle zuerst die Schicht.":!st.a?nm+(st.kind==="shift"?"Tippe den ersten Tag an.":first):nm+"Start: "+D(st.a)+" Tippe jetzt den letzten Tag an.";
+  if(st.kind==="shift"&&!st.brush){ const w=el("button","btn ypquiet","Schicht wählen"); w.type="button"; w.onclick=()=>ypShiftPicker(st); bar.append(el("div","grow ypstep",tx), w, b); return bar; }
   bar.append(el("div","grow ypstep",tx), b); return bar; }
 function ypShiftBar(st){ const a=st.a, e=st.e, tp=typeOf(st.brush), n=diffD(a,e)+1, bar=el("div","ypfix"), tx=el("div","grow"), sv=el("button","btn pri","Speichern"), no=el("button","linkbtn","Abbrechen"); sv.type=no.type="button";
   tx.append(el("b",null,tp?tp.name:"Schicht"), el("small",null,n+(n===1?" Tag":" Tage")+" · "+ddRange(a,e))); no.onclick=()=>ypStop(st);
