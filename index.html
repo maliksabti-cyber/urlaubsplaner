@@ -989,6 +989,26 @@ html:not([data-fs="n"]) .ypobar b{font-size:18px;white-space:normal;line-height:
 html:not([data-fs="n"]) .ypobar .yptoday.ypobh{padding:4px 8px;font-size:14px}
 html:not([data-fs="n"]) .yplan.inline.ypvac .yptop h2{font-size:15px}
 html:not([data-fs="n"]) body[data-v="urlaub"] .urrow .urltxt{font-size:15px}html:not([data-fs="n"]) .ypctl .ypshbtn{min-height:44px}
+/* Schicht wählen per Fenster, Jahr|Monat und Schichten in einem Balken */
+.ypshrow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:8px}
+.ypshpick{display:flex;align-items:center;gap:8px;min-height:52px;border-radius:999px;border:2px solid var(--ink);background:var(--card);color:var(--ink);font:800 17px/1.1 var(--f-body);padding:4px 14px;cursor:pointer;min-width:0}
+.ypshpick span{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ypshpick small{font-size:14px;font-weight:700;color:var(--soft)}
+.ypshpick .yps{min-width:30px;height:30px;line-height:30px;font-size:16px}
+.ypshrh{min-height:52px!important;font-size:15px!important;line-height:1.1;white-space:normal;padding:4px 10px!important}
+.shpickgrid{display:grid;gap:10px;margin:4px 0 14px}
+.shpickbtn{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:14px;align-items:center;text-align:left;min-height:68px;border-radius:20px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:8px 16px;cursor:pointer;font:inherit}
+.shpickbtn .yps{grid-row:span 2;min-width:42px;height:42px;line-height:42px;font-size:22px}.shpickbtn span{font-size:20px;font-weight:800}.shpickbtn small{font-size:15px;color:var(--soft)}
+.shpickbtn.on{box-shadow:0 0 0 3px var(--ink) inset}
+.shpickbtn:active{transform:scale(.98)}
+/* ein Balken: Jahr | Monat | Schichten */
+.ypctl{grid-template-columns:minmax(0,1fr) auto!important;gap:0!important;background:var(--bar);border-radius:999px;padding:4px}
+.ypctl .seg.ypjm{border:0!important;padding:0;background:transparent!important}
+.ypctl .ypshbtn{border:0!important;background:transparent!important;color:color-mix(in srgb,var(--barink) 80%,transparent)!important;border-left:1px solid rgba(255,255,255,.25)!important;border-radius:0 999px 999px 0!important;margin-left:4px;padding:6px 14px!important}
+.ypctl .ypshbtn[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 85%,#000)!important;color:#fff!important;border-radius:999px!important;border-left:0!important}
+html:not([data-fs="n"]) .ypctl{grid-template-columns:minmax(0,1fr) auto!important;border-radius:28px}
+html:not([data-fs="n"]) .ypctl .ypshbtn{font-size:14px!important;padding:6px 10px!important}
+.ypshrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}.ypshpick{font-size:16px!important;padding:4px 10px!important;gap:6px}
+.ypqb{white-space:normal!important;line-height:1.1;font-size:14px!important;text-overflow:clip}
 </style>
 </head>
 <body>
@@ -2419,10 +2439,18 @@ function ypQuick(st){ const t=TODAY(), mon=addD(t,-((parse(t).getDay()+6)%7)), n
   const mk=st.one!=null?st.one:(st.s!=null&&cur>=st.s&&cur<=st.s+ypNM()-1?cur:(st.s!=null?st.s:cur)), my=Math.floor(mk/12), mm=mk%12, mf=my+"-"+pad(mm+1)+"-01";
   const row=el("div","ypquick"); [["Diese Woche",mon,addD(mon,6)],["Nächste Woche",addD(mon,7),addD(mon,13)],["Ganzer Monat",mf,lastOfMonth(mf)]].forEach(([l,a,e])=>{ const b=el("button","btn ypqb",l); b.type="button";
     b.onclick=()=>{ if(st.kind==="shift"&&!st.brush){ toast("Wähle zuerst die Schicht."); return; } st.a=a; st.e=e; drawYP(st); }; row.append(b); }); return row; }
-function ypTopPaint(st,ov,first){ if(!st.paint) return; const D=x=>DOW[parse(x).getDay()]+" "+ddm(x); if(st.kind!=="shift"||st.brush) ov.append(ypQuick(st));
-  if(st.kind==="shift"){ const row=el("div","ypbrushrow"); S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const b=el("button","ypbr"+(st.brush===x.id?" on":"")); b.type="button"; b.setAttribute("aria-pressed",String(st.brush===x.id));
-      const k=el("b","yps"+(x.kind==="free"?" free":""),x.short); if(x.kind!=="free"){ k.style.background=x.color; k.style.color=isDark(x.color)?"#16222B":"#fff"; } if(st.brush===x.id&&x.kind!=="free") b.style.borderColor=x.color;
-      b.append(k, el("small",null,x.name.replace(/schicht$/i,""))); b.setAttribute("aria-label",x.name); b.onclick=()=>{ st.brush=x.id; drawYP(st); }; row.append(b); }); ov.append(row); return; }
+/* Fenster mit allen Schichten zum Auswählen */
+function ypShiftPicker(st){ openSheet(p=>{ sheetTop(p,"Welche Schicht?"); const g=el("div","shpickgrid");
+  S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const b=el("button","shpickbtn"+(st.brush===x.id?" on":"")); b.type="button"; const k=el("b","yps"+(x.kind==="free"?" free":""),x.short); if(x.kind!=="free"){ k.style.background=x.color; k.style.color=isDark(x.color)?"#16222B":"#fff"; b.style.borderColor=x.color; }
+    b.append(k, el("span",null,x.name), el("small",null,x.kind==="work"&&x.start?x.start+" – "+x.end+" Uhr":"")); b.onclick=()=>{ st.brush=x.id; closeSheet(); }; g.append(b); });
+  p.append(g); const rb=el("button","btn ypquiet uwide","Schichtrhythmus eintragen"); rb.type="button"; rb.onclick=()=>{ closeSheet(); openRhythm(); }; p.append(rb); }); }
+function ypTopPaint(st,ov,first){ if(!st.paint) return; const D=x=>DOW[parse(x).getDay()]+" "+ddm(x); if(st.kind!=="shift") ov.append(ypQuick(st));
+  if(st.kind==="shift"){ /* eine Zeile: „Schicht wählen“ (öffnet Fenster) + „Schichtrhythmus eintragen“ */
+    const row=el("div","ypshrow"), tp=st.brush?typeOf(st.brush):null, pk=el("button","ypshpick"+(tp?" on":"")); pk.type="button";
+    if(tp){ const k=el("b","yps"+(tp.kind==="free"?" free":""),tp.short); if(tp.kind!=="free"){ k.style.background=tp.color; k.style.color=isDark(tp.color)?"#16222B":"#fff"; } pk.append(k, el("span",null,tp.name), el("small",null,"✎")); }
+    else pk.append(el("span",null,"Schicht wählen"), el("small",null,"›"));
+    pk.onclick=()=>ypShiftPicker(st); const rb=el("button","btn ypquiet ypshrh","Schichtrhythmus eintragen"); rb.type="button"; rb.onclick=()=>openRhythm();
+    row.append(pk,rb); ov.append(row); if(st.brush) ov.append(ypQuick(st)); return; }
   }
 /* Auswahlfarbe = Farbe der gewählten Schicht */
 function ypSelColor(st,g){ if(!ypSK(st)||!st.brush) return; const tp=typeOf(st.brush); if(tp&&tp.kind!=="free") g.style.setProperty("--selc",tp.color); else g.style.setProperty("--selc","#8A969E"); g.classList.add("ypshsel"); }
@@ -2431,7 +2459,7 @@ function ypBottom(st,first){ if(st.paint && st.a && st.e) return st.kind==="shif
   const bar=el("div","ypfix ypmain");
   if(!st.paint){ const u=el("button","btn pri","Urlaub eintragen"), sb=el("button","btn ypshbig","Schicht eintragen"); u.type=sb.type="button";
     u.onclick=()=>{ st.paint=true; st.kind="vac"; st.a=st.e=null; drawYP(st); };
-    sb.onclick=()=>{ st.paint=true; st.kind="shift"; st.brush=null; st.a=st.e=null; lsSet("su_ushift","1"); render(); }; bar.classList.add("yptwo"); bar.append(u,sb); return bar; }
+    sb.onclick=()=>{ st.paint=true; st.kind="shift"; st.brush=null; st.a=st.e=null; lsSet("su_ushift","1"); render(); ypShiftPicker(st); }; bar.classList.add("yptwo"); bar.append(u,sb); return bar; }
   const b=el("button","btn","Abbrechen"); b.type="button"; b.onclick=()=>ypStop(st);
   const D=x=>DOW[parse(x).getDay()]+" "+ddm(x), tx=st.kind==="shift"&&!st.brush?"Wähle zuerst die Schicht.":!st.a?(st.kind==="shift"?"Tippe den ersten Tag an.":first):"Start: "+D(st.a)+" Tippe jetzt den letzten Tag an.";
   bar.append(el("div","grow ypstep",tx), b); return bar; }
@@ -3354,7 +3382,7 @@ function renderUrlaub(){
   { if(!ypU.viewInit){ ypU.viewInit=true; const v=lsGet("su_uview")||""; if(v.startsWith("one:")){ ypU.one=+v.slice(4); ypU.y=Math.floor(ypU.one/12); uY=ypU.y; } }
     const ctl=el("div","ypctl"), sg=el("div","seg full ypjm"), isM=ypU.one!=null; [["Jahr",false],["Monat",true]].forEach(([l,mo])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(isM===mo));
       b.onclick=()=>{ if(isM===mo) return; if(mo){ const n=new Date(), cur=n.getFullYear()*12+n.getMonth(), s0=ypU.s!=null?ypU.s:cur; ypSetView(ypU,ypU.lastOne!=null&&ypU.lastOne>=s0&&ypU.lastOne<=s0+ypNM()-1?ypU.lastOne:(cur>=s0&&cur<=s0+ypNM()-1?cur:s0)); } else ypSetView(ypU,null); }; sg.append(b); });
-    const sh=ypShifts(), tg=el("button","btn ypshbtn",sh?"✓ Schichten: ein":"Schichten: aus"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); render(); };
+    const sh=ypShifts(), tg=el("button","btn ypshbtn",sh?"✓ Schichten":"Schichten"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); render(); };
     ctl.append(sg,tg); box.append(ctl); }
   mountYP(box,ypU,uY,()=>{ uY=ypU.y; renderUrlaub(); });
 }
@@ -3475,7 +3503,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.08-82";
+const APP_VERSION="2026.10.09-83";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
