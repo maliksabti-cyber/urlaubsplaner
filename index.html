@@ -1017,13 +1017,8 @@ html:not([data-fs="n"]) .ypctl .ypshbtn{font-size:14px!important;padding:6px 10p
 .ypnmid b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.ypnmid small{font-size:13px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
 .ypnrh{min-height:56px!important;font-size:15px!important;padding:4px 14px!important;white-space:normal;line-height:1.1;max-width:132px}
 /* heutiger Tag: kräftig hervorgehoben */
-html body .yplan.inline.ypvac .ypc.now{background:var(--ink)!important;color:var(--paper)!important;outline:3px solid var(--accent)!important;outline-offset:-3px!important;z-index:2;font-weight:900}
-html body .yplan.inline.ypvac .ypc.now .ypd,html body .yplan.inline.ypvac .ypc.now .ypd small,html body .yplan.inline.ypvac .ypc.now .ypd b{color:var(--paper)!important}
-html body .yplan.inline.ypvac .ypc.now .ypd b::before{background:var(--accent)!important}
-html body .yplan.inline.ypvac .ypc.now .yps.free{color:var(--paper)!important}
 .ypnmid b{white-space:normal!important;font-size:15px!important;text-align:center;overflow:visible}
 .ypnrh{max-width:118px;font-size:14px!important;padding:4px 10px!important}
-html body .yplan.inline.ypvac .ypc.now{outline-offset:0!important;outline-width:3px!important;z-index:3;overflow:visible}
 /* Zwei Zeilen oben; heutiger Tag rot */
 .ypctl.ypctl2{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;background:none!important;padding:0!important;border-radius:0!important}
 .ypr1{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:8px;align-items:stretch}
@@ -1036,9 +1031,6 @@ html body .yplan.inline.ypvac .ypc.now{outline-offset:0!important;outline-width:
 .ypr2 .ypshbtn,.ypr2 .ypnrh{min-height:52px!important;max-width:none!important;width:100%;font-size:16px!important;border-radius:999px!important;margin:0!important}
 .ypctl2 .ypshbtn{background:var(--card)!important;color:var(--ink)!important;border:2px solid var(--rule)!important;padding:6px 10px!important}
 .ypctl2 .ypshbtn[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 14%,var(--card))!important;color:var(--ink)!important;border-color:var(--accent)!important}
-html body .yplan.inline.ypvac .ypc.now{background:#E03131!important;color:#fff!important;outline:3px solid #8E0E0E!important;outline-offset:0!important}
-html body .yplan.inline.ypvac .ypc.now .ypd,html body .yplan.inline.ypvac .ypc.now .ypd small,html body .yplan.inline.ypvac .ypc.now .ypd b,html body .yplan.inline.ypvac .ypc.now .yps.free{color:#fff!important}
-html body .yplan.inline.ypvac .ypc.now .ypd b::before{background:#fff!important}
 /* Pfeile links und rechts am Monatsbalken */
 .yplan.inline.ypvac .ypwin .ypmarr{top:0;height:var(--yphh,34px);width:40px;display:flex;align-items:center;justify-content:center;font-size:26px}
 .yplan.inline.ypvac .ypwin .ypmarr::before{inset:3px 4px}
@@ -1053,6 +1045,39 @@ html body .yplan.inline.ypvac .ypc.now .ypd b::before{background:#fff!important}
 .ypbign .ypnmid b{font-size:17px!important;white-space:nowrap!important}
 @media (max-width:380px){.ypbign .ypnmid b{font-size:15px!important}.ypbign .ypbigarr{width:50px!important;height:50px!important}}
 @media (max-width:380px){body[data-v="urlaub"] .ypfix.yptwo .btn,body[data-v="urlaub"] .ypfix.yptwo .btn.pri{white-space:normal!important;line-height:1.1;font-size:15px!important;text-overflow:clip}}
+/* ===== Plan aufgeräumt: feste Zeilen ===== */
+.ypctl3{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.ypjm3{flex:1 1 210px;display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;background:var(--bar);border-radius:999px;min-height:52px}
+.ypjm3 button{border:0;border-radius:999px;background:transparent;color:color-mix(in srgb,var(--barink) 78%,transparent);font:800 17px/1 var(--f-body);min-height:46px;cursor:pointer;padding:0 8px;white-space:nowrap}
+.ypjm3 button[aria-pressed="true"]{background:#fff;color:#1F2A33;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.ypsw3{flex:0 1 auto;min-height:52px;border-radius:999px;border:2px solid var(--rule);background:var(--card);color:var(--ink);font:800 16px/1.1 var(--f-body);padding:4px 16px;cursor:pointer;white-space:nowrap}
+.ypsw3[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--card))}
+@media (max-width:399px){.ypsw3{flex:1 1 100%}}
+.ypnav3{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.ypn3g{flex:1 1 230px;display:flex;align-items:center;gap:6px;min-width:0;touch-action:pan-y;user-select:none}
+.ypn3a{width:48px;height:48px;flex:none;border-radius:50%;border:2px solid var(--rule);background:var(--card);color:var(--ink);font:800 22px/1 var(--f-body);cursor:pointer}.ypn3a:disabled{opacity:.3}
+.ypn3t{flex:1;min-width:0;margin:0;text-align:center;font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.ypn3h{flex:0 0 auto;min-height:48px;border-radius:999px;border:2px solid var(--ink);background:var(--card);color:var(--ink);font:800 16px/1 var(--f-body);padding:0 18px;cursor:pointer}
+@media (max-width:399px){.ypn3h{flex:1 1 100%}}
+.ypobar .yptoday.ypobh{font-size:16px!important}
+/* heutiger Tag: heller Rahmen + Punkt, keine Füllung */
+.yplan.inline.ypvac .ypwin .ypc.now{outline:2.5px solid var(--ink)!important;outline-offset:-2.5px!important;font-weight:inherit}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .yplan.inline.ypvac .ypwin .ypc.now{outline-color:#fff!important} } :root[data-theme="dark"] .yplan.inline.ypvac .ypwin .ypc.now{outline-color:#fff!important}
+.yplan.inline.ypvac .ypc.now .ypd b::before{background:var(--accent)!important}
+/* gleiche Zeilenhöhe überall */
+.yplan.inline.ypvac .ypwin .ypc{height:var(--yprow,24px)!important;min-height:0!important;max-height:var(--yprow,24px);overflow:hidden;box-sizing:border-box}
+/* 2027 unter JAN ohne die Überschrift zu verformen */
+.yplan.inline.ypvac .yph{position:relative}.yplan.inline.ypvac .yph.ypny{line-height:inherit!important;padding-top:0!important}
+.yph .ypyr{position:absolute;left:0;right:0;bottom:-1px;font-size:9px!important;line-height:1;margin:0!important;opacity:.8}
+/* Frei-Strich dezent, Ferien bleiben sichtbar */
+html body .yplan.inline.ypvac .ypc .yps.free{background:transparent!important;box-shadow:none!important;color:inherit!important;opacity:.55;filter:none}
+.yplan.inline.ypvac .ypwin .yph{padding-bottom:9px!important;padding-top:1px!important}
+.yplan.inline.ypvac .ypwin .yph{position:relative!important;top:auto!important}
+.ypjm3{flex-basis:170px}.ypn3a{width:44px;height:44px}.ypn3t{font-size:16px}.ypn3h{padding:0 14px}.ypn3g{gap:4px}
+.ypn3h{flex:1 0 auto}.ypsw3{flex:1 0 auto}
+.ypn3h{flex:0 0 auto}html:not([data-fs="n"]) .ypn3h,html:not([data-fs="n"]) .ypsw3{flex:1 1 100%}@media (max-width:399px){.ypn3h{flex:1 1 100%}}
+@media (max-width:399px){html[data-fs="n"] .ypn3h{flex:0 0 auto;padding:0 12px}.ypn3t{font-size:15px}.ypn3a{width:42px;height:42px}.ypn3g{flex-basis:200px}}@media (max-width:374px){html[data-fs="n"] .ypn3h{flex:1 1 100%}}
+:root:not(#x) .yplan.inline.ypvac .ypc .yps.free,:root:not(#x) .ypleg2 .yps.free{background:transparent!important;box-shadow:none!important;color:inherit!important;opacity:.55}
 </style>
 </head>
 <body>
@@ -2566,12 +2591,13 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+12-NM; /* Kalender: Januar letztes Jahr bis Dezember übernächstes Jahr */
   const go=k=>{ k=Math.max(sMin,Math.min(sMax,k)); st.s=k; st.y=Math.floor(k/12); if(!st.paint) st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); };
   /* eine Zeile: [‹ Zeitraum · Heute ›] (auch wischbar) + „Schichtrhythmus“ */
-  const top=el("div","yptop ypnav2"), pill=el("div","ypnavpill ypbign"), pv=el("button","icon-btn ypbigarr","‹"), nx=el("button","icon-btn ypbigarr","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Einen Monat zurück"); nx.setAttribute("aria-label","Einen Monat vor");
+  /* Navigationszeile: ‹ Titel › und „Heute“ */
+  const top=el("div","ypnav3"), grp=el("div","ypn3g"), pv=el("button","ypn3a","‹"), nx=el("button","ypn3a","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Einen Monat zurück"); nx.setAttribute("aria-label","Einen Monat vor");
   pv.onclick=()=>step(-1); nx.onclick=()=>step(1); if(s0<=sMin) pv.disabled=true; if(s0>=sMax) nx.disabled=true;
-  const mid=el("button","ypnmid"); mid.type="button"; mid.setAttribute("aria-label","Zu heute springen"); mid.setAttribute("title",ttl); mid.append(el("b",null,ttl), el("small",null,"Heute")); mid.onclick=()=>go(n.getFullYear()*12+n.getMonth());
-  pill.append(pv,mid,nx); { pill.addEventListener("pointerdown",ev=>{ const px=ev.clientX; const up=e2=>{ window.removeEventListener("pointerup",up); const dx=e2.clientX-px; if(Math.abs(dx)>40){ pill.dataset.sw="1"; setTimeout(()=>delete pill.dataset.sw,300); step(dx<0?1:-1); } }; window.addEventListener("pointerup",up); }); pill.addEventListener("click",ev=>{ if(pill.dataset.sw){ ev.stopPropagation(); ev.preventDefault(); } },true); }
-  const rh=el("button","btn ypquiet ypnrh","Schicht­rhythmus"); rh.type="button"; rh.onclick=()=>openRhythm();
-  { const slot=document.getElementById("ypnavslot"); if(slot){ slot.innerHTML=""; slot.append(pill); } else { top.append(pill,rh); ov.append(top); } }
+  const tt=el("h2","ypn3t",ttl); grp.append(pv,tt,nx);
+  { grp.addEventListener("pointerdown",ev=>{ const px=ev.clientX; const up=e2=>{ window.removeEventListener("pointerup",up); const dx=e2.clientX-px; if(Math.abs(dx)>40){ grp.dataset.sw="1"; setTimeout(()=>delete grp.dataset.sw,300); step(dx<0?1:-1); } }; window.addEventListener("pointerup",up); }); grp.addEventListener("click",ev=>{ if(grp.dataset.sw){ ev.stopPropagation(); ev.preventDefault(); } },true); }
+  const hb=el("button","ypn3h","Heute"); hb.type="button"; hb.onclick=()=>go(n.getFullYear()*12+n.getMonth());
+  top.append(grp,hb); ov.append(top);
   /* beim Eintragen: große Anzeige der Auswahl */
   ypTopPaint(st,ov,first);
   /* 12 Spalten: 4 davor, 4 sichtbar, 4 danach – damit das Wischen echte Monate zeigt */
@@ -2655,7 +2681,7 @@ function ypFit(st,g){ const set=h=>{ g.style.setProperty("--yprow",h+"px"); g.da
   requestAnimationFrame(()=>{ const hd=g.querySelector(".yph"), fx=document.querySelector("#v-urlaub .ypfix"); if(!hd||!fx) return;
     { const w=g.closest(".ypwin"); if(w) w.style.setProperty("--yphh",hd.offsetHeight+"px"); }
     const th=ypBelow(st.root,g);
-    const topY=hd.getBoundingClientRect().bottom+window.scrollY, barY=fx.getBoundingClientRect().top, h=Math.max(11,Math.floor((barY-topY-th-6)/31/uiZ())); st.rowH=h; set(h); }); }
+    const topY=hd.getBoundingClientRect().bottom+window.scrollY, barY=fx.getBoundingClientRect().top, h=Math.max(11,Math.floor((barY-topY-th-6)/31/uiZ()*10)/10); st.rowH=h; set(h); }); }
 /* Brückentag-Tipp: eine kleine Zeile unter dem Kalender (nur wenn es einen gibt, ausblendbar) */
 function ypTipLine(st,goMonth){ if(!FEATURES.tips || lsGet("su_tiphide")) return null; const y=new Date().getFullYear(), tp=vacTip(y)||vacTip(y+1); if(!tp) return null;
   const row=el("div","yptip"), b=el("button","yptipb","Tipp: Mit "+tp.k+(tp.k===1?" Urlaubstag":" Urlaubstagen")+" am "+(tp.k===1?ddm(tp.d):ddRange(tp.d,tp.last))+" hast du "+tp.span+" Tage frei."), x=el("button","yptipx","✕"); b.type=x.type="button"; x.setAttribute("aria-label","Tipp ausblenden");
@@ -3431,10 +3457,9 @@ function renderUrlaub(){
   { if(!ypU.viewInit){ ypU.viewInit=true; const v=lsGet("su_uview")||""; if(v.startsWith("one:")){ ypU.one=+v.slice(4); ypU.y=Math.floor(ypU.one/12); uY=ypU.y; } }
     const ctl=el("div","ypctl"), sg=el("div","seg full ypjm"), isM=ypU.one!=null; [["Jahr",false],["Monat",true]].forEach(([l,mo])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(isM===mo));
       b.onclick=()=>{ if(isM===mo) return; if(mo){ const n=new Date(), cur=n.getFullYear()*12+n.getMonth(), s0=ypU.s!=null?ypU.s:cur; ypSetView(ypU,ypU.lastOne!=null&&ypU.lastOne>=s0&&ypU.lastOne<=s0+ypNM()-1?ypU.lastOne:(cur>=s0&&cur<=s0+ypNM()-1?cur:s0)); } else ypSetView(ypU,null); }; sg.append(b); });
-    const sh=ypShifts(), tg=el("button","btn ypshbtn",sh?"✓ Schichten":"Schichten"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); render(); };
-    /* Zeile 1: Jahr|Monat + Zeitraum/Heute · Zeile 2: Schichten + Schichtrhythmus */
-    const r1=el("div","ypr1"), r2=el("div","ypr2"), ns=el("div","ypnavslot"), rh=el("button","btn ypquiet ypnrh","Schicht­rhythmus"); rh.type="button"; rh.onclick=()=>openRhythm(); ns.id="ypnavslot";
-    r1.append(sg); r2.append(tg,rh); ctl.append(r1,r2); { const r3=el("div","ypr3"); r3.append(ns); ctl.append(r3); } ctl.classList.add("ypctl2"); box.append(ctl); }
+    const sh=ypShifts(), tg=el("button","ypsw3",sh?"Schichten: ein":"Schichten: aus"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); render(); };
+    /* eine Zeile: Jahr | Monat + Schichten ein/aus (bricht bei wenig Platz um) */
+    ctl.className="ypctl3"; sg.className="ypjm3"; ctl.append(sg,tg); box.append(ctl); }
   mountYP(box,ypU,uY,()=>{ uY=ypU.y; renderUrlaub(); });
 }
 /* Liste „Mein Urlaub“ als eigenes Fenster (Zeitraum und Tage, antippen = Ändern/Löschen) */
@@ -3554,7 +3579,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.09-86";
+const APP_VERSION="2026.10.09-87";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
