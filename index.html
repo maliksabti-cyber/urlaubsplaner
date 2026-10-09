@@ -1039,6 +1039,10 @@ html body .yplan.inline.ypvac .ypc.now{outline-offset:0!important;outline-width:
 html body .yplan.inline.ypvac .ypc.now{background:#E03131!important;color:#fff!important;outline:3px solid #8E0E0E!important;outline-offset:0!important}
 html body .yplan.inline.ypvac .ypc.now .ypd,html body .yplan.inline.ypvac .ypc.now .ypd small,html body .yplan.inline.ypvac .ypc.now .ypd b,html body .yplan.inline.ypvac .ypc.now .yps.free{color:#fff!important}
 html body .yplan.inline.ypvac .ypc.now .ypd b::before{background:#fff!important}
+/* Pfeile links und rechts am Monatsbalken */
+.yplan.inline.ypvac .ypwin .ypmarr{top:0;height:var(--yphh,34px);width:40px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.yplan.inline.ypvac .ypwin .ypmarr::before{inset:3px 4px}
+.yplan.inline.ypvac .yph.yphl{padding-left:34px!important}.yplan.inline.ypvac .yph.yphr{padding-right:34px!important}
 </style>
 </head>
 <body>
@@ -2563,7 +2567,7 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   /* 12 Spalten: 4 davor, 4 sichtbar, 4 danach – damit das Wischen echte Monate zeigt */
   const win=el("div","ypwin"), g=el("div","ypgrid"); g.style.gridTemplateColumns="repeat("+(NM*3)+",minmax(0,1fr))"; g.style.gridTemplateRows="auto"; win.append(g);
   const ms=[]; for(let k=s0-NM;k<s0+2*NM;k++) ms.push([Math.floor(k/12),((k%12)+12)%12]);
-  ms.forEach(([yy,m],i)=>{ const h=el("div","yph",MONS[m]); h.dataset.k=s0-NM+i;  if(m===0){ h.classList.add("ypny"); h.append(el("small","ypyr",String(yy))); } h.title=MONF_[m]+" "+yy; g.append(h); });
+  ms.forEach(([yy,m],i)=>{ const h=el("div","yph",MONS[m]); h.dataset.k=s0-NM+i; if(i===NM) h.classList.add("yphl"); if(i===2*NM-1) h.classList.add("yphr");  if(m===0){ h.classList.add("ypny"); h.append(el("small","ypyr",String(yy))); } h.title=MONF_[m]+" "+yy; g.append(h); });
   const r=st.a?[st.a,st.e||st.a]:null;
   for(let d=1; d<=31; d++) ms.forEach(([yy,m])=>{ if(d>new Date(yy,m+1,0).getDate()){ g.append(el("div","ypc none")); return; }
     const s=yy+"-"+pad(m+1)+"-"+pad(d), c=ypCell(s,t,true,sh); if(r&&s>=r[0]&&s<=r[1]){ c.classList.add("sel"); if(s===r[0]) c.classList.add("s0"); if(s===r[1]) c.classList.add("s1"); } g.append(c); });
@@ -2575,6 +2579,7 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   const end=()=>{ if(!drag) return; if(Math.abs(drag.dx)<8){ const kk=drag.k; drag=null; setX(0,false); lsSet("su_monthhint","1"); ypSetView(st,kk); return; } const cw=W()/NM; let k=Math.max(-NM,Math.min(NM,Math.round(-drag.dx/cw))); k=Math.max(sMin-s0,Math.min(sMax-s0,k)); drag=null; setX(-k*cw,true); if(k) setTimeout(()=>go(s0+k),230); };
   /* Pfeile im Monatsbalken: je ein Monat; Schatten an der Seite mit weiteren Monaten */
   const step=k=>{ if(s0+k<sMin||s0+k>sMax) return; setX(-k*W()/NM,true); setTimeout(()=>go(s0+k),230); };
+  [["‹",-1,"ypml","Einen Monat zurück"],["›",1,"ypmr","Einen Monat vor"]].forEach(([tx,k,cl,al])=>{ const b=el("button","ypmarr "+cl,tx); b.type="button"; b.setAttribute("aria-label",al); if(s0+k<sMin||s0+k>sMax) b.classList.add("off"); b.onclick=()=>step(k); win.append(b); });
   win.classList.toggle("noL",s0<=sMin); win.classList.toggle("noR",s0>=sMax);
   /* einmaliger Hinweis + kleine Bewegung */
   if(!lsGet("su_swipehint")){ const hn=el("div","ypswhint"), ok=el("button","btn","Verstanden"); ok.type="button"; ok.onclick=()=>{ lsSet("su_swipehint","1"); hn.remove(); };
@@ -2639,6 +2644,7 @@ function ypLegend(sh){ const lg=el("div","ypleg ypleg2"), add=(nd,tx)=>{ const s
 function ypBelow(ov,g){ let h=0, e=(g.closest(".ypwin")||g).nextElementSibling; while(e){ if(!e.classList.contains("ypfix")) h+=e.getBoundingClientRect().height+parseFloat(getComputedStyle(ov).rowGap||0); e=e.nextElementSibling; } return h; }
 function ypFit(st,g){ const set=h=>{ g.style.setProperty("--yprow",h+"px"); g.dataset.sz=h<22?"s":h<30?"m":"l"; g.style.setProperty("--ypbadge",Math.max(14,Math.min(26,h-3))+"px"); g.style.setProperty("--ypfs",Math.max(11,Math.min(18,h))+"px"); };
   requestAnimationFrame(()=>{ const hd=g.querySelector(".yph"), fx=document.querySelector("#v-urlaub .ypfix"); if(!hd||!fx) return;
+    { const w=g.closest(".ypwin"); if(w) w.style.setProperty("--yphh",hd.offsetHeight+"px"); }
     const th=ypBelow(st.root,g);
     const topY=hd.getBoundingClientRect().bottom+window.scrollY, barY=fx.getBoundingClientRect().top, h=Math.max(11,Math.floor((barY-topY-th-6)/31/uiZ())); st.rowH=h; set(h); }); }
 /* Brückentag-Tipp: eine kleine Zeile unter dem Kalender (nur wenn es einen gibt, ausblendbar) */
