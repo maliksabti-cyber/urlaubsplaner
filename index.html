@@ -1246,6 +1246,86 @@ body[data-v="urlaub"] .ypfix.yptwo .btn{font-size:16px!important;white-space:nor
 .hrest{flex:1 1 auto;min-width:0}
 @media (max-width:380px){html body[data-v="urlaub"] .ypfix.yptwo .btn,html body[data-v="urlaub"] .ypfix.yptwo .btn.pri{font-size:16px!important}}
 header.bar{background:var(--cbg)!important;border-bottom:0!important}
+/* ===================== Neuer Plan (Monat/Jahr) ===================== */
+#v-urlaub .plroot{display:grid;gap:12px;--plva:#BFE8CC;--plvink:#0E4A25;--plfe:rgba(250,204,21,.16);--plwe:rgba(20,30,40,.045);--plsel:var(--accent)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) #v-urlaub .plroot{--plva:#215C38;--plvink:#EAFBEF;--plfe:rgba(250,204,21,.10);--plwe:rgba(255,255,255,.05)} }
+:root[data-theme="dark"] #v-urlaub .plroot{--plva:#215C38;--plvink:#EAFBEF;--plfe:rgba(250,204,21,.10);--plwe:rgba(255,255,255,.05)}
+.plnavw{display:grid;gap:8px;justify-items:center}
+.plnav{display:flex;align-items:center;gap:8px;width:100%}
+.plttl{flex:1 1 0;min-width:0;margin:0;text-align:center;font:800 24px/1.2 var(--f-body);color:var(--ink)}
+.plheute{min-height:44px;padding:0 22px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:800 16px/1 var(--f-body);cursor:pointer}
+.plcal{background:var(--ccard);border-radius:22px;box-shadow:var(--cshadow);padding:10px 6px 12px}
+.plgrid{display:grid;grid-template-columns:22px repeat(7,minmax(0,1fr));column-gap:0;row-gap:6px;user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.plgrid.yppaint{touch-action:none}
+.plwd{text-align:center;font:700 16px/1 var(--f-body);color:var(--cmute);padding:4px 0 6px}
+.plwd.plkwh{font-size:12px;align-self:end}
+.plkw{display:flex;align-items:center;justify-content:center;font:600 13px/1 var(--f-body);color:var(--cmute);opacity:.75}
+.plc{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px;min-width:0;padding:4px 0;color:var(--ink);cursor:pointer;-webkit-touch-callout:none;border-radius:0}
+.plc.we{background:var(--plwe)}
+.plc.sa:not(.va):not(.sel){border-radius:14px 0 0 14px}.plc.so:not(.va):not(.sel){border-radius:0 14px 14px 0}
+.plc.fe{background:var(--plfe)}
+.plc.out{opacity:.38}
+.plc .pln{font:800 19px/1 var(--f-body);font-variant-numeric:tabular-nums}
+.plc .plk{min-width:22px;height:22px;line-height:22px;padding:0 5px;border-radius:999px;font:800 14px/22px var(--f-body);text-align:center;box-sizing:border-box}
+.plc .plk:empty{visibility:hidden}
+.plc .plk.free{color:var(--cmute);font-weight:700}
+.plc .pldot{position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--hol-r)}
+.plc.va{background:var(--plva);color:var(--plvink)}
+.plc.va.va0{border-top-left-radius:16px;border-bottom-left-radius:16px}.plc.va.va1{border-top-right-radius:16px;border-bottom-right-radius:16px}
+.plc.now::after{content:"";position:absolute;inset:2px;border:2.5px solid var(--ink);border-radius:14px;pointer-events:none}
+.plc.now .pln::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:3px;vertical-align:middle}
+.plc.sel{background:color-mix(in srgb,var(--selc,var(--accent)) 26%,var(--ccard));color:var(--ink)}
+.plc.s0{border-top-left-radius:16px;border-bottom-left-radius:16px}.plc.s1{border-top-right-radius:16px;border-bottom-right-radius:16px}
+.plc.s0,.plc.s1{background:var(--selc,var(--accent));color:#fff}
+.plc.s0 .plk.free,.plc.s1 .plk.free{color:#fff}
+.plleg{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;font-size:16px;color:var(--cmute)}
+.plleg span{display:inline-flex;align-items:center;gap:6px}.plleg i{width:16px;height:16px;border-radius:6px;display:inline-block}
+.plleg .lv{background:var(--plva)}.plleg .lf{background:rgba(250,204,21,.45)}.plleg .lh{width:8px;height:8px;border-radius:50%;background:var(--hol-r)}
+.plsw{display:flex;flex-wrap:wrap;gap:8px}.plsw .ypsw5{flex:1 1 190px}.plsw .ypseg5{flex:1 1 150px}
+html:not([data-fs="n"]) .plsw .ypsw5,html:not([data-fs="n"]) .plsw .ypseg5{flex:1 1 100%}
+/* Eintragen */
+.plban{background:var(--ink);color:var(--paper);border-radius:20px;padding:14px 16px;display:grid;gap:8px;animation:plin .18s ease-out}
+.plq{margin:0;font:800 20px/1.25 var(--f-body)}
+.plg{margin:0;font-size:16px;opacity:.9}
+.plshrow{display:flex;flex-wrap:wrap;gap:6px}
+.plshb{display:inline-flex;align-items:center;gap:6px;min-height:48px;padding:0 12px 0 6px;border-radius:999px;border:2px solid transparent;background:rgba(255,255,255,.12);color:inherit;font:700 16px/1 var(--f-body);cursor:pointer}
+.plshb .yps{min-width:30px;height:30px;line-height:30px;border-radius:999px;text-align:center;font-weight:800}
+.plshb .yps.free{background:rgba(255,255,255,.2);color:inherit}
+.plshb.on{border-color:var(--accent);background:rgba(255,255,255,.22)}
+@keyframes plin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.plquick{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.plqb{min-height:48px;padding:0 16px;border-radius:999px;border:2px solid var(--rule);background:var(--ccard);color:var(--ink);font:700 16px/1 var(--f-body);cursor:pointer}
+#v-urlaub .painting .plnavw .plheute{display:none}
+body[data-v="urlaub"]:has(.painting) nav.tabs{opacity:.45}
+/* feste Leiste unten */
+.plfix{position:fixed;left:8px;right:8px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:30;display:grid;gap:8px;background:var(--ccard);border-radius:22px;box-shadow:0 -4px 20px rgba(0,0,0,.12);padding:10px}
+body:has(#sheet:not([hidden])) .plfix{display:none}
+.plrest{justify-self:center;min-height:36px;border:0;background:transparent;color:var(--ink);font:800 17px/1.2 var(--f-body);cursor:pointer;padding:0 8px}
+.plrest.bad{color:var(--bad)}
+.plbtns{display:flex;gap:8px}
+.plbtns .btn{flex:1 1 0;min-height:56px;border-radius:18px;font:800 17px/1.15 var(--f-body);border:0;white-space:normal;padding:4px 10px}
+.plbtns .btn.pri{background:var(--accent);color:var(--accent-ink)}
+.plbtns .pls,.plbtns .plchg{background:var(--cindigo-soft);color:var(--ink)}
+.plbtns .btn:disabled{opacity:.45}
+.plcancel{min-height:56px;border-radius:18px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:800 18px/1 var(--f-body)}
+.plctx{display:grid;gap:2px;text-align:center}.plctx b{font-size:19px}.plctx span{font-size:16px;color:var(--cmute)}
+.plctx .ypwarn{font-size:16px;color:var(--bad);font-weight:700}
+.plx{justify-self:center;min-height:44px;border:0;background:transparent;color:var(--cmute);font:700 16px/1 var(--f-body);text-decoration:underline;cursor:pointer}
+html:not([data-fs="n"]) .plbtns .btn{font-size:16px;padding:4px 6px}html:not([data-fs="n"]) .plrest{min-height:30px;font-size:16px}html:not([data-fs="n"]) .plfix{padding:8px;gap:6px}
+/* Jahr: 12 kleine Monate */
+.plyear{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:10px}
+.plmini{display:grid;gap:6px;justify-items:stretch;padding:8px 6px 6px;border:0;border-radius:16px;background:transparent;color:var(--ink);cursor:pointer;font:inherit;min-height:48px}
+.plmini.cur{box-shadow:inset 0 0 0 2.5px var(--ink)}
+.plmini b{font-size:16px;text-align:center}.plmini small{font-size:13px;min-height:16px;color:var(--plvink);font-weight:700;text-align:center}
+.plmg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.plmg i{aspect-ratio:1;border-radius:3px;background:var(--cindigo-soft)}
+.plmg i.e{background:transparent}.plmg i.we{opacity:.55}.plmg i.fe{background:rgba(250,204,21,.45)}.plmg i.ho{background:var(--hol-r)}.plmg i.va{background:#2E9E5B;opacity:1}
+.plmg i.now{outline:2px solid var(--ink);outline-offset:0}
+html[data-fs="xl"] .plyear{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Einzeltag-Fenster */
+.dayinfo{margin:0 0 8px;font-size:16px;font-weight:700}.dayinfo.ho{color:var(--hol-r)}
+html[data-fs="xl"] .plc .pln{font-size:17px}html[data-fs="xl"] .plc .plk{min-width:20px;height:20px;line-height:20px;font-size:13px;padding:0 3px}html[data-fs="xl"] .plgrid{grid-template-columns:18px repeat(7,minmax(0,1fr))}html[data-fs="xl"] .plwd{font-size:15px}
+html[data-fs="xl"] .plkwh{visibility:hidden}
 </style>
 </head>
 <body>
@@ -1550,7 +1630,7 @@ function vacSummary(a,e,days){ const b=el("div","vsum"), have=(()=>{ let n=0; fo
 /* Darstellung pro Gerät: Schriftgröße (n/l/xl), hoher Kontrast, Vibration */
 const UIFS={n:1,l:1.15,xl:1.3}; const uiFs=()=>UIFS[lsGet("su_fs")]?lsGet("su_fs"):"n"; const uiZ=()=>UIFS[uiFs()]; const ypNM=()=>uiFs()==="xl"?2:4;
 function applyUI(){ const r=document.documentElement; r.dataset.fs=uiFs(); if(lsGet("su_hc")==="1") r.dataset.hc="1"; else delete r.dataset.hc; document.body.style.zoom=uiZ()===1?"":String(uiZ()); }
-document.addEventListener("pointerdown",ev=>{ if(lsGet("su_vib")==="0") return; const t=ev.target.closest&&ev.target.closest("button,.ypc[data-s],a"); if(t && navigator.vibrate) try{ navigator.vibrate(8); }catch(e){} },{passive:true});
+document.addEventListener("pointerdown",ev=>{ if(lsGet("su_vib")==="0") return; const t=ev.target.closest&&ev.target.closest("button,[data-s],a"); if(t && navigator.vibrate) try{ navigator.vibrate(8); }catch(e){} },{passive:true});
 function applyTheme(){ applyUI(); const m=S&&S.theme; if(m==="light"||m==="dark") document.documentElement.dataset.theme=m; else delete document.documentElement.dataset.theme; }
 function openTheme(){ openSheet(p=>{ sheetTop(p,"Darstellung"); [["light","☀️ Hell"],["dark","🌙 Dunkel"],["auto","Automatisch (wie das Handy)"]].forEach(([k,l])=>{ const on=(S.theme||"auto")===k, b=el("button","btn uwide"+(on?" pri":""),(on?"✓ ":"")+l); b.type="button"; b.onclick=()=>{ S.theme=k==="auto"?undefined:k; save(); applyTheme(); closeSheet(); }; p.append(b); }); }); }
 /* ===================== Jahresübersicht: 12 Monatskarten mit Schichten, Urlaub, Ferien, Feiertagen =====================
@@ -2666,7 +2746,7 @@ function mountYP(box,st,y,onNav){ if(st.y!==y){ st.y=y; st.s=null; st.h=(y===new
    Eintragen-Modus an (Hauptknopf) → ersten Tag antippen → letzten Tag antippen → unten „Speichern“ → Bestätigung mit „Rückgängig“. */
 const ddm=s=>(+s.slice(8,10))+"."+(+s.slice(5,7))+".";
 const ddRange=(a,e)=>a===e?ddm(a):(a.slice(5,7)===e.slice(5,7)?(+a.slice(8,10))+".–"+ddm(e):ddm(a)+"–"+ddm(e));
-function ypToast(msg,undo){ toast(msg,"Rückgängig",undo); clearTimeout(toast.h); toast.h=setTimeout(()=>$("#toast").hidden=true,8000); }
+function ypToast(msg,undo){ toast(msg,"Rückgängig",undo); clearTimeout(toast.h); toast.h=setTimeout(()=>$("#toast").hidden=true,5000); }
 function ypHome(st){ const n=new Date(); st.y=n.getFullYear(); st.h=n.getMonth()>=6?1:0; st.sTop=0; }
 /* Urlaub-Kalender (Grundlage): sechs Monate als Spalten, frei verschiebbar per Wischen auf dem Monatsbalken (rastet monatsweise ein, über Jahresgrenzen).
    st.s = erster sichtbarer Monat als Zahl (Jahr*12+Monat). Schichten ein/aus wird gemerkt (su_ushift). */
@@ -2725,7 +2805,7 @@ function openDayChoice(st,s){ const x=shiftOf(s), dk=dayKind(s), isVac=dk==="v",
   const snap=()=>({ov:JSON.parse(JSON.stringify(S.ov)),v:JSON.parse(JSON.stringify(vacList()))}), back=o=>()=>{ S.ov=o.ov; S.vacs=o.v; save(); render(); };
   const done=(o,msg)=>{ save(); closeSheet(); render(); ypToast(msg,back(o)); };
   const setTo=id=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); } const tp=typeOf(id), base=baseShift(s), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":id; if(baseId===tg) delete S.ov[s]; else S.ov[s]=tg; done(o,"Gespeichert: "+(tp?tp.name:"Frei")+" am "+ddm(s)); };
-  openSheet(p=>{ sheetTop(p,"Ein Tag"); p.append(el("p","daybig",fmt(s)));
+  openSheet(p=>{ sheetTop(p,"Ein Tag"); p.append(el("p","daybig",fmt(s))); { const hn=holName(s), fe=ferien(s); if(hn) p.append(el("p","dayinfo ho","Feiertag: "+hn)); if(fe) p.append(el("p","dayinfo fe","Ferien: "+fe[2])); }
     p.append(el("p","daynow",isVac?"Eingetragen: Urlaub":x?"Eingetragen: "+x.name+(x.kind==="work"&&x.start?", "+x.start+" bis "+x.end+" Uhr":""):"Noch nichts eingetragen."));
     const grid=el("div","daygrid"), sub=el("div","ypbrushrow daysub"); sub.hidden=true;
     const big=(l,cls,fn)=>{ const b=el("button","daybtn "+cls,l); b.type="button"; b.onclick=fn; grid.append(b); return b; };
@@ -2736,14 +2816,15 @@ function openDayChoice(st,s){ const x=shiftOf(s), dk=dayKind(s), isVac=dk==="v",
     big("Krank","dk",()=>{ if(sick) setTo(sick.id); }); big("Frei","df",()=>setTo(free?free.id:""));
     S.types.filter(t=>t.kind==="work").forEach(t=>{ const b=el("button","ypbr"+(x&&x.id===t.id?" on":"")); b.type="button"; const k=el("b","yps",t.short); k.style.background=t.color; k.style.color=isDark(t.color)?"#16222B":"#fff"; b.append(k, el("small",null,t.name.replace(/schicht$/i,""))); b.setAttribute("aria-label",t.name); b.onclick=()=>setTo(t.id); sub.append(b); });
     p.append(grid, sub);
-    if(isVac||hasOv||(x&&x.kind!=="free")){ const dl=el("button","btn ghost uwide daydel","Löschen"); dl.type="button";
+    if(isVac||hasOv||(x&&x.kind!=="free")){ const dl=el("button","btn ghost uwide daydel","Eintrag löschen"); dl.type="button";
       dl.onclick=()=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); done(o,"Urlaub gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; }
         if(hasOv){ delete S.ov[s]; done(o,"Gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; } const fr=S.types.find(t=>t.kind==="free"); if(fr){ S.ov[s]=""; } done(o,"Gelöscht. Der Tag ist jetzt frei."); }; p.append(dl); } }); }
 /* Tage antippen oder im Eintragen-Modus mit dem Finger über die Tage ziehen */
 /* Eintragen-Modus: eine Zeile oben mit Anleitung und Anzahl (live beim Ziehen) */
-function ypGuideTx(st,a,e){ if(st.kind==="shift"&&!st.brush) return "Wähle zuerst die Schicht.";
-  if(!a) return "Tippe den ersten Tag oder ziehe über die Tage"; const r=e?(a<=e?[a,e]:[e,a]):[a,a], n=diffD(r[0],r[1])+1, cnt=n+(n===1?" Tag":" Tage")+" gewählt";
-  let tx=e?cnt:"Tippe den letzten Tag · "+cnt; if(st.kind!=="shift"){ const y=+r[0].slice(0,4), k=vsDays(r[0],r[1]).filter(d=>+d.slice(0,4)===y).length; tx+=" · "+Math.max(0,vacRest(y)-k)+" übrig"; } return tx; }
+function ypGuideTx(st,a,e){ if(st.kind==="shift"&&!st.brush) return "Wähle oben die Schicht.";
+  if(!a) return "Tippe einen Tag an – oder ziehe mit dem Finger über die Tage."; const r=e?(a<=e?[a,e]:[e,a]):[a,a], n=diffD(r[0],r[1])+1;
+  if(st.kind==="shift") return n+(n===1?" Tag":" Tage")+" gewählt";
+  const y=+r[0].slice(0,4), k=vsDays(r[0],r[1]).filter(d=>+d.slice(0,4)===y).length, left=vacRest(y)-k; return k+(k===1?" Urlaubstag":" Urlaubstage")+" · "+(left<0?"es fehlen "+(-left)+(left===-1?" Tag":" Tage"):"danach "+left+" übrig"); }
 function ypGuide(st){ const g=el("div","ypguide",ypGuideTx(st,st.a,st.e)); g.id="ypguide"; return g; }
 /* langes Drücken auf einen Tag: kurze Sprechblase mit Details */
 function ypBubble(s,cell){ document.querySelectorAll(".ypbub").forEach(b=>b.remove()); const x=shiftOf(s), hn=holName(s), fe=ferien(s), vb=vacAt(s), va=!!(vb&&vacOnDay(vb,s)), b=el("div","ypbub"), L=[];
@@ -2754,29 +2835,34 @@ function ypBubble(s,cell){ document.querySelectorAll(".ypbub").forEach(b=>b.remo
 const ypVib=()=>{ if(lsGet("su_vib")==="0"||!navigator.vibrate) return; try{ navigator.vibrate(6); }catch(e){} };
 /* Titel: in der Bedien-Karte, falls vorhanden */
 function ypTitle(ov,tx){ const slot=document.getElementById("ypttlslot"); if(slot){ slot.textContent=""; tx.split(" – ").forEach((x,i,a)=>slot.append(el("span","ypt5",x+(i<a.length-1?" –":"")),document.createTextNode(i<a.length-1?" ":""))); slot.setAttribute("aria-label",tx); return; } ov.append(el("h2","ypttl",tx)); }
-function ypBindCells(st,g){ let drag=null, skipClick=false, lp=null, lpDone=false; if(st.paint) g.classList.add("yppaint");
+function ypBindCells(st,g){ let drag=null, skipClick=false, lp=null, lpDone=false, flipT=null, flipK=null; if(st.paint) g.classList.add("yppaint");
+  /* Ziehen ging über den Monatswechsel weiter: Auswahl fortsetzen */
+  if(st.dragCarry){ const s0=st.dragCarry; st.dragCarry=null; if(!st.dragDone){ drag={s0,last:null,moved:true}; const up=ev=>{ document.removeEventListener("pointerup",up,true); if(drag) end(ev); }; document.addEventListener("pointerup",up,true); } st.dragDone=false; }
   g.addEventListener("contextmenu",ev=>ev.preventDefault());
-  g.addEventListener("pointerdown",ev=>{ lpDone=false; clearTimeout(lp); const c=ev.target.closest&&ev.target.closest(".ypc[data-s]"); if(!c) return; const x0=ev.clientX, y0=ev.clientY;
+  g.addEventListener("pointerdown",ev=>{ lpDone=false; clearTimeout(lp); const c=ev.target.closest&&ev.target.closest("[data-s]"); if(!c) return; const x0=ev.clientX, y0=ev.clientY;
     lp=setTimeout(()=>{ lp=null; if(drag&&drag.moved) return; drag=null; lpDone=true; ypVib(); ypBubble(c.dataset.s,c); },550);
     const mv=e2=>{ if(Math.abs(e2.clientX-x0)>8||Math.abs(e2.clientY-y0)>8){ clearTimeout(lp); g.removeEventListener("pointermove",mv); } }; g.addEventListener("pointermove",mv); });
   ["pointerup","pointercancel"].forEach(t=>g.addEventListener(t,()=>clearTimeout(lp)));
-  const cellAt=ev=>{ const e=document.elementFromPoint(ev.clientX,ev.clientY), c=e&&e.closest&&e.closest(".ypc[data-s]"); return c&&g.contains(c)?c.dataset.s:null; };
-  const mark=(a,e)=>{ const r=a<=e?[a,e]:[e,a]; g.querySelectorAll(".ypc[data-s]").forEach(c=>{ const s=c.dataset.s, on=s>=r[0]&&s<=r[1]; c.classList.toggle("sel",on); c.classList.toggle("s0",on&&s===r[0]); c.classList.toggle("s1",on&&s===r[1]); }); const gd=document.getElementById("ypguide"); if(gd) gd.textContent=ypGuideTx(st,r[0],r[1]); };
+  const cellAt=ev=>{ const e=document.elementFromPoint(ev.clientX,ev.clientY), c=e&&e.closest&&e.closest("[data-s]"); return c&&g.contains(c)?c.dataset.s:null; };
+  const mark=(a,e)=>{ const r=a<=e?[a,e]:[e,a]; g.querySelectorAll("[data-s]").forEach(c=>{ const s=c.dataset.s, on=s>=r[0]&&s<=r[1]; c.classList.toggle("sel",on); c.classList.toggle("s0",on&&s===r[0]); c.classList.toggle("s1",on&&s===r[1]); }); const gd=document.getElementById("ypguide"); if(gd) gd.textContent=ypGuideTx(st,r[0],r[1]); };
   g.addEventListener("pointerdown",ev=>{ if(!st.paint || (st.kind==="shift"&&!st.brush)) return; const s=cellAt(ev); if(!s) return; drag={s0:s,last:s,moved:false,id:ev.pointerId}; try{ g.setPointerCapture(ev.pointerId); }catch(e){} });
   /* beim Ziehen am oberen/unteren Rand: Seite scrollt mit, damit man über Monatsgrenzen ziehen kann */
   let asT=null, lastPt=null; const asStop=()=>{ clearInterval(asT); asT=null; };
-  const asTick=()=>{ if(!drag||!lastPt){ asStop(); return; } const hd=g.querySelector(".yph"), fx=document.querySelector("#v-urlaub .ypfix"), top=(hd?hd.getBoundingClientRect().bottom:0), bot=(fx?fx.getBoundingClientRect().top:innerHeight);
+  const asTick=()=>{ if(!drag||!lastPt){ asStop(); return; } const hd=g.querySelector(".yph,.plwd"), fx=document.querySelector("#v-urlaub .plfix,#v-urlaub .ypfix"), top=(hd?hd.getBoundingClientRect().bottom:0), bot=(fx?fx.getBoundingClientRect().top:innerHeight);
     const dy=lastPt.y<top?-Math.min(18,top-lastPt.y+4):lastPt.y>bot?Math.min(18,lastPt.y-bot+4):0; if(!dy){ asStop(); return; } const y0=scrollY; window.scrollBy(0,dy); if(scrollY===y0){ asStop(); return; }
     const s=cellAt({clientX:lastPt.x,clientY:Math.max(top,Math.min(bot,lastPt.y))}); if(s&&s!==drag.last){ drag.last=s; drag.moved=true; mark(drag.s0,s); } };
-  g.addEventListener("pointermove",ev=>{ if(!drag) return; lastPt={x:ev.clientX,y:ev.clientY}; if(!asT) asT=setInterval(asTick,30); const s=cellAt(ev); if(!s||s===drag.last) return; drag.last=s; drag.moved=true; ev.preventDefault(); ypVib(); mark(drag.s0,s); });
+  g.addEventListener("pointermove",ev=>{ if(!drag) return; lastPt={x:ev.clientX,y:ev.clientY}; if(!asT) asT=setInterval(asTick,30); const s=cellAt(ev); if(!s||s===drag.last) return; drag.last=s; drag.moved=true; ev.preventDefault(); ypVib(); mark(drag.s0,s);
+    /* auf einem Tag des Nachbarmonats kurz verweilen: Monat wechselt, Auswahl läuft weiter */
+    if(st.go && st.one!=null){ const mk=+s.slice(0,4)*12+(+s.slice(5,7)-1); clearTimeout(flipT); flipK=null; if(mk!==st.one){ flipK=mk; flipT=setTimeout(()=>{ if(!drag||flipK!==mk) return; const d0=drag.s0, l=drag.last; drag=null; asStop(); st.a=d0<=l?d0:l; st.e=d0<=l?l:d0; st.dragCarry=d0; st.dragDone=false;
+      const up=()=>{ document.removeEventListener("pointerup",up,true); st.dragDone=true; }; document.addEventListener("pointerup",up,true); setTimeout(()=>document.removeEventListener("pointerup",up,true),400); st.go(mk); },650); } } });
   ["pointerup","pointercancel"].forEach(t=>g.addEventListener(t,()=>{ asStop(); lastPt=null; }));
-  const end=ev=>{ if(!drag) return; const d=drag; drag=null; if(lpDone) return; if(!d.moved){ if(ev&&ev.type==="pointerup"){ skipClick=true; setTimeout(()=>skipClick=false,350); ypTap(st,d.s0); } return; } skipClick=true; setTimeout(()=>skipClick=false,350);
-    const wr=(g.closest(".ypwin")||g).getBoundingClientRect(), inWin=ev&&ev.clientX>=wr.left&&ev.clientX<=wr.right&&ev.clientY>=wr.top&&ev.clientY<=wr.bottom;
+  const end=ev=>{ clearTimeout(flipT); if(!drag) return; const d=drag; drag=null; st.dragCarry=null; if(lpDone) return; if(!d.moved){ if(ev&&ev.type==="pointerup"){ skipClick=true; setTimeout(()=>skipClick=false,350); ypTap(st,d.s0); } return; } skipClick=true; setTimeout(()=>skipClick=false,350);
+    const box=g.closest(".ypwin,.plcal")||g, hit=ev&&document.elementFromPoint(ev.clientX,ev.clientY), inWin=!!(hit&&box.contains(hit));
     const s=ev&&ev.type==="pointerup"?(cellAt(ev)||(inWin?d.last:null)):null;
     if(!s){ drawYP(st); toast("Abgebrochen. Ziehe über die Tage und lass im Kalender los."); return; } /* außerhalb losgelassen: nichts ändern */
-    st.a=d.s0<=s?d.s0:s; st.e=d.s0<=s?s:d.s0; drawYP(st); };
+    const s0=d.s0||s; st.a=s0<=s?s0:s; st.e=s0<=s?s:s0; drawYP(st); };
   g.addEventListener("pointerup",end); g.addEventListener("pointercancel",end);
-  g.addEventListener("click",ev=>{ if(skipClick||lpDone||(st.noTap&&Date.now()-st.noTap<400)) return; const c=ev.target.closest(".ypc[data-s]"); if(!c) return; ypTap(st,c.dataset.s); }); }
+  g.addEventListener("click",ev=>{ if(skipClick||lpDone||(st.noTap&&Date.now()-st.noTap<400)) return; const c=ev.target.closest("[data-s]"); if(!c) return; ypTap(st,c.dataset.s); }); }
 function drawYPOne(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypvac"); const t=TODAY(), n=new Date(), first="Tippe den ersten Urlaubstag an.", sh=ypShifts()||ypSK(st);
   const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+11, k=st.one, y=Math.floor(k/12), m=k%12;
   const go=x=>{ x=Math.max(sMin,Math.min(sMax,x)); ypSetView(st,x); };
@@ -2799,7 +2885,7 @@ function drawYPOne(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypv
   ov.append(ypBottom(st,first)); ypSelColor(st,g);
   ypBindCells(st,g);
   if(!st.jumped){ st.jumped=true; window.scrollTo(0,0); } }
-function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uview")||""; if(v.startsWith("one:")&&st.one==null){ st.one=+v.slice(4); st.y=Math.floor(st.one/12); } }
+function drawYPVacOld(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uview")||""; if(v.startsWith("one:")&&st.one==null){ st.one=+v.slice(4); st.y=Math.floor(st.one/12); } }
   const NM=ypNM(); if(st.one!=null) return drawYPOne(st); const ov=st.root; ov.innerHTML=""; ov.classList.add("ypvac"); const t=TODAY(), n=new Date(), first="Tippe den ersten Urlaubstag an.", sh=ypShifts()||ypSK(st);
   if(st.s==null) st.s=st.y===n.getFullYear()?st.y*12+n.getMonth():st.y*12;
   const s0=st.s, lab=k=>MONK[((k%12)+12)%12]+" "+Math.floor(k/12), ttl=Math.floor(s0/12)===Math.floor((s0+NM-1)/12)?MONK[s0%12]+" – "+lab(s0+NM-1):lab(s0)+" – "+lab(s0+NM-1);
@@ -2841,6 +2927,92 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   ov.append(ypBottom(st,first)); ypSelColor(st,g);
   ypBindCells(st,g);
   if(!st.jumped){ st.jumped=true; window.scrollTo(0,0); } }
+/* ===================== Neuer Plan: Monat (Standard) und Jahr =====================
+   Monat: 7 Spalten Mo–So, KW links, Urlaub als Balken. Jahr: 12 kleine Monate.
+   Eintragen: Banner oben („Wann beginnt dein Urlaub?“), zwei Tipps oder Ziehen, unten Bestätigung. */
+const MONK2=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+function plRange(a,e){ const A=parse(a), E=parse(e); if(a===e) return A.getDate()+". "+MONF_[A.getMonth()];
+  return A.getMonth()===E.getMonth()&&A.getFullYear()===E.getFullYear()?A.getDate()+".–"+E.getDate()+". "+MONF_[A.getMonth()]:A.getDate()+". "+MONF_[A.getMonth()]+" – "+E.getDate()+". "+MONF_[E.getMonth()]; }
+const plVa=s=>{ const b=vacAt(s); return !!(b&&vacOnDay(b,s)); };
+function drawYPVac(st){ const n=new Date(); if(!st.plInit){ st.plInit=true; st.one=n.getFullYear()*12+n.getMonth(); st.yv=n.getFullYear(); st.pv=lsGet("su_pview")==="y"?"y":"m"; }
+  if(st.one==null) st.one=n.getFullYear()*12+n.getMonth(); if(st.paint) st.pv="m"; st.y=st.pv==="y"?st.yv:Math.floor(st.one/12);
+  return st.pv==="y"?drawPlanYear(st):drawPlanMonth(st); }
+function plSwitches(st){ const row=el("div","plsw"), sh=ypShifts(), tg=el("button","ypsw5"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.append(el("span",null,sh?"Schichten: ein":"Schichten: aus"), el("i","ypknob")); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); render(); };
+  const sg=el("div","ypseg5"); sg.setAttribute("role","group"); sg.setAttribute("aria-label","Ansicht"); [["Monat","m"],["Jahr","y"]].forEach(([l,k])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(st.pv===k)); b.onclick=()=>{ if(st.pv===k) return; st.pv=k; lsSet("su_pview",k); if(k==="y") st.yv=Math.floor(st.one/12); drawYP(st); window.scrollTo(0,0); }; sg.append(b); });
+  row.append(tg,sg); return row; }
+function plLegend(){ const lg=el("div","plleg"), add=(c,t)=>{ const sp=el("span"); sp.append(el("i",c),document.createTextNode(t)); lg.append(sp); }; add("lv","Urlaub"); if(hasFerien()) add("lf","Ferien"); add("lh","Feiertag"); return lg; }
+function plNav(st,title,step,today){ const nav=el("div","plnav"), pv=el("button","ypa5","‹"), nx=el("button","ypa5","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Zurück"); nx.setAttribute("aria-label","Weiter"); pv.onclick=()=>step(-1); nx.onclick=()=>step(1);
+  nav.append(pv,el("h2","plttl",title),nx); const w=el("div","plnavw"); w.append(nav); const hb=el("button","plheute","Heute"); hb.type="button"; hb.onclick=today; w.append(hb); return w; }
+/* Banner im Eintragen-Modus */
+function plBanner(st){ const b=el("div","plban"), sk=st.kind==="shift", tp=sk&&st.brush?typeOf(st.brush):null, nm=tp?(tp.kind==="free"?"Frei":tp.name):"";
+  const q=sk?(!st.brush?"Welche Schicht möchtest du eintragen?":!st.a?"Ab wann gilt „"+nm+"“?":!st.e?"Und bis wann?":"Passt das? Unten speichern."):(!st.a?"Wann beginnt dein Urlaub?":!st.e?"Und wann ist dein letzter Urlaubstag?":"Passt das? Unten speichern.");
+  b.append(el("p","plq",q)); if(sk){ const r=el("div","plshrow"); S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const c=el("button","plshb"+(st.brush===x.id?" on":"")); c.type="button"; const k=el("b","yps"+(x.kind==="free"?" free":""),x.short); if(x.kind!=="free"){ k.style.background=x.color; k.style.color=isDark(x.color)?"#16222B":"#fff"; } c.append(k,el("span",null,x.kind==="free"?"Frei":x.name.replace(/schicht$/i,""))); c.setAttribute("aria-label",x.name); c.setAttribute("aria-pressed",String(st.brush===x.id)); c.onclick=()=>{ st.brush=x.id; drawYP(st); }; r.append(c); }); b.append(r); }
+  const g=el("p","plg",ypGuideTx(st,st.a,st.e)); g.id="ypguide"; b.append(g); return b; }
+function plQuick(st){ const t=TODAY(), mon=addD(t,-((parse(t).getDay()+6)%7)), row=el("div","plquick");
+  [["Diese Woche",mon,addD(mon,6)],["Nächste Woche",addD(mon,7),addD(mon,13)],["2 Wochen ab heute",t,addD(t,13)]].forEach(([l,a,e])=>{ const b=el("button","plqb",l); b.type="button"; b.onclick=()=>{ st.a=a; st.e=e; st.one=+a.slice(0,4)*12+(+a.slice(5,7)-1); drawYP(st); }; row.append(b); }); return row; }
+/* feste Leiste unten */
+function plBottom(st){ const bar=el("div","plfix");
+  if(st.paint && st.a && st.e) return plConfirm(st,bar);
+  if(st.paint){ const c=el("button","btn plcancel","Abbrechen"); c.type="button"; c.onclick=()=>ypStop(st); bar.append(c); return bar; }
+  const y=st.pv==="y"?st.yv:Math.floor(st.one/12), r=vacRest(y), rl=el("button","plrest"); rl.type="button"; rl.textContent=(r<0?(-r)+(r===-1?" Urlaubstag zu viel":" Urlaubstage zu viel"):r+(r===1?" Urlaubstag übrig":" Urlaubstage übrig"))+(y!==new Date().getFullYear()?" ("+y+")":""); rl.onclick=()=>openVacList(y); if(r<0) rl.classList.add("bad");
+  const bt=el("div","plbtns"), u=el("button","btn pri plu","Urlaub eintragen"), sb=el("button","btn pls","Schicht eintragen"); u.type=sb.type="button";
+  const start=k=>{ st.paint=true; st.kind=k; st.brush=null; st.a=st.e=null; if(st.pv==="y"){ const n=new Date(); st.one=st.yv===n.getFullYear()?n.getFullYear()*12+n.getMonth():st.yv*12; } if(k==="shift") lsSet("su_ushift","1"); drawYP(st); window.scrollTo(0,0); };
+  u.onclick=()=>start("vac"); sb.onclick=()=>start("shift"); bt.append(u,sb); bar.append(rl,bt); return bar; }
+function plConfirm(st,bar){ const a=st.a, e=st.e, tx=el("div","plctx"), sv=el("button","btn pri plsave","Speichern"), ch=el("button","btn plchg","Ändern"), x=el("button","plx","Abbrechen"); sv.type=ch.type=x.type="button";
+  ch.onclick=()=>{ st.a=st.e=null; drawYP(st); }; x.onclick=()=>ypStop(st);
+  if(st.kind==="shift"){ const tp=typeOf(st.brush), n=diffD(a,e)+1; tx.append(el("b",null,plRange(a,e)), el("span",null,(tp?(tp.kind==="free"?"Frei":tp.name):"")+" · "+n+(n===1?" Tag":" Tage")));
+    const doSave=()=>{ const oldOv=JSON.parse(JSON.stringify(S.ov)), oldV=JSON.parse(JSON.stringify(vacList()));
+      for(let d=a;d<=e;d=addD(d,1)){ if(dayKind(d)==="v") removeVacDay(d); const base=baseShift(d), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":st.brush; if(baseId===tg) delete S.ov[d]; else S.ov[d]=tg; }
+      S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); save(); st.paint=false; st.kind=null; st.a=st.e=null; render();
+      ypToast("Gespeichert: "+(tp?(tp.kind==="free"?"Frei":tp.name):"Schicht")+", "+plRange(a,e),()=>{ S.ov=oldOv; S.vacs=oldV; save(); render(); }); };
+    sv.onclick=()=>{ let hv=false; for(let d=a;d<=e;d=addD(d,1)) if(dayKind(d)==="v"){ hv=true; break; } if(hv) ask("Urlaub ersetzen?","An diesen Tagen ist Urlaub eingetragen. Trotzdem ersetzen?",[{label:"Ersetzen",pri:true,fn:doSave},{label:"Abbrechen"}]); else doSave(); }; }
+  else { const days=vsDays(a,e), y=+a.slice(0,4), k=days.filter(d=>+d.slice(0,4)===y).length;
+    const left=vacRest(y)-k; tx.append(el("b",null,plRange(a,e)), el("span",null,days.length+(days.length===1?" Urlaubstag":" Urlaubstage")+" · "+(left<0?"es fehlen "+(-left)+(left===-1?" Tag":" Tage"):"danach "+left+" übrig")));
+    if(!days.length){ tx.append(el("small","ypwarn","An diesen Tagen hast du sowieso frei.")); sv.disabled=true; }
+    else if(vacOver(days).length){ tx.append(el("small","ypwarn","Dafür reichen deine Urlaubstage nicht.")); sv.disabled=true; const cp=ypCap(a,e,st), kd=cp.cut&&cp.e>=a?vsDays(a,cp.e):[];
+      if(kd.length && !vacOver(kd).length){ const cb=el("button","btn ypcut","Kürzen bis "+ddm(cp.e)+" ("+kd.length+(kd.length===1?" Tag)":" Tage)")); cb.type="button"; cb.onclick=()=>{ st.e=cp.e; drawYP(st); }; tx.append(cb); } }
+    sv.onclick=()=>{ const old=JSON.parse(JSON.stringify(vacList())); if(days.some(d=>!planKnown(d))){ vacList().push({id:uid(),a,e,fixed:days.slice()}); normVacs(); } else addVac(a,e); save();
+      st.a=st.e=null; st.paint=false; st.kind=null; render(); ypToast("Gespeichert: "+plRange(a,e)+" · noch "+vacRest(y)+" Tage übrig",()=>{ S.vacs=old; save(); render(); }); }; }
+  const bt=el("div","plbtns"); bt.append(sv,ch); bar.classList.add("plconf"); bar.append(tx,bt,x); return bar; }
+function plCell(st,s,m,t,sh){ const d=parse(s), w=d.getDay(), c=el("div","ypc plc"); c.dataset.s=s; c.setAttribute("role","button"); c.tabIndex=-1;
+  if(d.getMonth()!==m) c.classList.add("out"); if(w===0||w===6) c.classList.add("we",w===6?"sa":"so"); if(ferien(s)) c.classList.add("fe"); const hn=holName(s); if(hn) c.classList.add("ho"); if(s===t) c.classList.add("now");
+  const va=plVa(s); if(va){ c.classList.add("va"); if(w===1||!plVa(addD(s,-1))) c.classList.add("va0"); if(w===0||!plVa(addD(s,1))) c.classList.add("va1"); }
+  c.append(el("b","pln",String(d.getDate()))); if(hn) c.append(el("i","pldot"));
+  const x=shiftOf(s); let code="", col=null; if(sh && !va){ if(x && x.kind!=="free" && x.kind!=="vac"){ code=x.short; col=x.color; } else if(x&&x.kind==="vac"){ const o=ownShift(s); if(o&&o.kind!=="free"){ code=o.short; col=o.color; } } else if(x||planKnown(s)) code="–"; }
+  const k=el("span","plk"+(code==="–"?" free":""),code); if(col){ k.style.background=col; k.style.color=isDark(col)?"#16222B":"#fff"; } c.append(k);
+  c.setAttribute("aria-label",fmt(s)+(va?", Urlaub":x?", "+x.name:"")+(hn?", "+hn:"")); return c; }
+function plSlide(st,dir,done){ const g=st.root&&st.root.querySelector(".plcal"); if(!g){ done(); return; } g.style.transition="transform .17s ease-in, opacity .17s"; g.style.transform="translateX("+(-dir*24)+"%)"; g.style.opacity="0"; st.slideIn=dir; setTimeout(done,170); }
+function drawPlanMonth(st){ const ov=st.root; ov.innerHTML=""; ov.className="yplan inline plroot"+(st.paint?" painting":""); const n=new Date(), t=TODAY(), sh=ypShifts()||ypSK(st), k=st.one, y=Math.floor(k/12), m=k%12;
+  const sMin=(n.getFullYear()-1)*12, sMax=(n.getFullYear()+2)*12+11;
+  const go=x=>{ x=Math.max(sMin,Math.min(sMax,x)); if(x===st.one){ drawYP(st); return; } const dir=x>st.one?1:-1; plSlide(st,dir,()=>{ st.one=x; st.y=Math.floor(x/12); if(!st.paint) st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); }); };
+  st.go=go; st.stepFn=d=>go(k+d); st.goToday=()=>go(n.getFullYear()*12+n.getMonth());
+  if(st.paint) ov.append(plBanner(st));
+  ov.append(plNav(st,MONF_[m]+" "+y,d=>go(k+d),()=>go(n.getFullYear()*12+n.getMonth())));
+  if(st.paint && !(st.kind==="shift"&&!st.brush)) ov.append(plQuick(st));
+  const cal=el("div","plcal"), g=el("div","plgrid"); cal.append(g); g.append(el("div","plwd plkwh","KW")); ["Mo","Di","Mi","Do","Fr","Sa","So"].forEach((w,i)=>g.append(el("div","plwd"+(i>4?" we":""),w)));
+  const first=y+"-"+pad(m+1)+"-01", last=lastOfMonth(first); let d=addD(first,-((parse(first).getDay()+6)%7)); const r=st.a?[st.a,st.e||st.a]:null;
+  while(d<=last){ g.append(el("div","plkw",String(kwOf(d)))); for(let i=0;i<7;i++){ const c=plCell(st,d,m,t,sh); if(r&&d>=r[0]&&d<=r[1]){ c.classList.add("sel"); if(d===r[0]) c.classList.add("s0"); if(d===r[1]) c.classList.add("s1"); } g.append(c); d=addD(d,1); } }
+  ov.append(cal);
+  if(!st.paint){ ov.append(plLegend(), plSwitches(st)); { const np=ypNoPlan(sh); if(np) ov.append(np); } }
+  ov.append(plBottom(st)); ypSelColor(st,g);
+  if(st.slideIn){ const dir=st.slideIn; st.slideIn=0; cal.style.transform="translateX("+(dir*24)+"%)"; cal.style.opacity="0"; requestAnimationFrame(()=>{ cal.style.transition="transform .17s ease-out, opacity .17s"; cal.style.transform=""; cal.style.opacity=""; }); }
+  /* Wischen wechselt den Monat (nicht beim Eintragen – da wird gezogen) */
+  let sw=null; g.addEventListener("pointerdown",ev=>{ sw=st.paint?null:{x:ev.clientX,y:ev.clientY}; });
+  g.addEventListener("pointerup",ev=>{ if(!sw) return; const dx=ev.clientX-sw.x, dy=ev.clientY-sw.y; sw=null; if(Math.abs(dx)>50&&Math.abs(dx)>1.5*Math.abs(dy)){ st.noTap=Date.now(); go(k+(dx<0?1:-1)); } });
+  g.addEventListener("pointercancel",()=>{ sw=null; });
+  ypBindCells(st,g); requestAnimationFrame(ypPad); }
+function drawPlanYear(st){ const ov=st.root; ov.innerHTML=""; ov.className="yplan inline plroot"; const n=new Date(), t=TODAY(), y=st.yv;
+  const go=yy=>{ yy=Math.max(n.getFullYear()-1,Math.min(n.getFullYear()+2,yy)); if(yy===st.yv) return; plSlide(st,yy>st.yv?1:-1,()=>{ st.yv=yy; st.y=yy; if(st.onNav) st.onNav(); else drawYP(st); }); };
+  st.go=null; st.stepFn=d=>go(y+d); st.goToday=()=>go(n.getFullYear());
+  ov.append(plNav(st,String(y),d=>go(y+d),()=>go(n.getFullYear())));
+  const cal=el("div","plcal plyear");
+  for(let m=0;m<12;m++){ const b=el("button","plmini"+(y===n.getFullYear()&&m===n.getMonth()?" cur":"")); b.type="button"; const f=y+"-"+pad(m+1)+"-01", l=lastOfMonth(f); let vd=0;
+    const mg=el("div","plmg"); for(let i=0;i<(parse(f).getDay()+6)%7;i++) mg.append(el("i","e")); for(let d=f; d<=l; d=addD(d,1)){ const i=el("i"), w=parse(d).getDay(); if(w===0||w===6) i.className="we"; if(ferien(d)) i.classList.add("fe"); if(holName(d)) i.classList.add("ho"); if(plVa(d)){ i.classList.add("va"); vd++; } if(d===t) i.classList.add("now"); mg.append(i); }
+    b.append(el("b",null,MONK2[m]), mg, el("small",null,vd?vd+(vd===1?" Tag Urlaub":" Tage Urlaub"):"")); b.setAttribute("aria-label",MONF_[m]+" "+y+(vd?", "+vd+" Tage Urlaub":"")); b.onclick=()=>{ st.one=y*12+m; st.pv="m"; lsSet("su_pview","m"); drawYP(st); window.scrollTo(0,0); }; cal.append(b); }
+  ov.append(cal);
+  if(st.slideIn){ const dir=st.slideIn; st.slideIn=0; cal.style.transform="translateX("+(dir*24)+"%)"; cal.style.opacity="0"; requestAnimationFrame(()=>{ cal.style.transition="transform .17s ease-out, opacity .17s"; cal.style.transform=""; cal.style.opacity=""; }); }
+  let sw=null; cal.addEventListener("pointerdown",ev=>{ sw={x:ev.clientX,y:ev.clientY}; }); cal.addEventListener("pointerup",ev=>{ if(!sw) return; const dx=ev.clientX-sw.x, dy=ev.clientY-sw.y; sw=null; if(Math.abs(dx)>50&&Math.abs(dx)>1.5*Math.abs(dy)) go(y+(dx<0?1:-1)); });
+  ov.append(plLegend(), plSwitches(st), plBottom(st)); requestAnimationFrame(ypPad); }
 function drawYPInline(st){ if(st.mode==="vac") return drawYPVac(st); const ov=st.root; ov.innerHTML=""; ov.classList.remove("ypvac"); const y=st.y, m0=st.h*6, t=TODAY(), vac=st.mode==="vac"; ov.classList.toggle("ypvac",vac); const first=vac?"Tippe den ersten Urlaubstag an.":"Tippe den ersten Tag an.";
   const nav=()=>{ st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); };
   const top=el("div","yptop"), pv=el("button","icon-btn","‹"), nx=el("button","icon-btn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Halbjahr zurück"); nx.setAttribute("aria-label","Halbjahr vor");
@@ -2891,7 +3063,7 @@ function ypLegend(sh){ const lg=el("div","ypleg ypleg2"), add=(nd,tx)=>{ const s
 /* Höhe der Zeilen unter dem Kalender (Legende, Tipp) */
 function ypBelow(ov,g){ let h=0, e=(g.closest(".ypwin")||g).nextElementSibling; while(e){ if(!e.classList.contains("ypfix")) h+=e.getBoundingClientRect().height+parseFloat(getComputedStyle(ov).rowGap||0); e=e.nextElementSibling; } return h; }
 /* Platz unten, damit man immer bis Tag 31 scrollen kann (feste Leiste + Navigation decken sonst Tage ab) */
-function ypPad(){ const fx=document.querySelector("#v-urlaub .ypfix"), v=$("#v-urlaub"); if(!fx||!v) return; const w=v.closest(".wrap")||v.parentElement, base=w?parseFloat(getComputedStyle(w).paddingBottom)||0:0; v.style.paddingBottom=Math.max(0,Math.ceil((innerHeight-fx.getBoundingClientRect().top+12)/uiZ()-base))+"px"; }
+function ypPad(){ const fx=document.querySelector("#v-urlaub .plfix,#v-urlaub .ypfix"), v=$("#v-urlaub"); if(!fx||!v) return; const w=v.closest(".wrap")||v.parentElement, base=w?parseFloat(getComputedStyle(w).paddingBottom)||0:0; v.style.paddingBottom=Math.max(0,Math.ceil((innerHeight-fx.getBoundingClientRect().top+12)/uiZ()-base))+"px"; }
 function ypFit(st,g){ const set=h=>{ g.style.setProperty("--yprow",h+"px"); g.dataset.sz=h<22?"s":h<30?"m":"l"; g.style.setProperty("--ypbadge",Math.max(14,Math.min(26,h-3))+"px"); g.style.setProperty("--ypfs",Math.max(11,Math.min(18,h))+"px"); };
   requestAnimationFrame(()=>{ ypPad(); const hd=g.querySelector(".yph"), fx=document.querySelector("#v-urlaub .ypfix"); if(!hd||!fx) return;
     { const w=g.closest(".ypwin"); if(w) w.style.setProperty("--yphh",hd.offsetHeight+"px"); }
@@ -3655,17 +3827,6 @@ function openVacChoice(b){ openSheet(p=>{ sheetTop(p,vsRange(b.a,b.e)); p.append
 function renderUrlaub(){
   const box=$("#v-urlaub"); box.innerHTML=""; planSeg(box,"urlaub");
   const used=vacUsed(uY), tot=vacTotal(uY), rest=tot-used;
-  hRest();
-  /* Zeile 1 (Kopfzeile): „Plan“ · „x Urlaubstage übrig“ · „?“ – steht in der festen Leiste oben (hRest) */
-  { if(!ypU.viewInit){ ypU.viewInit=true; const v=lsGet("su_uview")||""; if(v.startsWith("one:")){ ypU.one=+v.slice(4); ypU.y=Math.floor(ypU.one/12); uY=ypU.y; } }
-    const sg=el("div","ypseg5"), isM=ypU.one!=null; sg.setAttribute("role","group"); sg.setAttribute("aria-label","Ansicht");
-    [["Jahr",false],["Monat",true]].forEach(([l,mo])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(isM===mo));
-      b.onclick=()=>{ if(isM===mo) return; if(mo){ const n=new Date(), cur=n.getFullYear()*12+n.getMonth(), s0=ypU.s!=null?ypU.s:cur; ypSetView(ypU,ypU.lastOne!=null&&ypU.lastOne>=s0&&ypU.lastOne<=s0+ypNM()-1?ypU.lastOne:(cur>=s0&&cur<=s0+ypNM()-1?cur:s0)); } else ypSetView(ypU,null); }; sg.append(b); });
-    const sh=ypShifts(), tg=el("button","ypsw5"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.append(el("span",null,sh?"Schichten: ein":"Schichten: aus"), el("i","ypknob")); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); render(); };
-    /* Zeile 2: ‹ Titel › Heute · Zeile 3: Jahr | Monat + Schichten ein/aus (bei wenig Platz bricht um) */
-    const nav=el("div","ypnav5"), pv=el("button","ypa5","‹"), nx=el("button","ypa5","›"), tt=el("div","ypttl5"), hb=el("button","ypheute5","Heute"); pv.type=nx.type=hb.type="button"; tt.id="ypttlslot";
-    pv.setAttribute("aria-label","Zurück"); nx.setAttribute("aria-label","Weiter"); pv.onclick=()=>{ if(ypU.stepFn) ypU.stepFn(-1); }; nx.onclick=()=>{ if(ypU.stepFn) ypU.stepFn(1); }; hb.onclick=()=>{ if(ypU.goToday) ypU.goToday(); };
-    nav.append(pv,tt,nx,hb); const ctl=el("div","ypctl5"); ctl.append(sg,tg); box.append(nav,ctl); }
   mountYP(box,ypU,uY,()=>{ uY=ypU.y; renderUrlaub(); });
 }
 /* Liste „Mein Urlaub“ als eigenes Fenster (Zeitraum und Tage, antippen = Ändern/Löschen) */
@@ -3785,7 +3946,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.12-93";
+const APP_VERSION="2026.10.12-94";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
