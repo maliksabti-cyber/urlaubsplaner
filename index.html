@@ -1102,10 +1102,13 @@ body[data-v="urlaub"]{--cbg:linear-gradient(180deg,#EEF3FB,#F7F0FF);--cindigo:#3
 body[data-v="urlaub"]{background:var(--cbg) fixed!important}
 body[data-v="urlaub"] header.bar{background:transparent!important;border:0!important}
 body[data-v="urlaub"] .urline{background:linear-gradient(135deg,#D3F9D8,#E6FCF5);border-radius:24px;padding:6px 16px!important;box-shadow:0 8px 20px rgba(47,158,68,.15)}
+html:not([data-fs="n"]) body[data-v="urlaub"] .urrow{flex-wrap:wrap;row-gap:0}html:not([data-fs="n"]) body[data-v="urlaub"] .urrow .urltxt{flex:1 1 100%}html:not([data-fs="n"]) body[data-v="urlaub"] .urlink{min-height:36px}
 body[data-v="urlaub"] .urltxt{color:#1B5E2A!important}body[data-v="urlaub"] .urlink{color:#1B5E2A!important}
 body[data-v="urlaub"] .urmeter{background:rgba(255,255,255,.7)!important}body[data-v="urlaub"] .urmeter i{background:#2F9E44!important}
 .yptool{background:var(--ccard);border-radius:26px;padding:6px;box-shadow:var(--cshadow);display:grid;gap:6px}
 .yptool .ypctl4,.yptool .ypnav4{gap:6px}
+.yptool .ypctl4{flex-wrap:nowrap!important}.yptool .ypctl4 .ypsw3{flex:2 1 0!important;min-width:0;white-space:nowrap}.yptool .ypctl4 .ypn3h{flex:1 1 0!important;min-width:0;white-space:nowrap;padding:0 8px}
+html:not([data-fs="n"]) .yptool .ypctl4 .ypsw3,html:not([data-fs="n"]) .yptool .ypctl4 .ypn3h{font-size:.9em;padding:0 6px}
 .yptool .ypjm3{background:var(--cindigo-soft)!important}.yptool .ypjm3 button{color:var(--cindigo)!important}.yptool .ypjm3 button[aria-pressed=true]{background:var(--cindigo)!important;color:#fff!important;box-shadow:0 4px 10px rgba(59,91,219,.3)!important}
 .yptool .ypn3a{background:var(--cindigo-soft)!important;border:0!important;color:var(--cindigo)!important}
 .yptool .ypsw3{border:0!important;background:#FFF0E6!important;color:#C2410C!important}.yptool .ypsw3[aria-pressed=true]{background:#FFE0CC!important}
