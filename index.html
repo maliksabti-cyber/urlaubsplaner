@@ -1095,6 +1095,39 @@ html:not([data-fs="n"]) .ypnav4 .ypn3a{width:40px;height:40px;font-size:18px}
 html:not([data-fs="n"]) .ypnav4{gap:5px}
 html:not([data-fs="n"]) .ypnav4 .ypjm3 button{font-size:15px;padding:0 2px;text-overflow:clip}
 @media (max-width:340px){.ypnav4 .ypn3a{width:42px;height:42px}}
+/* ===== Design C „Farbig & freundlich“ (Plan) ===== */
+body[data-v="urlaub"]{--cbg:linear-gradient(180deg,#EEF3FB,#F7F0FF);--cindigo:#3B5BDB;--cindigo-soft:#E7ECFF;--ccard:#FFFFFF;--cshadow:0 8px 24px rgba(59,91,219,.12)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) body[data-v="urlaub"]{--cbg:linear-gradient(180deg,#141A26,#1A1626);--cindigo:#7C93FF;--cindigo-soft:#252E4A;--ccard:#1C2231;--cshadow:0 8px 24px rgba(0,0,0,.35)} }
+:root[data-theme="dark"] body[data-v="urlaub"]{--cbg:linear-gradient(180deg,#141A26,#1A1626);--cindigo:#7C93FF;--cindigo-soft:#252E4A;--ccard:#1C2231;--cshadow:0 8px 24px rgba(0,0,0,.35)}
+body[data-v="urlaub"]{background:var(--cbg) fixed!important}
+body[data-v="urlaub"] header.bar{background:transparent!important;border:0!important}
+body[data-v="urlaub"] .urline{background:linear-gradient(135deg,#D3F9D8,#E6FCF5);border-radius:24px;padding:6px 16px!important;box-shadow:0 8px 20px rgba(47,158,68,.15)}
+html:not([data-fs="n"]) body[data-v="urlaub"] .urrow{flex-wrap:wrap;row-gap:0}html:not([data-fs="n"]) body[data-v="urlaub"] .urrow .urltxt{flex:1 1 100%}html:not([data-fs="n"]) body[data-v="urlaub"] .urlink{min-height:36px}
+body[data-v="urlaub"] .urltxt{color:#1B5E2A!important}body[data-v="urlaub"] .urlink{color:#1B5E2A!important}
+body[data-v="urlaub"] .urmeter{background:rgba(255,255,255,.7)!important}body[data-v="urlaub"] .urmeter i{background:#2F9E44!important}
+.yptool{background:var(--ccard);border-radius:26px;padding:6px;box-shadow:var(--cshadow);display:grid;gap:6px}
+.yptool .ypctl4,.yptool .ypnav4{gap:6px}
+.yptool .ypctl4{flex-wrap:nowrap!important}.yptool .ypctl4 .ypsw3{flex:2 1 0!important;min-width:0;white-space:nowrap}.yptool .ypctl4 .ypn3h{flex:1 1 0!important;min-width:0;white-space:nowrap;padding:0 8px}
+html:not([data-fs="n"]) .yptool .ypctl4 .ypsw3,html:not([data-fs="n"]) .yptool .ypctl4 .ypn3h{font-size:.9em;padding:0 6px}
+.yptool .ypjm3{background:var(--cindigo-soft)!important}.yptool .ypjm3 button{color:var(--cindigo)!important}.yptool .ypjm3 button[aria-pressed=true]{background:var(--cindigo)!important;color:#fff!important;box-shadow:0 4px 10px rgba(59,91,219,.3)!important}
+.yptool .ypn3a{background:var(--cindigo-soft)!important;border:0!important;color:var(--cindigo)!important}
+.yptool .ypsw3{border:0!important;background:#FFF0E6!important;color:#C2410C!important}.yptool .ypsw3[aria-pressed=true]{background:#FFE0CC!important}
+.yptool .ypn3h{border:0!important;background:#FFF3BF!important;color:#7A5A00!important}
+.ypttl2{text-align:center;font-weight:800;font-size:15px;color:var(--cindigo);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-v="urlaub"] .yplan.inline.ypvac .ypwin{border-radius:26px!important;box-shadow:var(--cshadow)!important;background:var(--ccard)}
+body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .yph{background:var(--cindigo)!important;color:#fff!important}
+body[data-v="urlaub"] .ypfix{background:transparent!important;border:0!important;box-shadow:none!important}
+body[data-v="urlaub"] .ypfix.yptwo .btn{border-radius:999px!important;min-height:56px!important;box-shadow:0 8px 18px rgba(0,0,0,.15)!important;border:0!important}
+body[data-v="urlaub"] .ypfix .btn.pri{background:linear-gradient(135deg,#FF922B,#F76707)!important;color:#fff!important}
+body[data-v="urlaub"] .ypfix .ypshbig{background:linear-gradient(135deg,#4C6EF5,#3B5BDB)!important;color:#fff!important}
+body[data-v="urlaub"] .ypfix:not(.yptwo){background:var(--ccard)!important;border-radius:24px!important;box-shadow:var(--cshadow)!important}
+body[data-v="urlaub"] nav.tabs{background:var(--ccard)!important;box-shadow:0 -6px 24px rgba(59,91,219,.12)!important}
+/* Monatsansicht passend */
+body[data-v="urlaub"] .yplan.inline.ypvac .ypmon .ypc{box-shadow:0 2px 6px rgba(59,91,219,.08)}
+body[data-v="urlaub"] .ypwd{color:var(--cindigo)}
+/* dunkle Variante der farbigen Flächen */
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) body[data-v="urlaub"] .urline{background:linear-gradient(135deg,#183A24,#1A3A33)} :root:not([data-theme="light"]) body[data-v="urlaub"] .urltxt,:root:not([data-theme="light"]) body[data-v="urlaub"] .urlink{color:#B6F0C6!important} :root:not([data-theme="light"]) .yptool .ypsw3{background:#3A2416!important;color:#FFB685!important} :root:not([data-theme="light"]) .yptool .ypsw3[aria-pressed=true]{background:#4A2A14!important} :root:not([data-theme="light"]) .yptool .ypn3h{background:#3A3312!important;color:#FFE38A!important} }
+:root[data-theme="dark"] body[data-v="urlaub"] .urline{background:linear-gradient(135deg,#183A24,#1A3A33)} :root[data-theme="dark"] body[data-v="urlaub"] .urltxt,:root[data-theme="dark"] body[data-v="urlaub"] .urlink{color:#B6F0C6!important} :root[data-theme="dark"] .yptool .ypsw3{background:#3A2416!important;color:#FFB685!important} :root[data-theme="dark"] .yptool .ypsw3[aria-pressed=true]{background:#4A2A14!important} :root[data-theme="dark"] .yptool .ypn3h{background:#3A3312!important;color:#FFE38A!important}
 </style>
 </head>
 <body>
@@ -2579,6 +2612,8 @@ function openDayChoice(st,s){ const x=shiftOf(s), dk=dayKind(s), isVac=dk==="v",
       dl.onclick=()=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); done(o,"Urlaub gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; }
         if(hasOv){ delete S.ov[s]; done(o,"Gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; } const fr=S.types.find(t=>t.kind==="free"); if(fr){ S.ov[s]=""; } done(o,"Gelöscht. Der Tag ist jetzt frei."); }; p.append(dl); } }); }
 /* Tage antippen oder im Eintragen-Modus mit dem Finger über die Tage ziehen */
+/* Titel: in der Bedien-Karte, falls vorhanden */
+function ypTitle(ov,tx){ const slot=document.getElementById("ypttlslot"); if(slot){ slot.textContent=tx; return; } ov.append(el("h2","ypttl",tx)); }
 function ypBindCells(st,g){ let drag=null, skipClick=false; if(st.paint) g.classList.add("yppaint");
   const cellAt=ev=>{ const e=document.elementFromPoint(ev.clientX,ev.clientY), c=e&&e.closest&&e.closest(".ypc[data-s]"); return c&&g.contains(c)?c.dataset.s:null; };
   const mark=(a,e)=>{ const r=a<=e?[a,e]:[e,a]; g.querySelectorAll(".ypc[data-s]").forEach(c=>{ const s=c.dataset.s, on=s>=r[0]&&s<=r[1]; c.classList.toggle("sel",on); c.classList.toggle("s0",on&&s===r[0]); c.classList.toggle("s1",on&&s===r[1]); }); };
@@ -2598,7 +2633,7 @@ function drawYPOne(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypv
   /* schwarzer Balken: ‹ November 2026 › – Wischen wechselt den Monat */
   const bar=el("div","ypobar"), pv=el("button","ypobtn","‹"), nx=el("button","ypobtn","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Voriger Monat"); nx.setAttribute("aria-label","Nächster Monat");
   if(k<=sMin) pv.classList.add("off"); if(k>=sMax) nx.classList.add("off"); pv.onclick=()=>go(k-1); nx.onclick=()=>go(k+1);
-  st.stepFn=d=>go(k+d); st.goToday=()=>go(n.getFullYear()*12+n.getMonth()); ov.append(el("h2","ypttl",MONF_[m]+" "+y));
+  st.stepFn=d=>go(k+d); st.goToday=()=>go(n.getFullYear()*12+n.getMonth()); ypTitle(ov,MONF_[m]+" "+y);
   /* klassischer Monatskalender: Mo–So, Wochenzeilen */
   const g=el("div","ypgrid ypmon"), days=new Date(y,m+1,0).getDate(), r=st.a?[st.a,st.e||st.a]:null, off=(new Date(y,m,1).getDay()+6)%7, weeks=Math.ceil((off+days)/7);
   ["Mo","Di","Mi","Do","Fr","Sa","So"].forEach((w,i)=>g.append(el("div","ypwd"+(i>4?" we":""),w)));
@@ -2620,7 +2655,7 @@ function drawYPVac(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su_uv
   const go=k=>{ k=Math.max(sMin,Math.min(sMax,k)); st.s=k; st.y=Math.floor(k/12); if(!st.paint) st.a=st.e=null; if(st.onNav) st.onNav(); else drawYP(st); };
   /* eine Zeile: [‹ Zeitraum · Heute ›] (auch wischbar) + „Schichtrhythmus“ */
   /* Titel (Pfeile, Jahr|Monat und Heute stehen darüber) */
-  st.stepFn=d=>step(d); st.goToday=()=>go(n.getFullYear()*12+n.getMonth()); ov.append(el("h2","ypttl",ttl));
+  st.stepFn=d=>step(d); st.goToday=()=>go(n.getFullYear()*12+n.getMonth()); ypTitle(ov,ttl);
   /* beim Eintragen: große Anzeige der Auswahl */
   ypTopPaint(st,ov,first);
   /* 12 Spalten: 4 davor, 4 sichtbar, 4 danach – damit das Wischen echte Monate zeigt */
@@ -3484,9 +3519,9 @@ function renderUrlaub(){
     /* eine Zeile: Jahr | Monat + Schichten ein/aus (bricht bei wenig Platz um) */
     /* Zeile 1: Schichten ein/aus + Heute · Zeile 2: ‹ Jahr|Monat › */
     const hb=el("button","ypn3h","Heute"); hb.type="button"; hb.onclick=()=>{ if(ypU.goToday) ypU.goToday(); };
-    ctl.className="ypctl4"; ctl.append(tg,hb); box.append(ctl);
+    ctl.className="ypctl4"; ctl.append(tg,hb); const card=el("div","yptool"); card.append(ctl); box.append(card);
     const nav=el("div","ypnav4"), pv=el("button","ypn3a","‹"), nx=el("button","ypn3a","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Zurück"); nx.setAttribute("aria-label","Weiter");
-    pv.onclick=()=>{ if(ypU.stepFn) ypU.stepFn(-1); }; nx.onclick=()=>{ if(ypU.stepFn) ypU.stepFn(1); }; sg.className="ypjm3"; nav.append(pv,sg,nx); box.append(nav); }
+    pv.onclick=()=>{ if(ypU.stepFn) ypU.stepFn(-1); }; nx.onclick=()=>{ if(ypU.stepFn) ypU.stepFn(1); }; sg.className="ypjm3"; nav.append(pv,sg,nx); const tt=el("div","ypttl ypttl2"); tt.id="ypttlslot"; card.append(nav,tt); }
   mountYP(box,ypU,uY,()=>{ uY=ypU.y; renderUrlaub(); });
 }
 /* Liste „Mein Urlaub“ als eigenes Fenster (Zeitraum und Tage, antippen = Ändern/Löschen) */
@@ -3606,7 +3641,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.12-90";
+const APP_VERSION="2026.10.12-91";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
