@@ -1100,7 +1100,7 @@ body[data-v="urlaub"]{--cbg:linear-gradient(180deg,#EEF3FB,#F7F0FF);--cindigo:#3
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) body[data-v="urlaub"]{--cbg:linear-gradient(180deg,#141A26,#1A1626);--cindigo:#7C93FF;--cindigo-soft:#252E4A;--ccard:#1C2231;--cshadow:0 8px 24px rgba(0,0,0,.35)} }
 :root[data-theme="dark"] body[data-v="urlaub"]{--cbg:linear-gradient(180deg,#141A26,#1A1626);--cindigo:#7C93FF;--cindigo-soft:#252E4A;--ccard:#1C2231;--cshadow:0 8px 24px rgba(0,0,0,.35)}
 body[data-v="urlaub"]{background:var(--cbg) fixed!important}
-body[data-v="urlaub"] header.bar{background:transparent!important;border:0!important}
+body[data-v="urlaub"] header.bar{border:0!important}
 body[data-v="urlaub"] .urline{background:linear-gradient(135deg,#D3F9D8,#E6FCF5);border-radius:24px;padding:6px 16px!important;box-shadow:0 8px 20px rgba(47,158,68,.15)}
 html:not([data-fs="n"]) body[data-v="urlaub"] .urrow{flex-wrap:wrap;row-gap:0}html:not([data-fs="n"]) body[data-v="urlaub"] .urrow .urltxt{flex:1 1 100%}html:not([data-fs="n"]) body[data-v="urlaub"] .urlink{min-height:36px}
 body[data-v="urlaub"] .urltxt{color:#1B5E2A!important}body[data-v="urlaub"] .urlink{color:#1B5E2A!important}
@@ -1130,7 +1130,10 @@ body[data-v="urlaub"] .ypwd{color:var(--cindigo)}
 :root[data-theme="dark"] body[data-v="urlaub"] .urline{background:linear-gradient(135deg,#183A24,#1A3A33)} :root[data-theme="dark"] body[data-v="urlaub"] .urltxt,:root[data-theme="dark"] body[data-v="urlaub"] .urlink{color:#B6F0C6!important} :root[data-theme="dark"] .yptool .ypsw3{background:#3A2416!important;color:#FFB685!important} :root[data-theme="dark"] .yptool .ypsw3[aria-pressed=true]{background:#4A2A14!important} :root[data-theme="dark"] .yptool .ypn3h{background:#3A3312!important;color:#FFE38A!important}
 /* Jahreskalender ruhig: Streifen statt Rahmen, Wochenenden, Montagslinie, Urlaubsbalken, feste Spalten */
 body[data-v="urlaub"] .yplan.inline.ypvac .ypwin{overflow:clip!important}
-html body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .yph{position:sticky!important;top:0!important;z-index:4}
+html body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .yph{position:sticky!important;top:var(--barh,0px)!important;z-index:4}
+body[data-v="urlaub"] header.bar{background:#EEF3FB!important;z-index:20}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) body[data-v="urlaub"] header.bar{background:#141A26!important} }
+:root[data-theme="dark"] body[data-v="urlaub"] header.bar{background:#141A26!important}
 html body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .ypgrid{gap:0!important;background:var(--ccard)!important;--ypstripe:rgba(30,40,80,.035);--ypwe:rgba(59,91,219,.08);--ypmo:rgba(30,40,80,.16);--ypvbar:#B9E8C8;--ypvink:#13522A}
 html body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .ypgrid:not(.yppaint){touch-action:pan-y}
 html body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .ypc{position:relative;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;outline:0!important;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
@@ -1156,6 +1159,7 @@ html body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .ypd{display:grid!importan
 html body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .ypd b{font-weight:800;text-align:right;font-variant-numeric:tabular-nums;position:relative}
 html body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .ypd small{font-weight:600;opacity:.6;font-size:calc(var(--ypfs,18px)*.72)!important}
 html body[data-v="urlaub"] .yplan.inline.ypvac .ypwin .ypc.now .ypd b::before{position:absolute;left:-7px;top:50%;margin:-2.5px 0 0!important;width:5px;height:5px;background:var(--cindigo)!important}
+#v-urlaub .ypguide ~ .ypfix .ypstep{display:none}#v-urlaub .ypguide ~ .ypfix.ypmain{justify-content:center}
 .ypguide{background:var(--cindigo-soft,#E7ECFF);color:var(--cindigo,#3B5BDB);font-weight:700;font-size:15px;border-radius:14px;padding:7px 12px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ypbub{position:fixed;z-index:60;max-width:240px;background:var(--ink,#16222B);color:var(--paper,#fff);border-radius:14px;padding:8px 12px;display:grid;gap:2px;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:none;animation:ypbub .15s ease-out}
 .ypbub b{font-size:15px}.ypbub span{font-size:14px;opacity:.9}
@@ -2648,8 +2652,8 @@ function openDayChoice(st,s){ const x=shiftOf(s), dk=dayKind(s), isVac=dk==="v",
 /* Tage antippen oder im Eintragen-Modus mit dem Finger über die Tage ziehen */
 /* Eintragen-Modus: eine Zeile oben mit Anleitung und Anzahl (live beim Ziehen) */
 function ypGuideTx(st,a,e){ if(st.kind==="shift"&&!st.brush) return "Wähle zuerst die Schicht.";
-  if(!a) return "Tippe den ersten Tag oder ziehe über die Tage"; const r=e?(a<=e?[a,e]:[e,a]):[a,a], n=diffD(r[0],r[1])+1, head=e?"Fertig? Unten speichern":"Tippe den letzten Tag";
-  let tx=head+" · "+n+(n===1?" Tag":" Tage")+" gewählt"; if(st.kind!=="shift"){ const y=+r[0].slice(0,4), k=vsDays(r[0],r[1]).filter(d=>+d.slice(0,4)===y).length; tx+=" · "+Math.max(0,vacRest(y)-k)+" übrig"; } return tx; }
+  if(!a) return "Tippe den ersten Tag oder ziehe über die Tage"; const r=e?(a<=e?[a,e]:[e,a]):[a,a], n=diffD(r[0],r[1])+1, cnt=n+(n===1?" Tag":" Tage")+" gewählt";
+  let tx=e?cnt:"Tippe den letzten Tag · "+cnt; if(st.kind!=="shift"){ const y=+r[0].slice(0,4), k=vsDays(r[0],r[1]).filter(d=>+d.slice(0,4)===y).length; tx+=" · "+Math.max(0,vacRest(y)-k)+" übrig"; } return tx; }
 function ypGuide(st){ const g=el("div","ypguide",ypGuideTx(st,st.a,st.e)); g.id="ypguide"; return g; }
 /* langes Drücken auf einen Tag: kurze Sprechblase mit Details */
 function ypBubble(s,cell){ document.querySelectorAll(".ypbub").forEach(b=>b.remove()); const x=shiftOf(s), hn=holName(s), fe=ferien(s), vb=vacAt(s), va=!!(vb&&vacOnDay(vb,s)), b=el("div","ypbub"), L=[];
