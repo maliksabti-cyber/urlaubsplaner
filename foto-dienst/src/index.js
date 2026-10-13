@@ -3,7 +3,7 @@
  * auslesen und gibt das Ergebnis als JSON zurück.
  * - Der API-Schlüssel liegt NUR als geheime Umgebungsvariable ANTHROPIC_API_KEY im Dienst.
  * - Das Foto wird nicht gespeichert und nicht protokolliert (kein console.log mit Inhalt).
- * - Ohne Schlüssel (oder mit MOCK = "1") antwortet der Dienst mit Beispieldaten.
+ * - Mit MOCK = "1" antwortet der Dienst mit Beispieldaten (nur zum Testen).
  */
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -211,6 +211,11 @@ export default {
     const origin = req.headers.get("Origin") || "";
     const url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin, env) });
+    // Prüfseite im Browser: zeigt nur, ob der Dienst läuft und ob ein Schlüssel hinterlegt ist (nie den Schlüssel selbst)
+    if (req.method === "GET" && url.pathname === "/") {
+      const ok = !!env.ANTHROPIC_API_KEY;
+      return new Response(`Foto-Dienst läuft.\nAPI-Schlüssel: ${ok ? "hinterlegt ✔" : "fehlt noch ✘"}${env.MOCK === "1" ? "\nTESTBETRIEB: nur Beispieldaten" : ""}\nTageszähler: ${env.LIMITS ? "dauerhaft (KV)" : "einfach (ohne KV)"}\n`, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
+    }
     if (req.method !== "POST" || url.pathname !== "/lesen") return fail("not_found", "Nicht gefunden.", 404, origin, env);
     if (!allowed(env).includes(origin)) return fail("origin", "Diese Anfrage ist nicht erlaubt.", 403, origin, env);
 
@@ -226,7 +231,9 @@ export default {
 
     if (await overLimit(req, env)) return fail("limit", "Für heute sind alle Foto-Auswertungen aufgebraucht. Bitte morgen erneut versuchen.", 429, origin, env);
 
-    if (!env.ANTHROPIC_API_KEY || env.MOCK === "1") return json(mockResult(url.searchParams.get("mock") || ""), 200, origin, env);
+    // Beispieldaten nur, wenn ausdrücklich MOCK = "1" gesetzt ist – sonst würden echte Nutzer Fantasie-Daten sehen
+    if (env.MOCK === "1") return json(mockResult(url.searchParams.get("mock") || ""), 200, origin, env);
+    if (!env.ANTHROPIC_API_KEY) return fail("key", "Der Foto-Dienst ist noch nicht richtig eingerichtet (API-Schlüssel fehlt).", 503, origin, env);
 
     try {
       const r = await readPhoto(env, data, mediaType);
@@ -234,6 +241,7 @@ export default {
       return json(r, 200, origin, env);
     } catch (e) {
       const st = e && e.status;
+      if (st === 401 || st === 403) return fail("key", "Der Foto-Dienst ist noch nicht richtig eingerichtet (API-Schlüssel prüfen).", 502, origin, env);
       if (st === 429 || st === 529) return fail("busy", "Der Dienst ist gerade ausgelastet. Bitte später erneut versuchen.", 503, origin, env);
       // Nur den Fehlertyp melden – niemals das Foto
       console.error("lesen fehlgeschlagen", st || (e && e.name) || "Fehler");
