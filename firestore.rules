@@ -1,7 +1,8 @@
 rules_version = '2';
 // Schicht & Urlaub – Sicherheitsregeln
 // • nutzer/{uid}: eigene Cloud-Sicherung (nur wenn localMode: false)
-// • teams/…: Team-Funktion. Private Daten liegen NICHT hier – nur freigegebene Team-Kopien.
+// • teams/…: Team-Funktion. Private Daten liegen NICHT hier – nur Kopien, die der Nutzer
+//   ausdrücklich für den Admin freigegeben hat. Andere Mitglieder können sie nicht lesen.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
@@ -35,8 +36,9 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','kids','showName']));
         allow delete: if isAdm() || m == request.auth.uid;
       }
+      // Urlaubs-Kopien: nur wer selbst freigegeben hat, legt sie an. Lesen dürfen NUR Admins/Vertreter und der Eigentümer.
       match /entries/{e} {
-        allow read: if isMem();
+        allow read: if isAdm() || (isMem() && resource.data.uid == request.auth.uid);
         allow create, update: if isMem() && request.resource.data.uid == request.auth.uid;
         allow delete: if isMem() && (resource.data.uid == request.auth.uid || isAdm());
       }
