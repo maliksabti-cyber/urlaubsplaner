@@ -1,0 +1,24 @@
+# Foto-Dienst für „Schicht & Urlaub“ (Cloudflare Worker)
+# KEINE Schlüssel in diese Datei schreiben! Der API-Schlüssel wird nur mit
+#   npx wrangler secret put ANTHROPIC_API_KEY
+# als geheime Umgebungsvariable hinterlegt.
+name = "urlaubsplaner-foto"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Keine Protokolle: Fotos werden weder gespeichert noch geloggt.
+[observability]
+enabled = false
+
+[vars]
+# Erlaubte Herkunft (die App-Adresse). Mehrere mit Komma trennen.
+ALLOWED_ORIGINS = "https://maliksabti-cyber.github.io"
+# Anfragen pro Gerät und Tag
+DAILY_LIMIT = "20"
+
+# Tageszähler (empfohlen). Nach „npx wrangler kv namespace create LIMITS“
+# die angezeigte id hier eintragen und die drei Zeilen entkommentieren:
+# [[kv_namespaces]]
+# binding = "LIMITS"
+# id = "HIER_DIE_ID"

@@ -8,5 +8,8 @@ window.APP_CONFIG = {
   localMode: true,
   // Firebase-Projekt (nur für Anmeldung/Sicherung in der Cloud, wenn localMode: false)
   apiKey: "AIzaSyCbn7aw2BBkkL0kD9keFjeCvlBflVaKzPc",
-  projectId: "urlaubsplanung-team-zfp"
+  projectId: "urlaubsplanung-team-zfp",
+  // „Foto einlesen“: Adresse des Foto-Dienstes (Cloudflare Worker, siehe foto-dienst/LIESMICH.md),
+  // z. B. "https://urlaubsplaner-foto.DEINNAME.workers.dev". Hier steht NIE ein API-Schlüssel.
+  photoApi: ""
 };
