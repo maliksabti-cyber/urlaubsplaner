@@ -1401,6 +1401,12 @@ html body .plmini small{color:var(--ink)}
 .tovcnt{font:800 18px/1 var(--f-body)}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .tovd.o1{background:#215C38;color:#EAFBEF} :root:not([data-theme="light"]) .tovrow{background:#3A2412;color:#FFE8CC} :root:not([data-theme="light"]) .tovrow.o3{background:#3D1414;color:#FFE3E3} }
 :root[data-theme="dark"] .tovd.o1{background:#215C38;color:#EAFBEF} :root[data-theme="dark"] .tovrow{background:#3A2412;color:#FFE8CC} :root[data-theme="dark"] .tovrow.o3{background:#3D1414;color:#FFE3E3}
+/* Passwortfeld mit Auge */
+.pwwrap{position:relative;display:block;width:100%}
+.pwwrap input{width:100%;padding-right:56px!important;box-sizing:border-box}
+.pweye{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:48px;height:48px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--ink);cursor:pointer;border-radius:12px}
+.pweye:focus-visible{outline:3px solid var(--focus)}
+.tforgot{justify-self:start;min-height:44px;font-size:16px}
 </style>
 </head>
 <body>
@@ -3810,14 +3816,14 @@ async function token(){ if(!sess) throw new Error("NO_SESSION"); if(Date.now()<s
 function authMsg(e){ const c=String((e&&(e.code||e.message))||"");
   if(/EMAIL_EXISTS/.test(c)) return "Für diese E-Mail gibt es schon ein Konto. Bitte anmelden.";
   if(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/.test(c)) return "E-Mail oder Passwort stimmt nicht.";
-  if(/WEAK_PASSWORD/.test(c)) return "Das Passwort braucht mindestens 6 Zeichen.";
+  if(/WEAK_PASSWORD/.test(c)) return "Das Passwort ist zu schwach. Bitte mindestens 8 Zeichen.";
   if(/INVALID_EMAIL|MISSING_EMAIL/.test(c)) return "Die E-Mail-Adresse sieht nicht richtig aus.";
   if(/TOO_MANY_ATTEMPTS/.test(c)) return "Zu viele Versuche. Bitte ein paar Minuten warten.";
   if(/USER_DISABLED/.test(c)) return "Dieses Konto ist gesperrt.";
   if(/OPERATION_NOT_ALLOWED|CONFIGURATION_NOT_FOUND/.test(c)) return "Die Anmeldung ist auf dem Server noch nicht eingerichtet.";
   if(/NETWORK/.test(c)) return "Keine Internetverbindung. Bitte später nochmal versuchen.";
   if(/CREDENTIAL_TOO_OLD|REQUIRES_RECENT_LOGIN|TOKEN_EXPIRED/.test(c)) return "Bitte melde dich einmal neu an und versuche es dann nochmal.";
-  return "Das hat nicht geklappt ("+c+")."; }
+  const code=(c.match(/[A-Z][A-Z_]{2,40}/)||[""])[0]; return "Das hat nicht geklappt"+(code?" ("+code+")":"")+"."; }
 const DOC=()=>"https://firestore.googleapis.com/v1/projects/"+CFG.projectId+"/databases/(default)/documents/nutzer/"+sess.uid;
 async function cloudGet(){ const r=await fetch(DOC(),{headers:{Authorization:"Bearer "+await token()}}); if(r.status===404) return null; const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error((j.error&&j.error.status)||"HTTP_"+r.status);
   const f=j.fields||{}; return {data:f.data&&f.data.stringValue, updated:+((f.updated&&f.updated.integerValue)||0)}; }
@@ -3850,6 +3856,15 @@ window.addEventListener("online",()=>{ if(!sess) return; if(dirty) push(); else 
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible" && sess && S) (dirty?push():pull()); if(document.visibilityState==="hidden" && dirty) push(); });
 
 /* ---------- Anmelden / Registrieren ---------- */
+/* Passwortfeld: standardmäßig verdeckt, Auge zum Ein-/Ausblenden. Das Passwort wird nie gespeichert – es geht nur an Firebase Authentication. */
+const EYE_ON='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.9 8.3 2 12 2 12s3.6 7 10 7a10 10 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+function pwHide(i){ if(!i) return; i.type="password"; const b=i.parentElement&&i.parentElement.querySelector(".pweye"); if(b){ b.innerHTML=EYE_ON; b.setAttribute("aria-label","Passwort anzeigen"); b.setAttribute("aria-pressed","false"); } }
+function pwEye(i){ if(!i||i.dataset.eye) return i; i.dataset.eye="1"; i.type="password"; i.spellcheck=false; i.autocapitalize="off"; i.setAttribute("data-nodraft","1");
+  const w=document.createElement("span"); w.className="pwwrap"; i.parentNode.insertBefore(w,i); w.append(i); const b=document.createElement("button"); b.type="button"; b.className="pweye"; w.append(b); pwHide(i);
+  b.onclick=()=>{ const show=i.type==="password"; i.type=show?"text":"password"; b.innerHTML=show?EYE_OFF:EYE_ON; b.setAttribute("aria-label",show?"Passwort verbergen":"Passwort anzeigen"); b.setAttribute("aria-pressed",String(show)); i.focus(); };
+  return w; }
+pwEye($("#apw"));
 let authMode="login";
 function showAuth(mode,msg){ authMode=mode||"login"; $("#appui").hidden=true; $("#onb").hidden=true; $("#auth").hidden=false;
   $("#a-login").setAttribute("aria-selected",String(authMode==="login")); $("#a-new").setAttribute("aria-selected",String(authMode==="new"));
@@ -3860,14 +3875,14 @@ $("#a-login").onclick=()=>showAuth("login"); $("#a-new").onclick=()=>showAuth("n
 $("#aform").addEventListener("submit",async e=>{ e.preventDefault(); const m=$("#amsg"); m.className="amsg err";
   const email=$("#amail").value.trim(), pw=$("#apw").value, name=$("#aname").value.trim().replace(/\s+/g," ");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ m.textContent="Bitte eine gültige E-Mail-Adresse eingeben."; $("#amail").focus(); return; }
-  if(pw.length<6){ m.textContent="Das Passwort braucht mindestens 6 Zeichen."; $("#apw").focus(); return; }
+  if(pw.length<(authMode==="new"?8:6)){ m.textContent=authMode==="new"?"Das Passwort braucht mindestens 8 Zeichen.":"Das Passwort braucht mindestens 6 Zeichen."; $("#apw").focus(); return; }
   if(authMode==="new" && name.length<2){ m.textContent="Bitte deinen Vornamen eingeben."; $("#aname").focus(); return; }
   $("#ago").disabled=true; m.className="amsg"; m.textContent="Einen Moment …";
   try{
     if(authMode==="new"){ const j=await authCall("signUp",{email,password:pw,returnSecureToken:true}); setSess(j,email); S=defaults(); S.name=name; lsSet(dataKey(),JSON.stringify(S)); $("#apw").value=""; openOnboarding(); }
     else { const j=await authCall("signInWithPassword",{email,password:pw,returnSecureToken:true}); setSess(j,email); $("#apw").value=""; await boot(); }
-  }catch(err){ m.className="amsg err"; m.textContent=authMsg(err); }
-  finally{ $("#ago").disabled=false; } });
+  }catch(err){ m.className="amsg err"; m.textContent=authMsg(err); $("#apw").value=""; }
+  finally{ $("#ago").disabled=false; pwHide($("#apw")); } });
 $("#aforgot").onclick=async()=>{ const email=$("#amail").value.trim(), m=$("#amsg");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ m.className="amsg err"; m.textContent="Trag oben deine E-Mail ein, dann nochmal tippen."; $("#amail").focus(); return; }
   try{ await authCall("sendOobCode",{requestType:"PASSWORD_RESET",email}); m.className="amsg ok"; m.textContent="Wenn es ein Konto gibt, kommt gleich eine E-Mail zum Zurücksetzen. Schau auch im Spam-Ordner."; }
@@ -4079,7 +4094,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.13-97";
+const APP_VERSION="2026.10.13-98";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */

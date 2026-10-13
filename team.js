@@ -58,7 +58,9 @@ function mMark(m,i,small){ const sp=el("span","tmk"+(small?" sm":"")); sp.style.
 /* ---------- Laden ---------- */
 async function teamLoad(){ const ref=tRef(); if(!ref||!TEAM.s){ TEAM.data=null; return; } TEAM.loading=true; if(view==="team") renderTeam();
   try{ const t=await tfs(TP()); if(!t){ tRefSet(null); TEAM.data=null; toast("Dieses Team gibt es nicht mehr."); return; }
-    const team=tDoc(t), mem=(await tList(TP()+"/members")).sort((a,b)=>(a.joined||0)-(b.joined||0)), me=mem.find(m=>m.id===TEAM.s.uid);
+    const team=tDoc(t), meDoc=await tfs(TP()+"/members/"+TEAM.s.uid).catch(()=>null), me0=meDoc?tDoc(meDoc):null;
+    /* Profile anderer Mitglieder darf nur der Admin lesen – jedes Mitglied liest nur sein eigenes */
+    const mem=me0&&(me0.role==="admin"||me0.role==="deputy")?(await tList(TP()+"/members")).sort((a,b)=>(a.joined||0)-(b.joined||0)):(me0?[me0]:[]), me=mem.find(m=>m.id===TEAM.s.uid);
     if(!me){ tRefSet(null); TEAM.data=null; toast("Du bist nicht mehr im Team. Dein privater Planer bleibt, wie er ist."); return; }
     const adm=me.role==="admin"||me.role==="deputy";
     /* fremde Urlaube darf nur der Admin lesen – Mitglieder laden keine Team-Einträge */
@@ -253,7 +255,7 @@ function renderTeam(){ const box=$("#v-team"); if(!box) return; box.innerHTML=""
   if(!TEAM.data){ const c=el("div","card"); c.append(el("p",null,TEAM.err||"Lade dein Team …")); if(TEAM.err){ const b=el("button","btn","Nochmal versuchen"); b.type="button"; b.onclick=teamLoad; c.append(b); } box.append(c); if(!TEAM.loading&&!TEAM.err) teamLoad(); return; }
   const d=TEAM.data, adm=isTAdmin();
   const h=el("div","card sec"); const hr=el("div","row"); hr.append(el("h2","grow",d.team.name)); const rl=el("button","btn",TEAM.loading?"…":"↻"); rl.type="button"; rl.setAttribute("aria-label","Aktualisieren"); rl.onclick=teamLoad; hr.append(rl); h.append(hr);
-  h.append(el("p","muted",d.mem.length+(d.mem.length===1?" Mitglied":" Mitglieder")+" · du bist "+({admin:"Admin",deputy:"Vertreter (Admin-Rechte)",member:"Mitglied"}[d.me.role]||"Mitglied")));
+  h.append(el("p","muted",(adm?d.mem.length+(d.mem.length===1?" Mitglied":" Mitglieder")+" · ":"")+"du bist "+({admin:"Admin",deputy:"Vertreter (Admin-Rechte)",member:"Mitglied"}[d.me.role]||"Mitglied")));
   if(TEAM.err) h.append(el("div","banner bad",TEAM.err));
   if(adm){ const r2=el("div","row"); const iv=el("button","btn pri grow","➕ Einladen"); iv.type="button"; iv.onclick=openTeamInvite; const am=el("button","btn grow","⚙ Mitglieder"); am.type="button"; am.onclick=openTeamAdmin; r2.append(iv,am); h.append(r2); }
   box.append(h);
@@ -329,11 +331,22 @@ function teamDayPopup(s){ const d=TEAM.data, st=teamAwayMap(s,s).get(s)||new Set
     if(st.size>=2) p.append(el("div","banner bad",st.size+" Mitglieder gleichzeitig im Urlaub – Überschneidung.")); }); }
 
 function teamLoginCard(box){ const c=el("div","card sec"); c.append(el("h2",null,"👥 Team"), el("p","hint","Dein Urlaub bleibt privat. Du kannst ihn freiwillig für den Admin freigeben – der sieht dann, wo sich Urlaube im Team überschneiden."));
-  let mode="login"; const f=el("form"); f.style.display="grid"; f.style.gap="10px"; const seg=el("div","seg full"); const em=el("input"), pw=el("input"); em.type="email"; em.placeholder="E-Mail"; em.autocomplete="email"; em.id="t_mail"; pw.type="password"; pw.placeholder="Passwort (mind. 6 Zeichen)"; pw.id="t_pw"; pw.autocomplete="current-password";
-  const msg=el("p","amsg"); const go=el("button","btn pri","Anmelden"); go.type="submit";
-  [["login","Anmelden"],["signup","Konto erstellen"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(mode===k)); b.onclick=()=>{ mode=k; seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); go.textContent=l; }; seg.append(b); });
-  f.onsubmit=async e=>{ e.preventDefault(); go.disabled=true; msg.textContent="Einen Moment …"; try{ const j=await authCall(mode==="signup"?"signUp":"signInWithPassword",{email:em.value.trim(),password:pw.value,returnSecureToken:true}); tsSave(j,em.value.trim()); renderTeam(); if(tRef()) teamLoad(); }catch(err){ msg.textContent=tErrMsg(err); go.disabled=false; } };
-  f.append(em,pw,go,msg); c.append(seg,f); box.append(c); }
+  let mode="login"; const f=el("form"); f.style.display="grid"; f.style.gap="10px"; f.setAttribute("data-nodraft","1"); const seg=el("div","seg full"); const em=el("input"), pw=el("input"); em.type="email"; em.placeholder="E-Mail"; em.autocomplete="email"; em.id="t_mail"; em.setAttribute("aria-label","E-Mail");
+  pw.type="password"; pw.placeholder="Passwort"; pw.id="t_pw"; pw.autocomplete="current-password"; pw.setAttribute("aria-label","Passwort");
+  const msg=el("p","amsg"); msg.setAttribute("role","status"); const go=el("button","btn pri","Anmelden"); go.type="submit"; const fg=el("button","linkbtn tforgot","Passwort vergessen?"); fg.type="button";
+  [["login","Anmelden"],["signup","Konto erstellen"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(mode===k)); b.onclick=()=>{ mode=k; seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); go.textContent=l; pw.autocomplete=k==="signup"?"new-password":"current-password"; pw.placeholder=k==="signup"?"Passwort (mind. 8 Zeichen)":"Passwort"; fg.hidden=k==="signup"; msg.textContent=""; }; seg.append(b); });
+  const okMail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+  f.onsubmit=async e=>{ e.preventDefault(); const mail=em.value.trim(), p=pw.value; msg.className="amsg err";
+    if(!okMail(mail)){ msg.textContent="Bitte eine gültige E-Mail-Adresse eingeben."; em.focus(); return; }
+    if(p.length<(mode==="signup"?8:6)){ msg.textContent=mode==="signup"?"Das Passwort braucht mindestens 8 Zeichen.":"Bitte dein Passwort eingeben."; pw.focus(); return; }
+    go.disabled=true; msg.className="amsg"; msg.textContent="Einen Moment …";
+    try{ const j=await authCall(mode==="signup"?"signUp":"signInWithPassword",{email:mail,password:p,returnSecureToken:true}); pw.value=""; tsSave(j,mail); renderTeam(); if(tRef()) teamLoad(); }
+    catch(err){ pw.value=""; pwHide(pw); msg.className="amsg err"; msg.textContent=tErrMsg(err); go.disabled=false; } };
+  /* Passwort vergessen: Firebase schickt einen Link per E-Mail. Neutrale Meldung, damit niemand herausfinden kann, ob es ein Konto gibt. */
+  fg.onclick=async()=>{ const mail=em.value.trim(); if(!okMail(mail)){ msg.className="amsg err"; msg.textContent="Trag oben deine E-Mail ein, dann nochmal tippen."; em.focus(); return; }
+    fg.disabled=true; try{ await authCall("sendOobCode",{requestType:"PASSWORD_RESET",email:mail}); }catch(err){ if(/NETWORK/.test(String(err&&err.code))){ msg.className="amsg err"; msg.textContent=tErrMsg(err); fg.disabled=false; return; } }
+    msg.className="amsg ok"; msg.textContent="Wenn es ein Konto mit dieser E-Mail gibt, kommt gleich eine E-Mail mit einem Link zum Zurücksetzen. Schau auch im Spam-Ordner."; fg.disabled=false; };
+  f.append(em,pw,go,fg,msg); c.append(seg,f); box.append(c); pwEye(pw); }
 
 function teamStartCards(box){ const c1=el("div","card sec"); c1.append(el("h2",null,"Team erstellen"), el("p","hint","Du wirst Admin und kannst Kollegen per Link einladen."));
   const n=el("input"); n.type="text"; n.id="tc_name"; n.placeholder="Name des Teams, z. B. Station 3"; const two=el("div","two");
