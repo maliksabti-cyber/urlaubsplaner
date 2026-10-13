@@ -1355,6 +1355,22 @@ html[data-fs="xl"] .dayquick{grid-template-columns:1fr}
 .srchn{font-weight:800;margin:6px 0}
 .srow{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 4px;border:0;border-bottom:1px solid var(--rule);background:transparent;color:var(--ink);font:inherit;font-size:16px;text-align:left;cursor:pointer}
 .srow b{font-size:16px}
+/* Jahresansicht: Tageszahl in jedem Kästchen, Farbe passend zum Hintergrund */
+.plyear{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px}
+html[data-fs="xl"] .plyear{grid-template-columns:1fr!important}
+.plmini b{font-size:17px}
+.plmg{gap:3px}
+.plmg i{display:flex;align-items:center;justify-content:center;font:700 12px/1 var(--f-body);font-style:normal;font-variant-numeric:tabular-nums;color:var(--ink);border-radius:5px;min-width:0;overflow:hidden}
+.plmg i.we{opacity:1;color:var(--cmute)}
+.plmg i.fe{color:#2A2205}
+.plmg i.va{color:#fff}
+.plmg i.ho{color:#fff}
+html[data-fs="xl"] .plmg i{font-size:14px}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .plmg i.fe{color:#fff} }
+:root[data-theme="dark"] .plmg i.fe{color:#fff}
+html body .plmg i.va{background:#1E7A43!important;color:#fff}
+html body .plmg i.ho{background:#B42318!important;color:#fff}
+html body .plmini small{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -3090,7 +3106,7 @@ function drawPlanYear(st){ const ov=st.root; ov.innerHTML=""; ov.className="ypla
   ov.append(plNav(st,String(y),d=>go(y+d),()=>go(n.getFullYear())));
   const cal=el("div","plcal plyear");
   for(let m=0;m<12;m++){ const b=el("button","plmini"+(y===n.getFullYear()&&m===n.getMonth()?" cur":"")); b.type="button"; const f=y+"-"+pad(m+1)+"-01", l=lastOfMonth(f); let vd=0;
-    const mg=el("div","plmg"); for(let i=0;i<(parse(f).getDay()+6)%7;i++) mg.append(el("i","e")); for(let d=f; d<=l; d=addD(d,1)){ const i=el("i"), w=parse(d).getDay(); if(w===0||w===6) i.className="we"; if(ferien(d)) i.classList.add("fe"); if(holName(d)) i.classList.add("ho"); if(plVa(d)){ i.classList.add("va"); vd++; } if(d===t) i.classList.add("now"); mg.append(i); }
+    const mg=el("div","plmg"); for(let i=0;i<(parse(f).getDay()+6)%7;i++) mg.append(el("i","e")); for(let d=f; d<=l; d=addD(d,1)){ const i=el("i",null,String(+d.slice(8,10))), w=parse(d).getDay(); if(w===0||w===6) i.className="we"; if(ferien(d)) i.classList.add("fe"); if(holName(d)) i.classList.add("ho"); if(plVa(d)){ i.classList.add("va"); vd++; } if(d===t) i.classList.add("now"); mg.append(i); }
     b.append(el("b",null,MONK2[m]), mg, el("small",null,vd?vd+(vd===1?" Tag Urlaub":" Tage Urlaub"):"")); b.setAttribute("aria-label",MONF_[m]+" "+y+(vd?", "+vd+" Tage Urlaub":"")); b.onclick=()=>{ st.one=y*12+m; st.pv="m"; lsSet("su_pview","m"); if(st.onNav) st.onNav(); else drawYP(st); window.scrollTo(0,0); }; cal.append(b); }
   ov.append(cal);
   if(st.slideIn){ const dir=st.slideIn; st.slideIn=0; cal.style.transform="translateX("+(dir*24)+"%)"; cal.style.opacity="0"; requestAnimationFrame(()=>{ cal.style.transition="transform .17s ease-out, opacity .17s"; cal.style.transform=""; cal.style.opacity=""; }); }
@@ -4030,7 +4046,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.13-95";
+const APP_VERSION="2026.10.13-96";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
