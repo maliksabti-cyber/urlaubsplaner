@@ -1407,6 +1407,28 @@ html body .plmini small{color:var(--ink)}
 .pweye{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:48px;height:48px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--ink);cursor:pointer;border-radius:12px}
 .pweye:focus-visible{outline:3px solid var(--focus)}
 .tforgot{justify-self:start;min-height:44px;font-size:16px}
+/* Team-Verwaltung, Konflikte, Vorschläge */
+.tmrow{display:grid;gap:8px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.tmrow .row{flex-wrap:wrap;gap:8px;align-items:center}
+.tmact .btn{min-height:44px;font-size:16px}
+.tdel{margin-top:16px}
+.tpend{width:100%;text-align:left;min-height:48px;font-size:16px;margin-top:10px;cursor:pointer}
+.tbanner{width:100%;text-align:left;min-height:52px;font-size:17px;font-weight:700;cursor:pointer;border-radius:18px}
+.tconfwho{display:grid;gap:6px;width:100%;margin-top:6px}
+.tconf .tovrow{flex-wrap:wrap;cursor:default}
+.tconfm{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:rgba(255,255,255,.7);border-radius:12px;padding:6px 8px;font-size:16px}
+.tpbtn{min-height:44px;font-size:16px}
+.pst{display:inline-block;padding:4px 10px;border-radius:999px;font:800 14px/1.2 var(--f-body);white-space:nowrap}
+.pst-open{background:#FFF3BF;color:#5C4400}.pst-ok{background:#D3F9D8;color:#14532D}.pst-no{background:#FFE3E3;color:#7A1414}.pst-wd{background:var(--cindigo-soft);color:var(--cmute)}
+.tprow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.tprow .grow{display:grid;gap:2px;min-width:0}.tprow b{font-size:17px}.tprow small{font-size:15px}
+.tpopen{box-shadow:inset 0 0 0 3px var(--accent)}
+.tpreason{font-weight:700;font-size:17px}.tpnew{font-weight:800;font-size:17px}
+.tpcur{font-size:16px;font-weight:700}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .tconfm{background:rgba(0,0,0,.25)} }
+:root[data-theme="dark"] .tconfm{background:rgba(0,0,0,.25)}
+.rsttxt{font-size:17px;font-weight:700;margin:0 0 6px}.rstlist{margin:0 0 10px;padding-left:22px;font-size:16px;line-height:1.5}.rstwarn{color:var(--bad);font-weight:800;font-size:16px}
+#v-mehr #resetall{min-height:48px}
 </style>
 </head>
 <body>
@@ -1684,6 +1706,9 @@ function renderHeute(){
   if(work && sh.start) hc.append(el("p","ht",sh.start+" bis "+sh.end+" Uhr"));
   const lv=work?homeLive(t):null; if(lv){ const l=el("p","hl",lv); l.id="live"; hc.append(l); }
   if(S.notes[t]) hc.append(el("p","ht","📝 "+S.notes[t])); box.append(hc);
+  /* Team: Vorschlag vom Admin, Antworten, wartende Beitritte */
+  if(FEATURES.team && typeof teamAttention==="function"){ const at=teamAttention(); if(at&&at.n){ const b=el("button","banner tip tbanner"); b.type="button";
+    b.textContent=at.open.length?"🔔 Der Admin schlägt eine Änderung an deinem Urlaub vor – antippen":at.pend.length?"👤 "+at.pend.length+(at.pend.length===1?" Person wartet":" Personen warten")+" auf Bestätigung im Team":"🔔 Antwort auf deinen Änderungsvorschlag"; b.onclick=()=>show("team"); box.append(b); } }
   /* 2) die nächsten 7 Tage als Wochenleiste */
   { const c=el("div","card hweekc"); c.append(el("h2","hsub","Die nächsten 7 Tage")); const wk=el("div","hweek");
     for(let i=1;i<=7;i++){ const s2=addD(t,i), x=shiftOf(s2), k=dayKind(s2), dd=parse(s2), b2=el("button","hwd"); b2.type="button"; b2.onclick=()=>FEATURES.shiftPage?openDay(s2):openDayChoice(ypU,s2);
@@ -2357,7 +2382,29 @@ function renderSetLite(){ const box=$("#v-mehr"); box.innerHTML="";
     sw("vibr","Vibration beim Antippen","su_vib","x",on=>{ lsSet("su_vib",on?null:"0"); toast(on?"Vibration ist an.":"Vibration ist aus."); }); }
   if(FEATURES.team && typeof renderTeam==="function"){ const st=typeof tRef==="function"&&tRef()?(consentGet("adminShare")?"Du bist im Team · Urlaub für den Admin freigegeben":"Du bist im Team · nichts freigegeben"):"Urlaub freiwillig für einen Admin freigeben. Der Admin sieht Überschneidungen im Team.";
     sec("Team",st,qb("Team öffnen",()=>{ show("team"); window.scrollTo(0,0); })); }
+  /* App aktualisieren · Alles zurücksetzen (für jeden Nutzer) */
+  { const up=qb("App aktualisieren",async()=>{ up.disabled=true; up.textContent="Suche nach neuer Version …"; const nv=await remoteVersion();
+      if(nv&&nv===APP_VERSION){ toast("Du hast schon die neueste Version ("+APP_VERSION+")."); up.disabled=false; up.textContent="App aktualisieren"; return; } toast(nv?"Neue Version "+nv+" wird geladen …":"App wird neu geladen …"); appUpdate(); }); up.id="appupd";
+    sec("App aktualisieren","Version "+APP_VERSION+". Lädt die neueste Version der App. Deine Einträge bleiben erhalten.",up); }
+  { const rb=el("button","btn bad","Alles zurücksetzen"); rb.type="button"; rb.id="resetall"; rb.onclick=openResetAll; sec("Alles zurücksetzen","Löscht alle deine Einträge und Einstellungen auf diesem Gerät. Danach startet die App wie neu.",rb); }
   box.append(el("p","hint mver","Version "+APP_VERSION)); }
+/* Alles zurücksetzen: Urlaube, Schichten, Rhythmus, Einstellungen, Team-Anmeldung auf diesem Gerät – optional auch das Team-Konto */
+function openResetAll(){ const team=FEATURES.team&&typeof TEAM!=="undefined"&&TEAM.s;
+  openSheet(p=>{ sheetTop(p,"Alles zurücksetzen"); p.dataset.sheet="reset";
+    p.append(el("p","rsttxt","Das wird auf diesem Gerät gelöscht:"));
+    const ul=el("ul","rstlist"); ["alle Urlaube und Schichten","dein Schichtrhythmus","Urlaubsanspruch, Bundesland und alle Einstellungen"].concat(team?["deine Team-Anmeldung und deine Freigaben im Team"]:[]).forEach(t=>ul.append(el("li",null,t))); p.append(ul);
+    p.append(el("p","rstwarn","Das kann man nicht rückgängig machen."));
+    let cb=null; if(team){ const l=el("label","sw tsw"); cb=el("input"); cb.type="checkbox"; cb.id="rst_acc"; l.append(cb,el("span",null,"Auch mein Team-Konto löschen (E-Mail-Anmeldung und Mitgliedschaft)")); p.append(l); }
+    const go=el("button","btn bad uwide","Ja, alles löschen"); go.type="button"; go.id="rst_go"; go.onclick=async()=>{ go.disabled=true; go.textContent="Wird gelöscht …"; await resetAll(!!(cb&&cb.checked)); go.disabled=false; go.textContent="Ja, alles löschen"; };
+    const no=el("button","btn uwide","Abbrechen"); no.type="button"; no.onclick=closeSheet; p.append(go,no); }); }
+async function resetAll(delAcc){
+  /* Team: eigene Freigaben aus dem Team löschen; auf Wunsch auch Mitgliedschaft und Konto */
+  if(FEATURES.team&&typeof TEAM!=="undefined"&&TEAM.s){ try{ if(tRef()&&TEAM.data&&!TEAM.data.pending) for(const x of myEntries()) await tDel(TP()+"/entries/"+x.id).catch(()=>{});
+      if(delAcc){ if(tRef()) await tDel(TP()+"/members/"+TEAM.s.uid).catch(()=>{}); const tk=await tTok(); await authCall("delete",{idToken:tk}); } }
+    catch(e){ if(delAcc){ toast("Das Team-Konto konnte nicht gelöscht werden. Bitte mit Internet nochmal versuchen."); return; } } }
+  try{ const ks=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith("su_")) ks.push(k); } ks.forEach(k=>localStorage.removeItem(k)); sessionStorage.clear(); }catch(e){}
+  try{ if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){}
+  location.replace(location.pathname+"?r="+Date.now()); }
 function renderMehrFull(){ const box=$("#v-mehr"); box.innerHTML=""; const c=el("div","card sec mlist");
   [["set","Einstellungen","Name, Bundesland, Sicherung, Hell/Dunkel",()=>show("set")],["vac","Urlaubstage","Anspruch und Resturlaub",()=>openVacSettings(new Date().getFullYear())],["rot","Schichtrhythmus","Deinen Rhythmus ändern",()=>openRhythm()],["pdf","Urlaubsplan als PDF","Zum Teilen oder Drucken",()=>pdfVacPlan(new Date().getFullYear())],["cal","Schichtplan","Schichten eintragen und ändern",()=>show("kal")],["year","Jahresübersicht","Alle 12 Monate auf einen Blick",()=>show("jahr")],["help","Hilfe","So funktioniert die App",()=>openHelp()],["priv","Datenschutz","Was privat bleibt",()=>goSettings("consent")]].forEach(([k,t,d,fn])=>{
     const b=el("button","vrow mrow"); b.type="button"; const ic=el("span","mico"); ic.innerHTML='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+MICON[k]+'</svg>';
@@ -4094,13 +4141,16 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.13-98";
+const APP_VERSION="2026.10.13-99";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
-async function appUpdate(){ try{ if(swReg) await swReg.update(); if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){} location.reload(); }
+async function appUpdate(){ try{ if(swReg) await swReg.update(); if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){} location.replace(location.pathname+"?r="+Date.now()); }
 /* Prüft ab und zu, ob es eine neue Version gibt, und bietet „Aktualisieren“ an */
-async function checkUpdate(){ try{ const t=await (await fetch("index.html",{cache:"no-store"})).text(); const m=t.match(/APP_VERSION="([^"]+)"/); if(m && m[1]!==APP_VERSION && typeof toast==="function") toast("Neue Version der App ist da.","Aktualisieren",appUpdate); }catch(e){} }
+/* Version auf dem Server lesen. Das Muster ist zusammengesetzt und erlaubt nur Ziffern/Punkte/Striche – so findet es nicht sich selbst im Quelltext. */
+const VER_RX=new RegExp("const APP_"+"VERSION=\"([0-9][0-9.\\-]*)\"");
+async function remoteVersion(){ try{ const t=await (await fetch("index.html?r="+Date.now(),{cache:"no-store"})).text(); const m=t.match(VER_RX); return m?m[1]:null; }catch(e){ return null; } }
+async function checkUpdate(){ const v=await remoteVersion(); if(v && v!==APP_VERSION && typeof toast==="function") toast("Neue Version der App ist da.","Aktualisieren",appUpdate); }
 setTimeout(checkUpdate,4000); setInterval(checkUpdate,30*60*1000); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkUpdate(); });
 </script>
 </body>
