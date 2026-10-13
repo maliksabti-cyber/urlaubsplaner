@@ -1326,6 +1326,35 @@ html[data-fs="xl"] .plyear{grid-template-columns:repeat(2,minmax(0,1fr))}
 .dayinfo{margin:0 0 8px;font-size:16px;font-weight:700}.dayinfo.ho{color:var(--hol-r)}
 html[data-fs="xl"] .plc .pln{font-size:17px}html[data-fs="xl"] .plc .plk{min-width:20px;height:20px;line-height:20px;font-size:13px;padding:0 3px}html[data-fs="xl"] .plgrid{grid-template-columns:18px repeat(7,minmax(0,1fr))}html[data-fs="xl"] .plwd{font-size:15px}
 html[data-fs="xl"] .plkwh{visibility:hidden}
+/* ===== Schneller bedienen: Tagesfenster, Woche, Suche ===== */
+.plnav2{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;width:100%}
+.plnav2 .plview{flex:1 1 220px;max-width:340px}
+html:not([data-fs="n"]) .plnav2 .plview{flex:1 1 100%;max-width:none}
+.dayquick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 12px}
+html[data-fs="xl"] .dayquick{grid-template-columns:1fr}
+.dq{display:flex;align-items:center;gap:10px;min-height:60px;padding:8px 10px;border-radius:18px;border:2px solid var(--rule);background:var(--ccard);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.dq.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dqk{flex:none;min-width:36px;height:36px;line-height:36px;border-radius:999px;text-align:center;font:800 17px/36px var(--f-body)}
+.dqk.free{background:var(--cindigo-soft);color:var(--ink)}
+.dqt{display:grid;min-width:0}.dqt b{font-size:17px}.dqt small{font-size:15px;color:var(--cmute)}
+.daynow{font-size:16px;color:var(--cmute);margin:0 0 4px}
+.dayrange{display:block;margin:10px auto 0;min-height:44px;font-size:16px}
+.plrh{justify-self:start;min-height:44px;border:0;background:transparent;color:inherit;font:700 16px/1.2 var(--f-body);text-decoration:underline;cursor:pointer;padding:0;opacity:.9}
+.plweek{display:grid;gap:4px;padding:8px}
+.plwr{display:flex;align-items:center;gap:12px;min-height:64px;padding:6px 10px;border:0;border-radius:16px;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.plwr.we{background:var(--plwe)}.plwr.now{box-shadow:inset 0 0 0 2.5px var(--ink)}
+.plwd2{display:grid;justify-items:center;width:44px;flex:none}.plwd2 small{font-size:15px;color:var(--cmute);font-weight:700}.plwd2 b{font-size:22px}
+.plwm{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;min-width:0}
+.plst{display:inline-block;padding:6px 12px;border-radius:999px;font:800 16px/1.2 var(--f-body)}
+.plst.va{background:var(--plva);color:var(--plvink)}.plst.free{background:var(--cindigo-soft);color:var(--cmute)}
+.plwm small{font-size:15px;color:var(--cmute)}.plwm .plho{color:var(--hol-r);font-weight:700}.plwm .plfe{background:rgba(250,204,21,.35);border-radius:8px;padding:2px 8px;color:var(--ink)}
+.qsearch{display:inline-flex;align-items:center;justify-content:center}
+.qsearch[hidden]{display:none}
+.srchin{width:100%;min-height:52px;font-size:18px;border-radius:16px;padding:0 16px;border:2px solid var(--rule);background:var(--ccard);color:var(--ink);box-sizing:border-box}
+.srchsug{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.srchn{font-weight:800;margin:6px 0}
+.srow{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 4px;border:0;border-bottom:1px solid var(--rule);background:transparent;color:var(--ink);font:inherit;font-size:16px;text-align:left;cursor:pointer}
+.srow b{font-size:16px}
 </style>
 </head>
 <body>
@@ -1568,7 +1597,7 @@ function qHelpBtn(v){ let b=$("#qhelp"); if(!b){ b=el("button","qhelp","?"); b.i
 function hRest(){ let b=$("#hrest"); const bi=document.querySelector(".bar-in"); if(!b){ b=el("button","hrest"); b.id="hrest"; b.type="button"; b.onclick=()=>openVacList(uY); }
   const q=$("#qhelp"); if(bi && b.parentElement!==bi) bi.insertBefore(b,q&&q.parentElement===bi?q:null);
   const r=vacRest(uY); b.textContent=r<0?(-r)+(r===-1?" Tag zu viel":" Tage zu viel"):r+(r===1?" Urlaubstag übrig":" Urlaubstage übrig")+(uY!==new Date().getFullYear()?" ("+uY+")":""); b.classList.toggle("bad",r<0); b.hidden=view!=="urlaub"; }
-function show(v){ setTimeout(setBarH,0); qHelpBtn(v); { const hr=$("#hrest"); if(hr) hr.hidden=v!=="urlaub"; } view=v; document.body.dataset.v=v; if(v==="kal") ypK.jumped=false; if(v==="urlaub") ypU.jumped=false; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",jahr:"Plan",kal:"Plan",urlaub:"Plan",mehr:"Einstellungen",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="mehr" && (v==="kal"||v==="jahr")) || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","jahr","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
+function show(v){ setTimeout(setBarH,0); qHelpBtn(v); qSearchBtn(v); { const hr=$("#hrest"); if(hr) hr.hidden=v!=="urlaub"; } view=v; document.body.dataset.v=v; if(v==="kal") ypK.jumped=false; if(v==="urlaub") ypU.jumped=false; { const h=document.querySelector(".bar h1"); if(h) h.textContent=({heute:"Schicht & Urlaub",jahr:"Plan",kal:"Plan",urlaub:"Plan",mehr:"Einstellungen",team:"Team",stat:"Statistik",set:"Einstellungen"})[v]||"Schicht & Urlaub"; } document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v || (b.dataset.v==="mehr" && (v==="kal"||v==="jahr")) || (b.dataset.v==="mehr" && ["stat","set","team"].includes(v))))); ["heute","jahr","kal","urlaub","stat","set","team","mehr"].forEach(k=>$("#v-"+k).hidden=k!==v); if(v!=="kal") setSel(false); $("#fab").hidden=!(v==="heute"||v==="kal"); render(); window.scrollTo(0,0); }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.v));
 function render(){ if(!S) return; if(!S.tag2Mig){ S.tag2Mig=1; if(!S.types.some(x=>x.id==="T"||x.short==="T")){ const i=Math.max(0,S.types.findIndex(x=>x.kind==="work")); S.types.splice(i,0,{id:"T",name:"Tagschicht",short:"T",color:"#1C7ED6",start:"08:00",end:"16:30",pause:30,kind:"work"}); } histMute=true; save(); histMute=false; } { const k=S.types.find(x=>x.kind==="sick"&&(x.color==="#C2185B"||x.color==="#8E6C88")); if(k){ k.color="#7E57C2"; histMute=true; save(); histMute=false; } } applyTheme(); if(typeof lastSnap!=="undefined" && lastSnap==null) lastSnap=snapOf(); cleanTypes(); migrateVac(); if(view==="urlaub") renderUrlaub(); if(view==="jahr") renderJahr(); if(view==="heute") renderHeute(); if(view==="kal") renderKal(); if(view==="stat") renderStat(); if(view==="set") renderSet(); if(view==="mehr") renderMehr(); if(view==="team" && typeof renderTeam==="function") renderTeam(); const vr=$("#v-"+view); if(vr) drRestore(vr,"v:v-"+view); }
 function exampleBanner(box){ if(!S.example || S.onboarded) return; const b=el("div","banner"); const t=el("span","grow"); t.innerHTML="<b>Beispiel-Rhythmus.</b> Stell deinen eigenen Schichtrhythmus ein."; const go=el("button","btn","Jetzt einstellen"); go.type="button"; go.onclick=()=>FEATURES.fullSettings?show("set"):openRhythm(); b.append(t,go); box.append(b); }
@@ -2804,26 +2833,27 @@ function ypShiftBar(st){ const a=st.a, e=st.e, tp=typeOf(st.brush), n=diffD(a,e)
 function openDayChoice(st,s){ const x=shiftOf(s), dk=dayKind(s), isVac=dk==="v", hasOv=Object.prototype.hasOwnProperty.call(S.ov,s);
   const snap=()=>({ov:JSON.parse(JSON.stringify(S.ov)),v:JSON.parse(JSON.stringify(vacList()))}), back=o=>()=>{ S.ov=o.ov; S.vacs=o.v; save(); render(); };
   const done=(o,msg)=>{ save(); closeSheet(); render(); ypToast(msg,back(o)); };
-  const setTo=id=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); } const tp=typeOf(id), base=baseShift(s), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":id; if(baseId===tg) delete S.ov[s]; else S.ov[s]=tg; done(o,"Gespeichert: "+(tp?tp.name:"Frei")+" am "+ddm(s)); };
-  openSheet(p=>{ sheetTop(p,"Ein Tag"); p.append(el("p","daybig",fmt(s))); { const hn=holName(s), fe=ferien(s); if(hn) p.append(el("p","dayinfo ho","Feiertag: "+hn)); if(fe) p.append(el("p","dayinfo fe","Ferien: "+fe[2])); }
-    p.append(el("p","daynow",isVac?"Eingetragen: Urlaub":x?"Eingetragen: "+x.name+(x.kind==="work"&&x.start?", "+x.start+" bis "+x.end+" Uhr":""):"Noch nichts eingetragen."));
-    const grid=el("div","daygrid"), sub=el("div","ypbrushrow daysub"); sub.hidden=true;
-    const big=(l,cls,fn)=>{ const b=el("button","daybtn "+cls,l); b.type="button"; b.onclick=fn; grid.append(b); return b; };
-    big("Urlaub","dv",()=>{ if(isVac){ toast("Dieser Tag ist schon Urlaub."); return; } const days=vsDays(s,s); if(!days.length){ toast("Dafür brauchst du keinen Urlaub. Der Tag ist frei."); return; } if(vacOver(days).length){ toast("Dafür reichen deine Urlaubstage leider nicht."); return; }
-      const o=snap(); if(!planKnown(s)){ vacList().push({id:uid(),a:s,e:s,fixed:[s]}); normVacs(); } else addVac(s,s); done(o,"Gespeichert: Urlaub am "+ddm(s)+" Noch "+vacRest(+s.slice(0,4))+" Tage übrig."); });
-    big("Schicht","ds",()=>{ sub.hidden=!sub.hidden; });
-    const sick=S.types.find(t=>t.kind==="sick"), free=S.types.find(t=>t.kind==="free");
-    big("Krank","dk",()=>{ if(sick) setTo(sick.id); }); big("Frei","df",()=>setTo(free?free.id:""));
-    S.types.filter(t=>t.kind==="work").forEach(t=>{ const b=el("button","ypbr"+(x&&x.id===t.id?" on":"")); b.type="button"; const k=el("b","yps",t.short); k.style.background=t.color; k.style.color=isDark(t.color)?"#16222B":"#fff"; b.append(k, el("small",null,t.name.replace(/schicht$/i,""))); b.setAttribute("aria-label",t.name); b.onclick=()=>setTo(t.id); sub.append(b); });
-    p.append(grid, sub);
-    if(isVac||hasOv||(x&&x.kind!=="free")){ const dl=el("button","btn ghost uwide daydel","Eintrag löschen"); dl.type="button";
-      dl.onclick=()=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); done(o,"Urlaub gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; }
-        if(hasOv){ delete S.ov[s]; done(o,"Gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; } const fr=S.types.find(t=>t.kind==="free"); if(fr){ S.ov[s]=""; } done(o,"Gelöscht. Der Tag ist jetzt frei."); }; p.append(dl); } }); }
+  const setTo=id=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); } const tp=typeOf(id), base=baseShift(s), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":id; if(baseId===tg) delete S.ov[s]; else S.ov[s]=tg; done(o,"Gespeichert: "+(tp?(tp.kind==="free"?"Frei":tp.name):"Frei")+" am "+ddm(s)); };
+  const setVac=()=>{ if(isVac){ closeSheet(); return; } const days=vsDays(s,s); if(!days.length){ toast("Dafür brauchst du keinen Urlaub. Der Tag ist frei."); return; } if(vacOver(days).length){ toast("Dafür reichen deine Urlaubstage leider nicht."); return; }
+    const o=snap(); if(!planKnown(s)){ vacList().push({id:uid(),a:s,e:s,fixed:[s]}); normVacs(); } else addVac(s,s); done(o,"Gespeichert: Urlaub am "+ddm(s)+" · noch "+vacRest(+s.slice(0,4))+" Tage übrig"); };
+  const del=()=>{ const o=snap(); if(dayKind(s)==="v"){ removeVacDay(s); S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); done(o,"Urlaub gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; }
+    if(hasOv){ delete S.ov[s]; done(o,"Gelöscht. Der Tag folgt wieder deinem Rhythmus."); return; } S.ov[s]=""; done(o,"Gelöscht. Der Tag ist jetzt frei."); };
+  openSheet(p=>{ sheetTop(p,fmt(s)); p.dataset.sheet="day";
+    { const hn=holName(s), fe=ferien(s); if(hn) p.append(el("p","dayinfo ho","Feiertag: "+hn)); if(fe) p.append(el("p","dayinfo fe","Ferien: "+fe[2])); }
+    p.append(el("p","daynow",isVac?"Eingetragen: Urlaub":x?"Eingetragen: "+(x.kind==="free"?"Frei":x.name)+(x.kind==="work"&&x.start?", "+x.start+"–"+x.end+" Uhr":"")+(hasOv?"":" (Rhythmus)"):"Noch nichts eingetragen."));
+    const g=el("div","dayquick"), cur=isVac?"__v":x?x.id:"";
+    const mk=(id,short,name,sub,color,fn)=>{ const b=el("button","dq"+(cur===id?" on":"")); b.type="button"; const k=el("b","dqk"+(color?"":" free"),short); if(color){ k.style.background=color; k.style.color=isDark(color)?"#16222B":"#fff"; } const t=el("span","dqt"); t.append(el("b",null,name)); if(sub) t.append(el("small",null,sub)); b.append(k,t); b.setAttribute("aria-pressed",String(cur===id)); b.onclick=fn; g.append(b); };
+    mk("__v","U","Urlaub",isVac?"":"zählt "+vsDays(s,s).length+" Tag",vacColor(),setVac);
+    S.types.filter(t=>t.kind==="work").forEach(t=>mk(t.id,t.short,t.name,t.start?t.start+"–"+t.end+" Uhr":"",t.color,()=>setTo(t.id)));
+    const sick=S.types.find(t=>t.kind==="sick"), free=S.types.find(t=>t.kind==="free"); if(sick) mk(sick.id,sick.short,"Krank","",sick.color,()=>setTo(sick.id)); mk(free?free.id:"","–","Frei","",null,()=>setTo(free?free.id:""));
+    p.append(g);
+    if(isVac||hasOv||(x&&x.kind!=="free")){ const dl=el("button","btn ghost uwide daydel","Eintrag löschen"); dl.type="button"; dl.onclick=del; p.append(dl); }
+    const more=el("button","linkbtn dayrange","Mehrere Tage? Im Kalender über die Tage ziehen"); more.type="button"; more.onclick=()=>{ closeSheet(); ypU.paint=true; ypU.kind="vac"; ypU.a=ypU.e=null; ypU.one=+s.slice(0,4)*12+(+s.slice(5,7)-1); if(view!=="urlaub") show("urlaub"); render(); }; p.append(more); }); }
 /* Tage antippen oder im Eintragen-Modus mit dem Finger über die Tage ziehen */
 /* Eintragen-Modus: eine Zeile oben mit Anleitung und Anzahl (live beim Ziehen) */
-function ypGuideTx(st,a,e){ if(st.kind==="shift"&&!st.brush) return "Wähle oben die Schicht.";
+function ypGuideTx(st,a,e){ if(st.kind==="shift"&&!st.brush) return "Wähle oben die Schicht."; if(st.kind==="shift"&&!a) return "Über mehrere Tage ziehen geht auch. Rückgängig ist immer möglich.";
   if(!a) return "Tippe einen Tag an – oder ziehe mit dem Finger über die Tage."; const r=e?(a<=e?[a,e]:[e,a]):[a,a], n=diffD(r[0],r[1])+1;
-  if(st.kind==="shift") return n+(n===1?" Tag":" Tage")+" gewählt";
+  if(st.kind==="shift") return n+(n===1?" Tag":" Tage")+" – beim Loslassen gespeichert";
   const y=+r[0].slice(0,4), k=vsDays(r[0],r[1]).filter(d=>+d.slice(0,4)===y).length, left=vacRest(y)-k; return k+(k===1?" Urlaubstag":" Urlaubstage")+" · "+(left<0?"es fehlen "+(-left)+(left===-1?" Tag":" Tage"):"danach "+left+" übrig"); }
 function ypGuide(st){ const g=el("div","ypguide",ypGuideTx(st,st.a,st.e)); g.id="ypguide"; return g; }
 /* langes Drücken auf einen Tag: kurze Sprechblase mit Details */
@@ -2860,7 +2890,7 @@ function ypBindCells(st,g){ let drag=null, skipClick=false, lp=null, lpDone=fals
     const box=g.closest(".ypwin,.plcal")||g, hit=ev&&document.elementFromPoint(ev.clientX,ev.clientY), inWin=!!(hit&&box.contains(hit));
     const s=ev&&ev.type==="pointerup"?(cellAt(ev)||(inWin?d.last:null)):null;
     if(!s){ drawYP(st); toast("Abgebrochen. Ziehe über die Tage und lass im Kalender los."); return; } /* außerhalb losgelassen: nichts ändern */
-    const s0=d.s0||s; st.a=s0<=s?s0:s; st.e=s0<=s?s:s0; drawYP(st); };
+    const s0=d.s0||s, lo=s0<=s?s0:s, hi=s0<=s?s:s0; if(st.inline&&st.paint&&st.kind==="shift"&&st.brush){ st.a=st.e=null; plStamp(st,lo,hi); return; } st.a=lo; st.e=hi; drawYP(st); };
   g.addEventListener("pointerup",end); g.addEventListener("pointercancel",end);
   g.addEventListener("click",ev=>{ if(skipClick||lpDone||(st.noTap&&Date.now()-st.noTap<400)) return; const c=ev.target.closest("[data-s]"); if(!c) return; ypTap(st,c.dataset.s); }); }
 function drawYPOne(st){ const ov=st.root; ov.innerHTML=""; ov.classList.add("ypvac"); const t=TODAY(), n=new Date(), first="Tippe den ersten Urlaubstag an.", sh=ypShifts()||ypSK(st);
@@ -2927,6 +2957,55 @@ function drawYPVacOld(st){ if(!st.viewInit){ st.viewInit=true; const v=lsGet("su
   ov.append(ypBottom(st,first)); ypSelColor(st,g);
   ypBindCells(st,g);
   if(!st.jumped){ st.jumped=true; window.scrollTo(0,0); } }
+/* Schicht-Stempel: gewählte Schicht sofort auf die Tage setzen (mit Rückgängig, ohne Rückfrage) */
+function plStamp(st,a,e){ const tp=typeOf(st.brush), nm=tp?(tp.kind==="free"?"Frei":tp.name):"Schicht", oldOv=JSON.parse(JSON.stringify(S.ov)), oldV=JSON.parse(JSON.stringify(vacList()));
+  for(let d=a;d<=e;d=addD(d,1)){ if(dayKind(d)==="v") removeVacDay(d); const base=baseShift(d), baseId=base?base.id:"", tg=tp&&tp.kind==="free"?"":st.brush; if(baseId===tg) delete S.ov[d]; else S.ov[d]=tg; }
+  S.vacs=vacList().filter(v=>vacDaysOf(v).length); normVacs(); save(); st.a=st.e=null; drawYP(st); ypVib();
+  ypToast(nm+": "+plRange(a,e),()=>{ S.ov=oldOv; S.vacs=oldV; save(); render(); }); }
+/* Suche wie im Mail-Programm: „Frühschicht September“, „Urlaub 2027“, „Feiertag Dezember“ */
+function searchDays(q){ const toks=String(q||"").toLowerCase().replace(/[.,;]/g," ").split(/\s+/).filter(Boolean); if(!toks.length) return null;
+  const months=[], years=[], kinds=[], unknown=[], low=x=>x.toLowerCase();
+  toks.forEach(tk=>{ if(/^20\d\d$/.test(tk)){ years.push(+tk); return; }
+    const mi=MONF_.findIndex(m=>tk.length>=3&&low(m).replace("ä","a").startsWith(tk.replace("ä","a"))); if(mi>=0){ months.push(mi); return; }
+    if(/^urlaub/.test(tk)){ kinds.push("v"); return; } if(/^feiert/.test(tk)){ kinds.push("ho"); return; } if(/^ferien/.test(tk)){ kinds.push("fe"); return; } if(/^frei/.test(tk)){ kinds.push("free"); return; }
+    if(/^schicht/.test(tk)||/^arbeit/.test(tk)){ kinds.push("work"); return; }
+    const t=S.types.find(x=>x.kind!=="vac"&&x.kind!=="free"&&(low(x.name).startsWith(tk)||(tk.length>=3&&low(x.name).includes(tk))||(tk.length===1&&low(x.short)===tk))); if(t){ kinds.push(t.id); return; } unknown.push(tk); });
+  if(!kinds.length&&!months.length&&!years.length) return {list:[],unknown};
+  const cy=new Date().getFullYear(), Y=years.length?years:[cy,cy+1], out=[];
+  Y.forEach(y=>{ for(let m=0;m<12;m++){ if(months.length&&!months.includes(m)) continue; const f=y+"-"+pad(m+1)+"-01", l=lastOfMonth(f); for(let d=f;d<=l;d=addD(d,1)){
+    const v=dayKind(d)==="v", x=shiftOf(d), hn=holName(d), fe=ferien(d), fr=!v&&(dayKind(d)==="f"||(x&&x.kind==="free")||(!x&&planKnown(d)));
+    const lab=v?"Urlaub":x&&x.kind!=="free"&&x.kind!=="vac"?x.name:fr?"Frei":"";
+    const hit=!kinds.length?(!!lab||!!hn):kinds.some(k=>k==="v"?v:k==="ho"?!!hn:k==="fe"?!!fe:k==="free"?fr:k==="work"?(!v&&x&&x.kind==="work"):(!v&&x&&x.id===k));
+    if(hit) out.push({s:d,lab:kinds.includes("ho")&&hn?hn:kinds.includes("fe")&&fe?fe[2]:lab||hn||""}); } } });
+  return {list:out,unknown}; }
+function openSearch(){ openSheet(p=>{ sheetTop(p,"Suchen"); p.dataset.sheet="search"; const i=el("input","srchin"); i.type="search"; i.id="srch"; i.placeholder="z. B. Frühschicht September"; i.setAttribute("aria-label","Suchen"); i.autocomplete="off";
+  const sug=el("div","srchsug"), res=el("div","srchres"); const nm=MONF_[(new Date().getMonth()+1)%12];
+  ["Urlaub","Frühschicht "+nm,"Nachtschicht","Feiertag","Ferien"].forEach(q=>{ const b=el("button","plqb",q); b.type="button"; b.onclick=()=>{ i.value=q; run(); }; sug.append(b); });
+  const jump=sd=>{ closeSheet(); ypU.pv="m"; lsSet("su_pview","m"); ypU.paint=false; ypU.one=+sd.slice(0,4)*12+(+sd.slice(5,7)-1); uY=+sd.slice(0,4); if(view!=="urlaub") show("urlaub"); else render(); };
+  const run=()=>{ res.innerHTML=""; const r=searchDays(i.value); if(!r) return; if(!r.list.length){ res.append(el("p","muted",r.unknown.length?"Nichts gefunden zu „"+r.unknown.join(" ")+"“. Versuch z. B. „Spätschicht November“ oder „Urlaub 2027“.":"Nichts gefunden.")); return; }
+    const gr=[]; r.list.forEach(x=>{ const g=gr[gr.length-1]; if(g&&g.lab===x.lab&&addD(g.e,1)===x.s){ g.e=x.s; g.n++; } else gr.push({a:x.s,e:x.s,lab:x.lab,n:1}); });
+    const n=r.list.length; res.append(el("p","srchn",n+(n===1?" Tag gefunden":" Tage gefunden")));
+    gr.slice(0,120).forEach(g=>{ const b=el("button","srow"); b.type="button"; const A=parse(g.a); b.append(el("span","grow",DOW[A.getDay()]+" "+(g.a===g.e?ddm(g.a)+A.getFullYear():ddRange(g.a,g.e)+A.getFullYear())), el("b",null,g.lab+(g.n>1?" · "+g.n+" Tage":"")), el("span","chev","›")); b.onclick=()=>jump(g.a); res.append(b); });
+    if(gr.length>120) res.append(el("p","muted","… und weitere. Grenze die Suche mit Monat oder Jahr ein.")); };
+  i.oninput=run; p.append(i,sug,res); setTimeout(()=>{ try{ i.focus(); }catch(e){} },60); }); }
+function qSearchBtn(v){ let b=$("#qsearch"); if(!b){ b=el("button","qhelp qsearch"); b.id="qsearch"; b.type="button"; b.setAttribute("aria-label","Suchen"); b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>'; b.onclick=openSearch; }
+  const bi=document.querySelector(".bar-in"), q=$("#qhelp"); if(bi&&b.parentElement!==bi) bi.insertBefore(b,q&&q.parentElement===bi?q:null); b.hidden=!(v==="urlaub"||v==="heute"); }
+/* Wochenansicht: 7 große Zeilen, Status auf einen Blick */
+function drawPlanWeek(st){ const ov=st.root; ov.innerHTML=""; ov.className="yplan inline plroot"; const t=TODAY(), sh=ypShifts(); if(!st.wk) st.wk=mondayOnOrBefore(t); const mon=st.wk, sun=addD(mon,6);
+  const go=d=>{ plSlide(st,d,()=>{ st.wk=addD(st.wk,7*d); st.one=+st.wk.slice(0,4)*12+(+st.wk.slice(5,7)-1); st.y=+st.wk.slice(0,4); if(st.onNav) st.onNav(); else drawYP(st); }); };
+  st.stepFn=go; st.goToday=()=>{ st.wk=mondayOnOrBefore(t); drawYP(st); };
+  ov.append(plNav(st,"KW "+kwOf(mon)+" · "+plRange(mon,sun),go,st.goToday,st));
+  const cal=el("div","plcal plweek");
+  for(let i=0;i<7;i++){ const d=addD(mon,i), D=parse(d), v=plVa(d), x=shiftOf(d), hn=holName(d), fe=ferien(d), r=el("button","plwr"+(d===t?" now":"")+(D.getDay()===0||D.getDay()===6?" we":"")+(v?" va":"")); r.type="button"; r.dataset.s=d;
+    const dl=el("span","plwd2"); dl.append(el("small",null,DOW[D.getDay()]), el("b",null,String(D.getDate()))); const mid=el("span","plwm");
+    if(v){ mid.append(el("b","plst va","Urlaub")); } else if(sh&&x&&x.kind!=="free"&&x.kind!=="vac"){ const k=el("b","plst",x.name); k.style.background=x.color; k.style.color=isDark(x.color)?"#16222B":"#fff"; mid.append(k); if(x.start) mid.append(el("small",null,x.start+"–"+x.end+" Uhr")); }
+    else if(sh&&(x||planKnown(d))) mid.append(el("b","plst free","Frei")); else mid.append(el("small",null,sh?"nichts eingetragen":""));
+    if(hn) mid.append(el("small","plho",hn)); if(fe) mid.append(el("small","plfe","Ferien"));
+    r.append(dl,mid,el("span","chev","›")); r.setAttribute("aria-label",fmt(d)+(v?", Urlaub":x?", "+x.name:"")+(hn?", "+hn:"")); r.onclick=()=>{ if(st.noTap&&Date.now()-st.noTap<400) return; openDayChoice(st,d); }; cal.append(r); }
+  ov.append(cal);
+  if(st.slideIn){ const dir=st.slideIn; st.slideIn=0; cal.style.transform="translateX("+(dir*24)+"%)"; cal.style.opacity="0"; requestAnimationFrame(()=>{ cal.style.transition="transform .17s ease-out, opacity .17s"; cal.style.transform=""; cal.style.opacity=""; }); }
+  let sw=null; cal.addEventListener("pointerdown",ev=>{ sw={x:ev.clientX,y:ev.clientY}; }); cal.addEventListener("pointerup",ev=>{ if(!sw) return; const dx=ev.clientX-sw.x, dy=ev.clientY-sw.y; sw=null; if(Math.abs(dx)>50&&Math.abs(dx)>1.5*Math.abs(dy)){ st.noTap=Date.now(); go(dx<0?1:-1); } });
+  ov.append(plLegend(), plSwitches(st), plBottom(st)); requestAnimationFrame(ypPad); }
 /* ===================== Neuer Plan: Monat (Standard) und Jahr =====================
    Monat: 7 Spalten Mo–So, KW links, Urlaub als Balken. Jahr: 12 kleine Monate.
    Eintragen: Banner oben („Wann beginnt dein Urlaub?“), zwei Tipps oder Ziehen, unten Bestätigung. */
@@ -2934,29 +3013,33 @@ const MONK2=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov",
 function plRange(a,e){ const A=parse(a), E=parse(e); if(a===e) return A.getDate()+". "+MONF_[A.getMonth()];
   return A.getMonth()===E.getMonth()&&A.getFullYear()===E.getFullYear()?A.getDate()+".–"+E.getDate()+". "+MONF_[A.getMonth()]:A.getDate()+". "+MONF_[A.getMonth()]+" – "+E.getDate()+". "+MONF_[E.getMonth()]; }
 const plVa=s=>{ const b=vacAt(s); return !!(b&&vacOnDay(b,s)); };
-function drawYPVac(st){ const n=new Date(); if(!st.plInit){ st.plInit=true; st.one=n.getFullYear()*12+n.getMonth(); st.yv=n.getFullYear(); st.pv=lsGet("su_pview")==="y"?"y":"m"; }
-  if(st.one==null) st.one=n.getFullYear()*12+n.getMonth(); if(st.paint) st.pv="m"; st.y=st.pv==="y"?st.yv:Math.floor(st.one/12);
-  return st.pv==="y"?drawPlanYear(st):drawPlanMonth(st); }
+function drawYPVac(st){ const n=new Date(); if(!st.plInit){ st.plInit=true; st.one=n.getFullYear()*12+n.getMonth(); st.yv=n.getFullYear(); st.wk=mondayOnOrBefore(TODAY()); const v=lsGet("su_pview"); st.pv=v==="y"||v==="w"?v:"m"; }
+  if(st.one==null) st.one=n.getFullYear()*12+n.getMonth(); const pv=st.paint?"m":st.pv; st.y=pv==="y"?st.yv:pv==="w"?+st.wk.slice(0,4):Math.floor(st.one/12);
+  return pv==="y"?drawPlanYear(st):pv==="w"?drawPlanWeek(st):drawPlanMonth(st); }
+function plSetView(st,k){ if(st.pv===k) return; const t=TODAY(), n=new Date(), cur=n.getFullYear()*12+n.getMonth();
+  if(k==="w"){ const f=Math.floor(st.one/12)+"-"+pad(st.one%12+1)+"-01"; st.wk=st.pv==="y"?mondayOnOrBefore(t):(st.one===cur?mondayOnOrBefore(t):mondayOnOrBefore(f)); }
+  if(k==="m"&&st.pv==="w") st.one=+st.wk.slice(0,4)*12+(+st.wk.slice(5,7)-1); if(k==="y") st.yv=st.pv==="w"?+st.wk.slice(0,4):Math.floor(st.one/12);
+  st.pv=k; lsSet("su_pview",k); if(st.onNav) st.onNav(); else drawYP(st); window.scrollTo(0,0); }
+function plViewSeg(st){ const sg=el("div","ypseg5 plview"); sg.setAttribute("role","group"); sg.setAttribute("aria-label","Ansicht"); [["Monat","m"],["Woche","w"],["Jahr","y"]].forEach(([l,k])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(st.pv===k)); b.onclick=()=>plSetView(st,k); sg.append(b); }); return sg; }
 function plSwitches(st){ const row=el("div","plsw"), sh=ypShifts(), tg=el("button","ypsw5"); tg.type="button"; tg.setAttribute("aria-pressed",String(sh)); tg.append(el("span",null,sh?"Schichten: ein":"Schichten: aus"), el("i","ypknob")); tg.onclick=()=>{ lsSet("su_ushift",sh?"0":"1"); render(); };
-  const sg=el("div","ypseg5"); sg.setAttribute("role","group"); sg.setAttribute("aria-label","Ansicht"); [["Monat","m"],["Jahr","y"]].forEach(([l,k])=>{ const b=el("button",null,l); b.type="button"; b.setAttribute("aria-pressed",String(st.pv===k)); b.onclick=()=>{ if(st.pv===k) return; st.pv=k; lsSet("su_pview",k); if(k==="y") st.yv=Math.floor(st.one/12); drawYP(st); window.scrollTo(0,0); }; sg.append(b); });
-  row.append(tg,sg); return row; }
+  row.append(tg); return row; }
 function plLegend(){ const lg=el("div","plleg"), add=(c,t)=>{ const sp=el("span"); sp.append(el("i",c),document.createTextNode(t)); lg.append(sp); }; add("lv","Urlaub"); if(hasFerien()) add("lf","Ferien"); add("lh","Feiertag"); return lg; }
 function plNav(st,title,step,today){ const nav=el("div","plnav"), pv=el("button","ypa5","‹"), nx=el("button","ypa5","›"); pv.type=nx.type="button"; pv.setAttribute("aria-label","Zurück"); nx.setAttribute("aria-label","Weiter"); pv.onclick=()=>step(-1); nx.onclick=()=>step(1);
-  nav.append(pv,el("h2","plttl",title),nx); const w=el("div","plnavw"); w.append(nav); const hb=el("button","plheute","Heute"); hb.type="button"; hb.onclick=today; w.append(hb); return w; }
+  nav.append(pv,el("h2","plttl",title),nx); const w=el("div","plnavw"); w.append(nav); const hb=el("button","plheute","Heute"); hb.type="button"; hb.onclick=today; const r2=el("div","plnav2"); r2.append(hb); if(!st.paint) r2.append(plViewSeg(st)); w.append(r2); return w; }
 /* Banner im Eintragen-Modus */
 function plBanner(st){ const b=el("div","plban"), sk=st.kind==="shift", tp=sk&&st.brush?typeOf(st.brush):null, nm=tp?(tp.kind==="free"?"Frei":tp.name):"";
-  const q=sk?(!st.brush?"Welche Schicht möchtest du eintragen?":!st.a?"Ab wann gilt „"+nm+"“?":!st.e?"Und bis wann?":"Passt das? Unten speichern."):(!st.a?"Wann beginnt dein Urlaub?":!st.e?"Und wann ist dein letzter Urlaubstag?":"Passt das? Unten speichern.");
-  b.append(el("p","plq",q)); if(sk){ const r=el("div","plshrow"); S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const c=el("button","plshb"+(st.brush===x.id?" on":"")); c.type="button"; const k=el("b","yps"+(x.kind==="free"?" free":""),x.short); if(x.kind!=="free"){ k.style.background=x.color; k.style.color=isDark(x.color)?"#16222B":"#fff"; } c.append(k,el("span",null,x.kind==="free"?"Frei":x.name.replace(/schicht$/i,""))); c.setAttribute("aria-label",x.name); c.setAttribute("aria-pressed",String(st.brush===x.id)); c.onclick=()=>{ st.brush=x.id; drawYP(st); }; r.append(c); }); b.append(r); }
+  const q=sk?(!st.brush?"Welche Schicht möchtest du eintragen?":"Tippe auf die Tage für „"+nm+"“ – wird sofort gespeichert."):(!st.a?"Wann beginnt dein Urlaub?":!st.e?"Und wann ist dein letzter Urlaubstag?":"Passt das? Unten speichern.");
+  b.append(el("p","plq",q)); if(sk){ const r=el("div","plshrow"); S.types.filter(x=>x.kind!=="vac").forEach(x=>{ const c=el("button","plshb"+(st.brush===x.id?" on":"")); c.type="button"; const k=el("b","yps"+(x.kind==="free"?" free":""),x.short); if(x.kind!=="free"){ k.style.background=x.color; k.style.color=isDark(x.color)?"#16222B":"#fff"; } c.append(k,el("span",null,x.kind==="free"?"Frei":x.name.replace(/schicht$/i,""))); c.setAttribute("aria-label",x.name); c.setAttribute("aria-pressed",String(st.brush===x.id)); c.onclick=()=>{ st.brush=x.id; drawYP(st); }; r.append(c); }); b.append(r); const rh=el("button","plrh","Wiederkehrendes Muster anlegen (Rhythmus)"); rh.type="button"; rh.onclick=()=>openRhythm(); b.append(rh); }
   const g=el("p","plg",ypGuideTx(st,st.a,st.e)); g.id="ypguide"; b.append(g); return b; }
 function plQuick(st){ const t=TODAY(), mon=addD(t,-((parse(t).getDay()+6)%7)), row=el("div","plquick");
-  [["Diese Woche",mon,addD(mon,6)],["Nächste Woche",addD(mon,7),addD(mon,13)],["2 Wochen ab heute",t,addD(t,13)]].forEach(([l,a,e])=>{ const b=el("button","plqb",l); b.type="button"; b.onclick=()=>{ st.a=a; st.e=e; st.one=+a.slice(0,4)*12+(+a.slice(5,7)-1); drawYP(st); }; row.append(b); }); return row; }
+  [["Diese Woche",mon,addD(mon,6)],["Nächste Woche",addD(mon,7),addD(mon,13)],["2 Wochen ab heute",t,addD(t,13)]].forEach(([l,a,e])=>{ const b=el("button","plqb",l); b.type="button"; b.onclick=()=>{ if(st.kind==="shift"&&st.brush){ plStamp(st,a,e); return; } st.a=a; st.e=e; st.one=+a.slice(0,4)*12+(+a.slice(5,7)-1); drawYP(st); }; row.append(b); }); return row; }
 /* feste Leiste unten */
 function plBottom(st){ const bar=el("div","plfix");
   if(st.paint && st.a && st.e) return plConfirm(st,bar);
-  if(st.paint){ const c=el("button","btn plcancel","Abbrechen"); c.type="button"; c.onclick=()=>ypStop(st); bar.append(c); return bar; }
-  const y=st.pv==="y"?st.yv:Math.floor(st.one/12), r=vacRest(y), rl=el("button","plrest"); rl.type="button"; rl.textContent=(r<0?(-r)+(r===-1?" Urlaubstag zu viel":" Urlaubstage zu viel"):r+(r===1?" Urlaubstag übrig":" Urlaubstage übrig"))+(y!==new Date().getFullYear()?" ("+y+")":""); rl.onclick=()=>openVacList(y); if(r<0) rl.classList.add("bad");
+  if(st.paint){ const c=el("button","btn plcancel",st.kind==="shift"?"Fertig":"Abbrechen"); c.type="button"; c.onclick=()=>ypStop(st); bar.append(c); return bar; }
+  const y=st.pv==="y"?st.yv:st.pv==="w"?+st.wk.slice(0,4):Math.floor(st.one/12), r=vacRest(y), rl=el("button","plrest"); rl.type="button"; rl.textContent=(r<0?(-r)+(r===-1?" Urlaubstag zu viel":" Urlaubstage zu viel"):r+(r===1?" Urlaubstag übrig":" Urlaubstage übrig"))+(y!==new Date().getFullYear()?" ("+y+")":""); rl.onclick=()=>openVacList(y); if(r<0) rl.classList.add("bad");
   const bt=el("div","plbtns"), u=el("button","btn pri plu","Urlaub eintragen"), sb=el("button","btn pls","Schicht eintragen"); u.type=sb.type="button";
-  const start=k=>{ st.paint=true; st.kind=k; st.brush=null; st.a=st.e=null; if(st.pv==="y"){ const n=new Date(); st.one=st.yv===n.getFullYear()?n.getFullYear()*12+n.getMonth():st.yv*12; } if(k==="shift") lsSet("su_ushift","1"); drawYP(st); window.scrollTo(0,0); };
+  const start=k=>{ st.paint=true; st.kind=k; st.brush=null; st.a=st.e=null; if(st.pv==="y"){ const n=new Date(); st.one=st.yv===n.getFullYear()?n.getFullYear()*12+n.getMonth():st.yv*12; } if(st.pv==="w") st.one=+st.wk.slice(0,4)*12+(+st.wk.slice(5,7)-1); if(k==="shift") lsSet("su_ushift","1"); drawYP(st); window.scrollTo(0,0); };
   u.onclick=()=>start("vac"); sb.onclick=()=>start("shift"); bt.append(u,sb); bar.append(rl,bt); return bar; }
 function plConfirm(st,bar){ const a=st.a, e=st.e, tx=el("div","plctx"), sv=el("button","btn pri plsave","Speichern"), ch=el("button","btn plchg","Ändern"), x=el("button","plx","Abbrechen"); sv.type=ch.type=x.type="button";
   ch.onclick=()=>{ st.a=st.e=null; drawYP(st); }; x.onclick=()=>ypStop(st);
@@ -3008,7 +3091,7 @@ function drawPlanYear(st){ const ov=st.root; ov.innerHTML=""; ov.className="ypla
   const cal=el("div","plcal plyear");
   for(let m=0;m<12;m++){ const b=el("button","plmini"+(y===n.getFullYear()&&m===n.getMonth()?" cur":"")); b.type="button"; const f=y+"-"+pad(m+1)+"-01", l=lastOfMonth(f); let vd=0;
     const mg=el("div","plmg"); for(let i=0;i<(parse(f).getDay()+6)%7;i++) mg.append(el("i","e")); for(let d=f; d<=l; d=addD(d,1)){ const i=el("i"), w=parse(d).getDay(); if(w===0||w===6) i.className="we"; if(ferien(d)) i.classList.add("fe"); if(holName(d)) i.classList.add("ho"); if(plVa(d)){ i.classList.add("va"); vd++; } if(d===t) i.classList.add("now"); mg.append(i); }
-    b.append(el("b",null,MONK2[m]), mg, el("small",null,vd?vd+(vd===1?" Tag Urlaub":" Tage Urlaub"):"")); b.setAttribute("aria-label",MONF_[m]+" "+y+(vd?", "+vd+" Tage Urlaub":"")); b.onclick=()=>{ st.one=y*12+m; st.pv="m"; lsSet("su_pview","m"); drawYP(st); window.scrollTo(0,0); }; cal.append(b); }
+    b.append(el("b",null,MONK2[m]), mg, el("small",null,vd?vd+(vd===1?" Tag Urlaub":" Tage Urlaub"):"")); b.setAttribute("aria-label",MONF_[m]+" "+y+(vd?", "+vd+" Tage Urlaub":"")); b.onclick=()=>{ st.one=y*12+m; st.pv="m"; lsSet("su_pview","m"); if(st.onNav) st.onNav(); else drawYP(st); window.scrollTo(0,0); }; cal.append(b); }
   ov.append(cal);
   if(st.slideIn){ const dir=st.slideIn; st.slideIn=0; cal.style.transform="translateX("+(dir*24)+"%)"; cal.style.opacity="0"; requestAnimationFrame(()=>{ cal.style.transition="transform .17s ease-out, opacity .17s"; cal.style.transform=""; cal.style.opacity=""; }); }
   let sw=null; cal.addEventListener("pointerdown",ev=>{ sw={x:ev.clientX,y:ev.clientY}; }); cal.addEventListener("pointerup",ev=>{ if(!sw) return; const dx=ev.clientX-sw.x, dy=ev.clientY-sw.y; sw=null; if(Math.abs(dx)>50&&Math.abs(dx)>1.5*Math.abs(dy)) go(y+(dx<0?1:-1)); });
@@ -3046,6 +3129,7 @@ function drawYPInline(st){ if(st.mode==="vac") return drawYPVac(st); const ov=st
   if(vac){ if(!st.jumped){ st.jumped=true; window.scrollTo(0,0); } return; }
   if(!st.jumped){ st.jumped=true; requestAnimationFrame(()=>{ const n=g.querySelector(".ypc.now"); if(n){ const yy=n.getBoundingClientRect().top+window.scrollY-window.innerHeight*0.35; window.scrollTo(0,Math.max(0,yy)); } }); } }
 function ypTap(st,s){
+  if(st.inline && st.paint && st.kind==="shift"){ if(!st.brush){ toast("Wähle oben zuerst die Schicht."); return; } plStamp(st,s,s); return; }
   if(st.inline && st.mode==="vac"){ if(!st.paint){ openDayChoice(st,s); return; } if(st.kind==="shift"&&!st.brush){ toast("Wähle zuerst die Schicht."); return; } }
   if(!st.paint){ const v=vacAt(s); if(v && dayKind(s)==="v"){ openVacChoice({id:v.id,a:v.a,e:v.e,n:vacDaysOf(v).length}); return; }
     if(st.mode==="shift") openDay(s); else toast("Tippe unten auf „Urlaub eintragen“."); return; }
@@ -3820,7 +3904,7 @@ function vacBlocks(y){ const ys=y+"-01-01", ye=y+"-12-31"; return vacList().filt
 let uView="jahr", uM=null, uAll=false, uEdit=false, uMore=false;
 
 /* Urlaub-Übersicht, einfach gehalten: Resturlaub groß, ein Knopf, Liste – alles andere unter „Mehr Optionen“ */
-function vacDelete(b){ ask("Urlaub löschen?",vsRange(b.a,b.e)+" · "+b.n+(b.n===1?" Tag":" Tage"),[{label:"Ja, löschen",pri:true,fn:()=>{ const old=JSON.parse(JSON.stringify(vacList())); S.vacs=vacList().filter(v=>v.id!==b.id); save(); render(); toast("Urlaub gelöscht · noch "+vacRest(uY)+" übrig","Rückgängig",()=>{ S.vacs=old; save(); render(); }); }},{label:"Abbrechen"}]); }
+function vacDelete(b){ const old=JSON.parse(JSON.stringify(vacList())); S.vacs=vacList().filter(v=>v.id!==b.id); save(); render(); ypToast("Urlaub "+vsRange(b.a,b.e)+" gelöscht · noch "+vacRest(uY)+" übrig",()=>{ S.vacs=old; save(); render(); }); }
 function openVacChoice(b){ openSheet(p=>{ sheetTop(p,vsRange(b.a,b.e)); p.append(el("p","ubig2",b.n+(b.n===1?" Urlaubstag":" Urlaubstage")));
   const ch=el("button","btn pri uwide","✎ Ändern"); ch.type="button"; ch.onclick=()=>{ closeSheet(); openVacBlock(b); };
   const dl=el("button","btn bad uwide","🗑 Löschen"); dl.type="button"; dl.onclick=()=>{ closeSheet(); vacDelete(b); }; p.append(ch,dl); }); }
@@ -3946,7 +4030,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.12-94";
+const APP_VERSION="2026.10.13-95";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
