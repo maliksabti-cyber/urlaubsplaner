@@ -1371,6 +1371,36 @@ html[data-fs="xl"] .plmg i{font-size:14px}
 html body .plmg i.va{background:#1E7A43!important;color:#fff}
 html body .plmg i.ho{background:#B42318!important;color:#fff}
 html body .plmini small{color:var(--ink)}
+/* ===== Team: Freigabe + Admin-Überschneidungen ===== */
+#v-team{display:grid;gap:12px}
+.tback{justify-self:start;min-height:44px;font-size:16px}
+.tshare.on{box-shadow:inset 0 0 0 2px var(--ok)}
+.tsw{min-height:48px;font-size:17px;font-weight:700}
+.tpriv{font-size:16px}
+.trow{display:flex;align-items:center;gap:10px;min-height:44px;font-size:16px}
+.trow .tok{color:var(--ok);font-weight:700}
+.tovnav{display:flex;align-items:center;gap:8px}.tovnav h3{text-align:center;margin:0;font-size:20px}
+.tovgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:8px}
+.tovwd{text-align:center;font:700 15px/1 var(--f-body);color:var(--cmute);padding:4px 0}
+.tovd{position:relative;display:grid;justify-items:center;align-content:start;gap:3px;min-height:56px;padding:5px 2px;border:0;border-radius:14px;background:var(--cindigo-soft);color:var(--ink);font:inherit;cursor:pointer}
+.tovd b{font-size:17px}
+.tovd.o1{background:#C9EBD3;color:#0E4A25}
+.tovd.o2{background:#FFD8A8;color:#5C2B00;box-shadow:inset 0 0 0 2px #E8590C}
+.tovd.o3{background:#C92A2A;color:#fff}
+.tovd.now{outline:2.5px solid var(--ink);outline-offset:-2.5px}
+.tovd.ho b{text-decoration:underline;text-decoration-color:var(--hol-r)}
+.tovmk{display:flex;flex-wrap:wrap;justify-content:center;gap:2px}.tovmk i{width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.8)}
+.tovn{font:800 13px/1 var(--f-body)}
+.tovleg,.tlegend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:16px}
+.tovleg span,.tlegend span{display:inline-flex;align-items:center;gap:6px}
+.tovsw{width:18px;height:18px;border-radius:6px;display:inline-block}.tovsw.o1{background:#C9EBD3}.tovsw.o2{background:#FFD8A8;box-shadow:inset 0 0 0 2px #E8590C}.tovsw.o3{background:#C92A2A}
+.tovdot{width:12px;height:12px;border-radius:50%;display:inline-block}
+.tovrow{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 10px;margin-top:6px;border:0;border-radius:14px;background:#FFF0E0;color:#3B1A00;font:inherit;text-align:left;cursor:pointer;border-left:6px solid #E8590C}
+.tovrow.o3{background:#FFE3E3;border-left-color:#C92A2A;color:#4A0B0B}
+.tovrow b{display:block;font-size:17px}.tovrow small{display:block;font-size:15px}
+.tovcnt{font:800 18px/1 var(--f-body)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .tovd.o1{background:#215C38;color:#EAFBEF} :root:not([data-theme="light"]) .tovrow{background:#3A2412;color:#FFE8CC} :root:not([data-theme="light"]) .tovrow.o3{background:#3D1414;color:#FFE3E3} }
+:root[data-theme="dark"] .tovd.o1{background:#215C38;color:#EAFBEF} :root[data-theme="dark"] .tovrow{background:#3A2412;color:#FFE8CC} :root[data-theme="dark"] .tovrow.o3{background:#3D1414;color:#FFE3E3}
 </style>
 </head>
 <body>
@@ -1530,7 +1560,8 @@ function shareClean(){ const m=(S.share&&S.share.vac)||{}, ids=new Set(vacList()
 const CONSENT={ teamJoin:{t:"Daten im Team freigeben",d:"Ohne diese Zustimmung wird nichts ans Team übertragen.",def:false},
   showName:{t:"Meinen Namen im Team-Kalender zeigen",d:"Sonst sehen andere nur Farbe und Form.",def:false},
   hasKids:{t:"Ich habe Kinder (Vorrang in den Schulferien)",d:"Wird nur mit Zustimmung zur Datenfreigabe geteilt.",def:false},
-  vacDefault:{t:"Neuen Urlaub im Team sichtbar machen",d:"Kann bei jedem Urlaub einzeln geändert werden.",def:true} };
+  vacDefault:{t:"Neuen Urlaub mit freigeben",d:"Gilt nur, wenn die Freigabe für den Admin an ist.",def:true},
+  adminShare:{t:"Meinen Urlaub für den Admin freigeben",d:"Aus: Nur du siehst deinen Urlaub. An: Der Admin sieht von–bis und Anzahl Tage.",def:false} };
 function consentGet(k){ const c=S.consent||{}; return k in c?!!c[k]:!!(CONSENT[k]&&CONSENT[k].def); }
 function consentSet(k,v){ if(!S.consent) S.consent={}; S.consent[k]=!!v; save(); }
 function consentCard(box){ const c=el("div","card sec"); c.id="consent"; c.append(el("h2",null,"Datenschutz & Freigaben"), el("p","hint","Gilt für die Team-Funktion (kommt bald). Deine privaten Daten bleiben immer nur bei dir."));
@@ -2318,6 +2349,8 @@ function renderSetLite(){ const box=$("#v-mehr"); box.innerHTML="";
     const sw=(id,txt,key,onv,fn)=>{ const lb=el("label","sw setsw"), cb=el("input"); cb.type="checkbox"; cb.id=id; cb.checked=lsGet(key)===onv||(onv==="1"?false:lsGet(key)!=="0"); cb.onchange=()=>{ fn(cb.checked); }; lb.append(cb, el("span",null,txt)); c.append(lb); };
     sw("hcon","Hoher Kontrast","su_hc","1",on=>{ lsSet("su_hc",on?"1":null); applyUI(); toast(on?"Hoher Kontrast ist an.":"Hoher Kontrast ist aus."); });
     sw("vibr","Vibration beim Antippen","su_vib","x",on=>{ lsSet("su_vib",on?null:"0"); toast(on?"Vibration ist an.":"Vibration ist aus."); }); }
+  if(FEATURES.team && typeof renderTeam==="function"){ const st=typeof tRef==="function"&&tRef()?(consentGet("adminShare")?"Du bist im Team · Urlaub für den Admin freigegeben":"Du bist im Team · nichts freigegeben"):"Urlaub freiwillig für einen Admin freigeben. Der Admin sieht Überschneidungen im Team.";
+    sec("Team",st,qb("Team öffnen",()=>{ show("team"); window.scrollTo(0,0); })); }
   box.append(el("p","hint mver","Version "+APP_VERSION)); }
 function renderMehrFull(){ const box=$("#v-mehr"); box.innerHTML=""; const c=el("div","card sec mlist");
   [["set","Einstellungen","Name, Bundesland, Sicherung, Hell/Dunkel",()=>show("set")],["vac","Urlaubstage","Anspruch und Resturlaub",()=>openVacSettings(new Date().getFullYear())],["rot","Schichtrhythmus","Deinen Rhythmus ändern",()=>openRhythm()],["pdf","Urlaubsplan als PDF","Zum Teilen oder Drucken",()=>pdfVacPlan(new Date().getFullYear())],["cal","Schichtplan","Schichten eintragen und ändern",()=>show("kal")],["year","Jahresübersicht","Alle 12 Monate auf einen Blick",()=>show("jahr")],["help","Hilfe","So funktioniert die App",()=>openHelp()],["priv","Datenschutz","Was privat bleibt",()=>goSettings("consent")]].forEach(([k,t,d,fn])=>{
@@ -3751,7 +3784,7 @@ $("#gear").onclick=()=>show("set");
 /* ===== ZENTRALER SCHALTER: Funktionen ein-/ausblenden (true = sichtbar). Nichts wird gelöscht, nur der Einstieg ist aus. ===== */
 const FEATURES=Object.assign({
   login:false,        // Anmeldung, Konto, Cloud-Sicherung (Firebase)
-  team:false,         // Team, Team-Nachrichten, „Im Team sichtbar“
+  team:true,          // Team: Urlaub freiwillig für den Admin freigeben, Admin-Ansicht mit Überschneidungen
   pdf:false,          // Urlaubsplan als PDF, Teilen
   backup:false,       // Sichern/Übertragen, Sicherungs-Hinweis auf Heute, Kalender-Export (.ics)
   help:false,         // Hilfe, Einrichtungs-Lotse
@@ -3986,7 +4019,7 @@ function openVacBlock(b){ const v0=vacList().find(x=>x.id===b.id); if(!v0){ toas
     sv.onclick=()=>{ const r=calc(); if(!r) return; if(r.over&&r.over.length){ toast(quotaMsg(r.over)); return; } const old=JSON.parse(JSON.stringify(vacList())); const v=vacList().find(x=>x.id===v0.id); if(!v) return;
       v.a=ia.value; v.e=ib.value; if(v.fixed || r.as) v.fixed=r.days.slice(); normVacs(); save(); closeSheet(); render();
       { const y=+ia.value.slice(0,4); toast("Urlaub geändert: "+fmtS(ia.value)+" – "+fmtS(ib.value)+" · noch "+vacRest(y)+" übrig","Rückgängig",()=>{ S.vacs=old; save(); render(); }); } };
-    { const l=el("label","sw"), cb=el("input"); cb.type="checkbox"; cb.id="ve_team"; cb.checked=shareVacGet(v0.id); cb.onchange=()=>{ shareVacSet(v0.id,cb.checked); save(); }; l.append(cb, el("span",null,"Im Team sichtbar (sobald die Team-Funktion aktiv ist)")); if(FEATURES.team) p.append(l); }
+    { const l=el("label","sw"), cb=el("input"); cb.type="checkbox"; cb.id="ve_team"; cb.checked=shareVacGet(v0.id); cb.onchange=()=>{ shareVacSet(v0.id,cb.checked); save(); }; l.append(cb, el("span",null,"Diesen Urlaub für den Admin freigeben (wenn deine Freigabe an ist)")); if(FEATURES.team) p.append(l); }
     ia.oninput=()=>{ if(ib.value<ia.value) ib.value=ia.value; calc(); }; ib.oninput=calc; p.append(sv); calc();
     const r=el("div","row");
     const cal=el("button","btn","Im Kalender zeigen"); cal.type="button"; cal.onclick=()=>{ curY=+v0.a.slice(0,4); curM=+v0.a.slice(5,7)-1; kalMode="monat"; closeSheet(); show("kal"); }; if(FEATURES.shiftPage) r.append(cal);
@@ -4046,7 +4079,7 @@ boot();
 <script src="team.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.13-96";
+const APP_VERSION="2026.10.13-97";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
