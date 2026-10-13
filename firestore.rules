@@ -1,6 +1,7 @@
 rules_version = '2';
 // Schicht & Urlaub – Sicherheitsregeln
-// • nutzer/{uid}: eigene Cloud-Sicherung (nur wenn localMode: false)
+// • nutzer/{uid}: eigene Cloud-Sicherung (nur wenn localMode: false) – nur der Nutzer selbst
+// • Passwörter: ausschließlich in Firebase Authentication (als Hash), nie in Firestore
 // • teams/…: Team-Funktion. Private Daten liegen NICHT hier – nur Kopien, die der Nutzer
 //   ausdrücklich für den Admin freigegeben hat. Andere Mitglieder können sie nicht lesen.
 service cloud.firestore {
@@ -27,8 +28,10 @@ service cloud.firestore {
       allow update: if isAdm() || (isMem() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deputyHint']));
       allow delete: if isMem() && get(meDoc()).data.role == 'admin';
 
+      // Mitglieds-Profile (Name, Farbe, Rolle, Kinder-Angabe): lesen nur das Mitglied selbst und Admins/Vertreter.
+      // Passwörter oder Passwort-Hashes liegen NIE in Firestore – sie verwaltet ausschließlich Firebase Authentication.
       match /members/{m} {
-        allow read: if isMem();
+        allow read: if signedIn() && (m == request.auth.uid || isAdm());
         allow create: if signedIn() && m == request.auth.uid && (
           (teamDoc().data.createdBy == request.auth.uid && request.resource.data.role == 'admin')
           || (request.resource.data.invite == teamDoc().data.invite && request.resource.data.role == 'member'));
