@@ -1,4 +1,4 @@
-// Foto einlesen: Kamera/Galerie, Verkleinern, Laden, Fehler/Offline, Legende/ohne Legende, Jahr fragen,
+// Foto einlesen (standardmäßig ausgeblendet; hier per APP_FEATURES eingeschaltet): Kamera/Galerie, Verkleinern, Laden, Fehler/Offline, Legende/ohne Legende, Jahr fragen,
 // unsichere Tage, Korrektur, Behalten/Überschreiben, Kontingent, Übernehmen, Rückgängig, Abbrechen, Neuladen.
 // Der Foto-Dienst läuft hier echt (foto-dienst/src/index.js) – im Testbetrieb (MOCK) mit Beispieldaten.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs';
@@ -9,7 +9,7 @@ const ok=(x,m)=>{ console.log((x?'✔ ':'✘ ')+m); if(!x) process.exitCode=1; }
 let mode='legend', delay=0, status=0, lastBody=null;
 const API='https://foto.test';
 async function ctxNew(dev,extra){ const c=await b.newContext({...dev,timezoneId:'Europe/Berlin',serviceWorkers:'block',...(extra||{})});
-  await c.route('**/config.js',async r=>{ const res=await r.fetch(); r.fulfill({response:res,body:(await res.text()).replace('photoApi: ""','photoApi: "'+API+'"')}); });
+  await c.route('**/config.js',async r=>{ const res=await r.fetch(); r.fulfill({response:res,body:(await res.text()).replace('photoApi: ""','photoApi: "'+API+'"')+'\nwindow.APP_FEATURES=Object.assign(window.APP_FEATURES||{},{photo:true});'}); });
   await c.route(API+'/**',async r=>{ const q=r.request(); lastBody=q.postData(); if(delay) await new Promise(x=>setTimeout(x,delay));
     if(status){ const m={429:'Für heute sind alle Foto-Auswertungen aufgebraucht. Bitte morgen erneut versuchen.',502:'Das Foto konnte gerade nicht gelesen werden. Bitte später erneut versuchen.'}[status]; return r.fulfill({status,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({error:'x',message:m})}); }
     const h=Object.fromEntries(Object.entries(q.headers())); h.origin='http://localhost:8765';

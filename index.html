@@ -3959,7 +3959,7 @@ $("#gear").onclick=()=>show("set");
 const FEATURES=Object.assign({
   login:false,        // Anmeldung, Konto, Cloud-Sicherung (Firebase)
   team:true,          // Team: Urlaub freiwillig für den Admin freigeben, Admin-Ansicht mit Überschneidungen
-  photo:true,         // „Foto einlesen“: Plan per Foto erkennen (Foto-Dienst, config.js: photoApi)
+  photo:false,        // „Foto einlesen“: Plan per Foto erkennen (Foto-Dienst, config.js: photoApi)
   pdf:false,          // Urlaubsplan als PDF, Teilen
   backup:false,       // Sichern/Übertragen, Sicherungs-Hinweis auf Heute, Kalender-Export (.ics)
   help:false,         // Hilfe, Einrichtungs-Lotse
@@ -4264,7 +4264,7 @@ boot();
 <script src="foto.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.13-101";
+const APP_VERSION="2026.10.13-102";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
