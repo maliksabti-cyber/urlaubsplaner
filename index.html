@@ -1521,6 +1521,32 @@ html body .plmg i.sel.s0,html body .plmg i.sel.s1{box-shadow:inset 0 0 0 2px var
 html body .toast{max-width:calc(94vw / var(--uiz,1))!important;box-sizing:border-box}
 html body[data-v="urlaub"] .toast{width:min(calc(94vw / var(--uiz,1)),420px)!important}
 html body .toast{flex-wrap:wrap}html body #toastt{flex:1 1 170px;min-width:0;hyphens:auto}html body #toastb{flex:1 0 auto;white-space:nowrap}html[data-fs="xl"] body #toastb{padding:0 12px!important}
+/* Einstellungen: kompakt, in Gruppen, einheitlich runde Ecken */
+:root{--rset:18px}
+#v-mehr{gap:6px!important}
+#v-mehr .setgrp{grid-column:1/-1;margin:14px 6px 2px;font:800 14px/1.2 var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--cmute)}
+#v-mehr .setgrp:first-child{margin-top:4px}
+#v-mehr .card.setcard{padding:4px 14px;border-radius:var(--rset)!important;display:block}
+#v-mehr .setrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--rule)}
+#v-mehr .setrow:first-child{border-top:0}
+#v-mehr .setrow.setcol{flex-direction:column;align-items:stretch;gap:8px}
+#v-mehr .setrt{flex:1;min-width:0;display:grid;gap:2px}
+#v-mehr .setrt b{font-size:17px;line-height:1.25}
+#v-mehr .setval{margin:0;font-size:15px;line-height:1.35;color:var(--cmute)}
+#v-mehr .setbtn,#v-mehr .btn{border-radius:var(--rset)!important;min-height:48px}
+#v-mehr .setrow:not(.setcol)>.setbtn{flex:none;padding:0 18px}
+#v-mehr .setcol>.setbtn{width:100%}
+#v-mehr .setsel,#v-mehr select,#v-mehr input[type=text]{border-radius:var(--rset)!important;min-height:48px;width:100%}
+#v-mehr .thseg{border-radius:var(--rset)!important}#v-mehr .thseg button{border-radius:calc(var(--rset) - 4px)!important;min-height:46px;font-size:16px}
+#v-mehr .fsbtn{border-radius:var(--rset)!important;min-height:64px}
+#v-mehr .setswr{padding:4px 0}#v-mehr .setsw{min-height:48px;font-size:17px;width:100%}
+#v-mehr .mver{margin:6px 0 0;text-align:center}
+html[data-fs="xl"] #v-mehr .setrow:not(.setcol):not(.setswr){flex-direction:column;align-items:stretch}
+html[data-fs="xl"] #v-mehr .setrow:not(.setcol)>.setbtn{width:100%}
+html[data-fs="xl"] #v-mehr .fsgrid{grid-template-columns:1fr;gap:6px}
+html[data-fs="xl"] #v-mehr .fsbtn{display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:4px 16px}
+html[data-fs="xl"] #v-mehr .thseg button{font-size:15px;padding:0 2px}
+#v-mehr .fsbtn{overflow:hidden}
 </style>
 </head>
 <body>
@@ -2455,31 +2481,37 @@ const MICON={cal:'<rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="
 function renderMehr(){ if(!FEATURES.fullSettings) return renderSetLite(); renderMehrFull(); }
 /* Einstellungen (nur das Nötige): Name, Bundesland, Urlaubstage, Schichtrhythmus, Schichtzeiten, Hell/Dunkel */
 function renderSetLite(){ const box=$("#v-mehr"); box.innerHTML="";
-  const sec=(h,val,btn)=>{ const c=el("div","card sec setsec"); c.append(el("h2",null,h)); if(val) c.append(el("p","setval",val)); if(btn) c.append(btn); box.append(c); return c; };
-  const qb=(t,fn)=>{ const b=el("button","btn ypquiet",t); b.type="button"; b.onclick=fn; return b; };
+  /* Gruppen mit Überschrift; darin kompakte Zeilen: Titel + Wert links, Knopf rechts (bei großer Schrift darunter) */
+  let card=null; const grp=h=>{ box.append(el("h2","setgrp",h)); card=el("div","card setcard"); box.append(card); return card; };
+  const row=(h,val,btn)=>{ const r=el("div","setrow"), t=el("div","setrt"); t.append(el("b",null,h)); if(val) t.append(el("span","setval",val)); r.append(t); if(btn) r.append(btn); card.append(r); return r; };
+  const qb=(t,fn)=>{ const b=el("button","btn ypquiet setbtn",t); b.type="button"; b.onclick=fn; return b; };
   /* Name: ohne Konto nicht nötig – nur ausgeblendet */
-  if(FEATURES.login){ const c=sec("Name"); const l=el("label","f","Vorname"), i=el("input"); i.type="text"; i.id="myname"; i.value=S.name||""; i.onchange=()=>{ S.name=i.value.trim().slice(0,40); save(); }; l.append(i); c.append(l); }
-  sec("Schichtrhythmus", S.rots.length?S.rots.map(r=>r.name||"Rhythmus").join(", "):"Noch kein Rhythmus.", qb(S.rots.length?"Rhythmus ändern":"Rhythmus einstellen",()=>openRhythm()));
-  if(FEATURES.fullSettings){ const c=sec("Schichtzeiten"); const tl=el("div","tlist");
+  if(FEATURES.login){ grp("Profil"); const r=row("Name"); const i=el("input"); i.type="text"; i.id="myname"; i.value=S.name||""; i.setAttribute("aria-label","Vorname"); i.onchange=()=>{ S.name=i.value.trim().slice(0,40); save(); }; r.append(i); }
+  grp("Arbeit & Urlaub");
+  row("Schichtrhythmus", S.rots.length?S.rots.map(r=>r.name||"Rhythmus").join(", "):"Noch kein Rhythmus.", qb(S.rots.length?"Ändern":"Einstellen",()=>openRhythm())).lastChild.setAttribute("aria-label",S.rots.length?"Rhythmus ändern":"Rhythmus einstellen");
+  if(FEATURES.fullSettings){ const r=row("Schichtzeiten"); const tl=el("div","tlist");
     S.types.filter(t=>t.kind==="work").forEach(t=>{ const it=el("div","titem"), mid=el("div","grow"); mid.append(el("b",null,t.name), el("div","muted",t.start?(t.start+" – "+t.end+" Uhr"):"")); const e=el("button","linkbtn","Ändern"); e.type="button"; e.onclick=()=>openType(t); it.append(chip(t),mid,e); tl.append(it); });
-    c.append(tl); }
-  { const y=new Date().getFullYear(); sec("Urlaubsanspruch",vacTotal(y)+" Tage im Jahr "+y+" · noch "+Math.max(0,vacRest(y))+" übrig", qb("Urlaubsanspruch ändern",()=>openVacSettings(y))); }
-  { const se=el("select"); se.id="land"; se.setAttribute("aria-label","Bundesland"); LAENDER.forEach(([k,n])=>{ const o=el("option",null,n); o.value=k; se.append(o); }); se.value=S.land; se.onchange=()=>{ S.land=se.value; save(); render(); };
-    sec("Bundesland","Für Feiertage und Ferien.",se); }
+    r.classList.add("setcol"); r.append(tl); }
+  { const y=new Date().getFullYear(); row("Urlaubsanspruch",vacTotal(y)+" Tage im Jahr "+y+" · noch "+Math.max(0,vacRest(y))+" übrig", qb("Ändern",()=>openVacSettings(y))).lastChild.setAttribute("aria-label","Urlaubsanspruch ändern"); }
+  { const se=el("select","setsel"); se.id="land"; se.setAttribute("aria-label","Bundesland"); LAENDER.forEach(([k,n])=>{ const o=el("option",null,n); o.value=k; se.append(o); }); se.value=S.land; se.onchange=()=>{ S.land=se.value; save(); render(); };
+    row("Bundesland","Für Feiertage und Ferien.",se).classList.add("setcol"); }
+  grp("Darstellung");
   { const sg=el("div","seg full3 thseg"); [["light","Hell"],["dark","Dunkel"],["auto","System"]].forEach(([k,l])=>{ const b=el("button",null,l); b.type="button"; const cur=S.theme||"auto"; b.setAttribute("aria-pressed",String(cur===k)); b.onclick=()=>{ S.theme=k==="auto"?undefined:k; save(); applyTheme(); renderSetLite(); }; sg.append(b); });
-    const c=sec("Darstellung",(S.theme==="light"?"Immer hell":S.theme==="dark"?"Immer dunkel":"Wie am Handy (System)"),sg);
-    c.append(el("h3","setsub","Schriftgröße")); const fs=el("div","fsgrid"); [["n","Normal","16px"],["l","Groß","19px"],["xl","Sehr groß","22px"]].forEach(([k,l,px])=>{ const b=el("button","fsbtn"+(uiFs()===k?" on":"")); b.type="button"; b.setAttribute("aria-pressed",String(uiFs()===k)); const pv=el("span","fsprev","Urlaub"); pv.style.fontSize=px; b.append(pv, el("small",null,l));
-      b.onclick=()=>{ lsSet("su_fs",k); if(k==="xl"){ ypU.lastOne=null; if(ypU.one==null){ const n=new Date(); ypU.one=n.getFullYear()*12+n.getMonth(); lsSet("su_uview","one:"+ypU.one); } } ypU.s=null; ypU.rowH=0; applyUI(); renderSetLite(); toast("Schriftgröße: "+l+"."); }; fs.append(b); }); c.append(fs);
-    const sw=(id,txt,key,onv,fn)=>{ const lb=el("label","sw setsw"), cb=el("input"); cb.type="checkbox"; cb.id=id; cb.checked=lsGet(key)===onv||(onv==="1"?false:lsGet(key)!=="0"); cb.onchange=()=>{ fn(cb.checked); }; lb.append(cb, el("span",null,txt)); c.append(lb); };
+    row("Farben",(S.theme==="light"?"Immer hell":S.theme==="dark"?"Immer dunkel":"Wie am Handy (System)"),sg).classList.add("setcol");
+    const fs=el("div","fsgrid"); [["n","Normal","16px"],["l","Groß","19px"],["xl","Sehr groß","22px"]].forEach(([k,l,px])=>{ const b=el("button","fsbtn"+(uiFs()===k?" on":"")); b.type="button"; b.setAttribute("aria-pressed",String(uiFs()===k)); const pv=el("span","fsprev","Urlaub"); pv.style.fontSize=px; b.append(pv, el("small",null,l));
+      b.onclick=()=>{ lsSet("su_fs",k); if(k==="xl"){ ypU.lastOne=null; if(ypU.one==null){ const n=new Date(); ypU.one=n.getFullYear()*12+n.getMonth(); lsSet("su_uview","one:"+ypU.one); } } ypU.s=null; ypU.rowH=0; applyUI(); renderSetLite(); toast("Schriftgröße: "+l+"."); }; fs.append(b); });
+    row("Schriftgröße",null,fs).classList.add("setcol");
+    const sw=(id,txt,key,onv,fn)=>{ const r=el("div","setrow setswr"), lb=el("label","sw setsw"), cb=el("input"); cb.type="checkbox"; cb.id=id; cb.checked=lsGet(key)===onv||(onv==="1"?false:lsGet(key)!=="0"); cb.onchange=()=>{ fn(cb.checked); }; lb.append(cb, el("span",null,txt)); r.append(lb); card.append(r); };
     sw("hcon","Hoher Kontrast","su_hc","1",on=>{ lsSet("su_hc",on?"1":null); applyUI(); toast(on?"Hoher Kontrast ist an.":"Hoher Kontrast ist aus."); });
     sw("vibr","Vibration beim Antippen","su_vib","x",on=>{ lsSet("su_vib",on?null:"0"); toast(on?"Vibration ist an.":"Vibration ist aus."); }); }
   if(FEATURES.team && typeof renderTeam==="function"){ const st=typeof tRef==="function"&&tRef()?(consentGet("adminShare")?"Du bist im Team · Urlaub für den Admin freigegeben":"Du bist im Team · nichts freigegeben"):"Urlaub freiwillig für einen Admin freigeben. Der Admin sieht Überschneidungen im Team.";
-    sec("Team",st,qb("Team öffnen",()=>{ show("team"); window.scrollTo(0,0); })); }
+    grp("Team"); row("Team",st,qb("Öffnen",()=>{ show("team"); window.scrollTo(0,0); })).lastChild.setAttribute("aria-label","Team öffnen"); }
   /* App aktualisieren · Alles zurücksetzen (für jeden Nutzer) */
+  grp("App");
   { const up=qb("App aktualisieren",async()=>{ up.disabled=true; up.textContent="Suche nach neuer Version …"; const nv=await remoteVersion();
       if(nv&&nv===APP_VERSION){ toast("Du hast schon die neueste Version ("+APP_VERSION+")."); up.disabled=false; up.textContent="App aktualisieren"; return; } toast(nv?"Neue Version "+nv+" wird geladen …":"App wird neu geladen …"); appUpdate(); }); up.id="appupd";
-    sec("App aktualisieren","Version "+APP_VERSION+". Lädt die neueste Version der App. Deine Einträge bleiben erhalten.",up); }
-  { const rb=el("button","btn bad","Alles zurücksetzen"); rb.type="button"; rb.id="resetall"; rb.onclick=openResetAll; sec("Alles zurücksetzen","Löscht alle deine Einträge und Einstellungen auf diesem Gerät. Danach startet die App wie neu.",rb); }
+    row("App aktualisieren","Version "+APP_VERSION+". Deine Einträge bleiben erhalten.",up).classList.add("setcol"); }
+  { const rb=el("button","btn bad setbtn","Alles zurücksetzen"); rb.type="button"; rb.id="resetall"; rb.onclick=openResetAll; row("Alles zurücksetzen","Löscht alle Einträge und Einstellungen auf diesem Gerät.",rb).classList.add("setcol"); }
   box.append(el("p","hint mver","Version "+APP_VERSION)); }
 /* Alles zurücksetzen: Urlaube, Schichten, Rhythmus, Einstellungen, Team-Anmeldung auf diesem Gerät – optional auch das Team-Konto */
 function openResetAll(){ const team=FEATURES.team&&typeof TEAM!=="undefined"&&TEAM.s;
@@ -4090,7 +4122,7 @@ $("#help").onclick=()=>openHelp();
 window.addEventListener("hashchange",()=>{ if(!S || !S.onboarded || $("#appui").hidden) return; const h=location.hash;
   if(h.startsWith("#plan=")){ try{ history.replaceState(null,"",location.pathname); }catch(e){} planImport(h.slice(6)); }
   });
-function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").hidden=false; $("#who").textContent=[S.name,sess&&sess.email].filter(Boolean).join(" · "); if(dirty||lsGet(dataKey()+"_dirty")==="1") dirty=true; show("heute"); if(typeof navStack!=="undefined") navStack.length=0; if(typeof updHist==="function") updHist(); if(typeof updBack==="function") updBack();
+function enterApp(){ $("#auth").hidden=true; $("#onb").hidden=true; $("#appui").hidden=false; $("#who").textContent=[S.name,sess&&sess.email].filter(Boolean).join(" · "); if(dirty||lsGet(dataKey()+"_dirty")==="1") dirty=true; show("urlaub"); if(typeof navStack!=="undefined") navStack.length=0; if(typeof updHist==="function") updHist(); if(typeof updBack==="function") updBack();
   if(location.hash.startsWith("#plan=")){ const code=location.hash.slice(6); try{ history.replaceState(null,"",location.pathname); }catch(e){} setTimeout(()=>planImport(code),300); }
   if(typeof teamOnEnter==="function") teamOnEnter();
 }
@@ -4268,7 +4300,7 @@ boot();
 <script src="foto.js"></script>
 <script>
 /* Aktualisierung: Version dieser Datei. Bei jeder neuen Version hochzählen. */
-const APP_VERSION="2026.10.13-103";
+const APP_VERSION="2026.10.14-104";
 let swReg=null;
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>{ swReg=r; }).catch(()=>{});
 /* Holt die neueste Version: Zwischenspeicher leeren und neu laden */
